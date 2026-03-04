@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
@@ -11,19 +11,51 @@
 </head>
 
 <body>
-    <h1>Bem-vindo ao Scout Game!</h1>
-    <p>Este é um jogo de exploração e aventura onde você pode descobrir novos lugares, coletar itens e enfrentar
-        desafios emocionantes. Prepare-se para uma jornada incrível!</p>
-    <h2>Instruções</h2>
-    <ul>
-        <li>Use as setas do teclado para se mover pelo mapa.</li>
-        <li>Pressione a barra de espaço para interagir com objetos e personagens.</li>
-        <li>Coleta itens para melhorar suas habilidades e enfrentar desafios mais difíceis.</li>
-        <li>Explore o mundo e descubra segredos escondidos!</li>
-    </ul>
-    <h2>Boa sorte, aventureiro!</h2>
-    <a href="game.html">Iniciar Jogo</a>
+    <main>
+        <section aria-labelledby="titulo-principal">
+            <h1 id="titulo-principal">Bem-vindo ao Scout Game!</h1>
+            <p>
+                Este é um jogo de exploração e aventura onde você pode descobrir novos lugares, coletar itens e
+                enfrentar
+                desafios emocionantes. Prepare-se para uma jornada incrível!
+            </p>
+            <h2>
+                Implementado até o momento.
+            </h2>
+            <ul>
+                <li>Classe base GameObject.</li>
+                <li>Classes Player, Wall e Tree.</li>
+                <li>
+                    A classe GameObject é responsavel por gerenciar: <br />
+                    - controle do player <br />
+                    - movimentação com smooth <br />
+                    - fisica relacionada a massa e a empurrar coisas <br />
+                    - atribui caracteristicas de objeto estático ou dinâmico <br />
+                    - colisões <br />
+                    - impede objeto de sair da tela
+                </li>
+            </ul>
+        </section>
 
+        <section aria-labelledby="titulo-instrucoes">
+            <h2 id="titulo-instrucoes">Instruções</h2>
+            <ul>
+                <li>Use as setas do teclado para se mover pelo mapa.</li>
+                <li>Pressione a barra de espaço para interagir com objetos e personagens.</li>
+                <li>Colete itens para melhorar suas habilidades e enfrentar desafios mais difíceis.</li>
+                <li>Explore o mundo e descubra segredos escondidos!</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="titulo-final">
+            <h2 id="titulo-final">Boa sorte, aventureiro!</h2>
+            <a href="game.html">Iniciar Jogo</a>
+        </section>
+    </main>
+
+    <footer>
+        <p>Cleiton Torres Machado - Scout Game &copy; 2026</p>
+    </footer>
 </body>
 
 </html>
