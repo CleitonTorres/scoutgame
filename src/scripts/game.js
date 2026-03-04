@@ -7,7 +7,7 @@ const gridSize = 64;
 let characterSelected = 'leo';
 
 //carregamento de imagens das animações do player.
-const pathCharacters = "src/assets/characters/";
+const pathCharacters = "./src/assets/characters/";
 const availablePlayers = {
     lipe: "lipe",
     maria: "maria",
