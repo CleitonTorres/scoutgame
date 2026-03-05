@@ -558,40 +558,7 @@ export class GameObject {
 }
 
 export class Player extends GameObject {
-    constructor(options= {
-            name: 'jogador01',
-            tag: 'Player',
-            physical: {
-                behavior: 'dynamic',   // Player se move
-                speed: 4,              // Mais rápido que padrão
-                mass: 10,              // Pode empurrar objetos leves
-                collision: true,       // Participa de colisão
-                smooth: 8,             // Movimento mais suave
-            },
-            position: {
-                x: 0, //posição x inicial.
-                y: 0 // posição y inicial.
-            },
-            // Configurações de transformação visual
-            transform: {
-                width: 1,     // largura em tiles
-                height: 1,    // altura em tiles
-                scale: 1      // escala visual (multiplicador)
-            },
-            // Configuração das animações
-            animation: {},
-
-            // Debug
-            showHitbox: false,     // desenhar hitbox na tela?
-            offSetHitbox: {x: 0, y: 0},      // margem interna do hitbox visual
-            offSetBoxCollide: {x: 0, y: 0},   // margem do hitbox de colisão
-
-            // Tamanho do grid (ex: 64px por tile)
-            gridSize: 64,
-
-            // Referência do canvas
-            canvas,
-        }) {
+    constructor(options= {}) {        
         super({...options});
     }
 
@@ -609,50 +576,50 @@ export class Player extends GameObject {
     }
 }
 
+/**
+ * Parâmetros defaut para instanciar a classe.
+ * 
+ * {
+        name = '',
+        tag = 'Wall',
+
+        transform = {
+            width = 1,
+            height = 1,
+            scale = 1
+        },
+        position = {
+            x = 0,
+            y = 0
+        },
+        physical = {
+            behavior = 'static',
+            speed = 0,
+            mass = 0,
+            collision = true,
+            smooth = 0
+        },
+
+        animation = {
+            idle: {
+                frames: [];
+                fps: number;
+                loop: boolean;
+            },
+            ...
+        },
+
+        showHitbox = false,
+        offSetHitbox = { x: 0, y: 0 },
+        offSetBoxCollide = { x: 0, y: 0 },
+
+        gridSize = 64,
+        canvas
+    }
+*/
 export class Wall extends GameObject {
-    constructor(options = {
-            name: 'parede01',
-            tag: 'Wall',
-            physical: {
-                behavior: 'static',  // Nunca se move
-                collision: true,     // Sempre bloqueia
-                mass: Infinity,      // Impossível empurrar
-            },
-            position: {
-                x: 0, //posição x inicial.
-                y: 0 // posição y inicial.
-            },
-            transform:{
-                width: 1,
-                height: 1,
-                scale: 1,
-            },
-            // Configuração das animações
-            animation: {},
-
-            transform: {
-                width: 64,     // largura em tiles
-                height: 64,    // altura em tiles
-                scale: 1      // escala visual (multiplicador)
-            },
-
-            // Debug
-            showHitbox: false,     // desenhar hitbox na tela?
-            offSetHitbox: {x: 0, y: 0},      // margem interna do hitbox visual
-            offSetBoxCollide: {x: 0, y: 0},   // margem do hitbox de colisão
-
-            // Tamanho do grid (ex: 64px por tile)
-            gridSize: 64,
-
-            // Referência do canvas
-            canvas,
-        }) {
-        super({
-            ...options,          
-            physical: {                
-                ...options.physical
-            }
-        });
+    constructor(options = {}) {        
+        super({...options});
     }
 
     // Parede não precisa atualizar movimento
@@ -661,38 +628,50 @@ export class Wall extends GameObject {
     }
 }
 
+/**
+ * Parametros default para instanciar a classe.
+ * 
+ * {
+ *      name = '',
+        tag = 'Tree',
+
+        transform = {
+            width = 1,
+            height = 1,
+            scale = 1
+        },
+        position = {
+            x = 0,
+            y = 0
+        },
+        physical = {
+            behavior = 'static',
+            speed = 0,
+            mass = 0,
+            collision = true,
+            smooth = 0
+        },
+
+        animation =  animation = {
+            idle: {
+                frames: [];
+                fps: number;
+                loop: boolean;
+            },
+            ...
+        },
+
+        showHitbox = false,
+        offSetHitbox = { x: 0, y: 0 },
+        offSetBoxCollide = { x: 0, y: 0 },
+
+        gridSize = 64,
+        canvas
+    }
+*/
 export class Tree extends GameObject {
-    constructor(options = {
-            name: 'arvore01',
-            tag: 'Tree',
-            physical: {
-                behavior: 'static',
-                collision: false, // não bloqueia
-            },
-            position: {
-                x: 0, //posição x inicial.
-                y: 0 // posição y inicial.
-            },
-            // Configuração das animações
-            animation: {},
-
-            // Debug
-            showHitbox: false,     // desenhar hitbox na tela?
-            offSetHitbox: 10,      // margem interna do hitbox visual
-            offSetBoxCollide: 0,   // margem do hitbox de colisão
-
-            // Tamanho do grid (ex: 64px por tile)
-            gridSize: 64,
-
-            // Referência do canvas
-            canvas,
-        }) {
-        super({
-            ...options,           
-            physical: {                
-                ...options.physical
-            }
-        });
+    constructor(options = {}) {        
+        super({...options});
     }
 
     draw() {

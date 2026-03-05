@@ -136,6 +136,7 @@ for (const [key, npc] of Object.entries(availableNPCs)) {
 }
 //----------------------------------
 
+
 const player = new Player({
     name: "Cleitinho",
     tag: "Player",
@@ -186,13 +187,13 @@ const walls = [
         name: 'Wall1',
         tag: "Wall",
         position: {x: 4, y: 4},
-        offSetBoxCollide: 0,
-        offSetHitbox: 0,
+        offSetBoxCollide: {x: 0, y: 0},
+        offSetHitbox: {x: 0, y: 0},
         animation: {},
         physical:{
             behavior: 'static',
             collision: true,
-            mass: Infinity
+            mass: Infinity,
         },
         transform:{
             height: 0.5,
@@ -204,8 +205,8 @@ const walls = [
         name: 'Wall2',
         tag: "Wall",
         position: {x: 5, y: 5},
-        offSetBoxCollide: 0,
-        offSetHitbox: 0,
+        offSetBoxCollide: {x: 0, y: 0},
+        offSetHitbox: {x: 0, y: 0},
         animation: {},
         physical:{
             behavior: 'static',
@@ -222,8 +223,8 @@ const walls = [
         name: 'Wall3',
         tag: "Wall",
         position: {x: 6, y: 4},
-        offSetBoxCollide: 0,
-        offSetHitbox: 0,
+        offSetBoxCollide: {x: 0, y: 0},
+        offSetHitbox: {x: 0, y: 0},
         animation: {},
         physical:{
             behavior: 'static',
@@ -242,33 +243,26 @@ const trees = [
     new Tree({
         name: 'Tree1',
         tag: 'Tree',
-        physical:{
-            behavior: 'static',
-            collision: true
-        },
-        animation: {},
         position: {x: 8, y: 6},
         showHitbox: true,
-        collision: true,
-        offSetHitbox: 10,
-        offSetBoxCollide: 10,
-        gridSize: gridSize,
+        physical: {
+            collision: true,
+        },
+        offSetBoxCollide: {x: 0, y: 0},
+        offSetHitbox: {x: 0, y: 0},
         canvas: canvas,        
     }),
     new Tree({
         name: 'Tree2',
         tag: 'Tree',
-        physical:{
-            behavior: 'static',
-            collision: false
-        },
-        animation: {},
         position: {x: 8, y: 8},
+        physical: {
+            collision: false,
+        },
         showHitbox: true,
-        collision: true,
-        offSetHitbox: 10,
-        offSetBoxCollide: 10,
-        gridSize: gridSize,
+        collision: false,
+        offSetBoxCollide: {x: 0, y: 0},
+        offSetHitbox: {x: 0, y: 0},
         canvas: canvas,        
     }),
 ];
@@ -317,7 +311,7 @@ function getInputVector() {
 
 function update() {
     const { inputX, inputY } = getInputVector();
-    npcs.forEach(npc=> npc.update(0, 0))
+    npcs.forEach(npc=> npc.update(0, 0));
     player.update(inputX, inputY, worldObjects);
 }
 
