@@ -50,6 +50,7 @@ const pathAnimations = {
     ]
 }
 
+//teste commit
 //objeto contendo as animaçoes possiveis do player.
 const playerAnimations = await loadCharacterAnimations(pathAnimations, 6, true);
 
