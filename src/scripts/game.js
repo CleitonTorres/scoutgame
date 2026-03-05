@@ -16,6 +16,7 @@ const availablePlayers = {
     marco: "amarco",
     ru: "ru"
 };
+// manifesto com os caminhos dos sprites para animação do player.
 const pathAnimations = {
     idle: [
         `${pathCharacters}${availablePlayers[characterSelected]}/idle/down/0.png`,
@@ -48,7 +49,11 @@ const pathAnimations = {
         `${pathCharacters}${availablePlayers[characterSelected]}/walk/right/3.png`,
     ]
 }
-const playerAnimations = await loadCharacterAnimations(pathAnimations);
+
+//objeto contendo as animaçoes possiveis do player.
+const playerAnimations = await loadCharacterAnimations(pathAnimations, 6, true);
+
+// recebe o caminho da imagem a ser carregada.
 function loadImage(src) {
     return new Promise((resolve, reject) => {
         const img = new Image();
@@ -58,7 +63,12 @@ function loadImage(src) {
     });
 }
 
-async function loadCharacterAnimations(pathToAnimations) {
+/**
+ * Recebe os caminhos de sprites que serão usados em animações.
+ * @param {*} pathToAnimations - objeto contendo os caminhos dos sprites de cada estado de animação.
+ * @returns {Promise<{string: {frames: [], fps: number, loop: boolean }}>} - um objeto com com as animaçoes possiveis, já com imagens já carregadas.
+ */
+async function loadCharacterAnimations(pathToAnimations, fps=6, loop=true) {
   const loadFrames = async (paths = []) =>
     Promise.all(paths.map(loadImage));
 
@@ -67,8 +77,8 @@ async function loadCharacterAnimations(pathToAnimations) {
   for (const key in pathToAnimations) {
     animations[key] = {
         frames: await loadFrames(pathToAnimations[key]),
-        fps: 6,
-        loop: true
+        fps,
+        loop
     };
   }
 
@@ -83,6 +93,8 @@ const availableNPCs = {
     npc01: "npc01",
     npc02: "npc02"
 }
+
+//carrega as animações de cada NPC disponível.
 const npcsAnimations = {};
 for (const [key, npc] of Object.entries(availableNPCs)) {
 
@@ -119,7 +131,7 @@ for (const [key, npc] of Object.entries(availableNPCs)) {
         ]
     };
 
-    npcsAnimations[key] = await loadCharacterAnimations(paths);
+    npcsAnimations[key] = await loadCharacterAnimations(paths, 4, true);
 }
 //----------------------------------
 
@@ -133,10 +145,15 @@ const player = new Player({
         smooth: 6,
         speed: 3
     },
+    transform:{
+        width: 1,
+        height: 1,
+        scale: 1,
+    },
     position:{x: 1, y: 1},
-    offSetBoxCollide: 10,
-    offSetHitbox: 10,
-    showHitbox: false,
+    offSetBoxCollide: {x: 15, y: 0},
+    offSetHitbox: {x: 15, y: 0},
+    showHitbox: true,
     animation: playerAnimations,
     canvas,
     gridSize
@@ -154,9 +171,9 @@ const npcs = [
         speed: 3
     },
     position:{x: 10, y: 1},
-    offSetBoxCollide: 0,
-    offSetHitbox: 0,
-    showHitbox: false,
+    offSetBoxCollide: {x: 15, y: 0},
+    offSetHitbox: {x: 15, y: 0},
+    showHitbox: true,
     animation: npcsAnimations.baloo,
     canvas,
     gridSize
@@ -168,7 +185,6 @@ const walls = [
         name: 'Wall1',
         tag: "Wall",
         position: {x: 4, y: 4},
-        showHitbox: true,
         offSetBoxCollide: 0,
         offSetHitbox: 0,
         animation: {},
@@ -177,14 +193,16 @@ const walls = [
             collision: true,
             mass: Infinity
         },
+        transform:{
+            height: 0.5,
+        },
         gridSize,
         canvas,        
     }),
     new Wall({
         name: 'Wall2',
         tag: "Wall",
-        position: {x: 5, y: 4},
-        showHitbox: true,
+        position: {x: 5, y: 5},
         offSetBoxCollide: 0,
         offSetHitbox: 0,
         animation: {},
@@ -192,6 +210,9 @@ const walls = [
             behavior: 'static',
             collision: true,
             mass: Infinity
+        },
+        transform:{
+            height: 0.5,
         },
         gridSize,
         canvas,        
@@ -200,7 +221,6 @@ const walls = [
         name: 'Wall3',
         tag: "Wall",
         position: {x: 6, y: 4},
-        showHitbox: true,
         offSetBoxCollide: 0,
         offSetHitbox: 0,
         animation: {},
@@ -208,6 +228,9 @@ const walls = [
             behavior: 'static',
             collision: true,
             mass: Infinity
+        },
+        transform:{
+            height: 0.5,
         },
         gridSize,
         canvas,        
@@ -293,6 +316,7 @@ function getInputVector() {
 
 function update() {
     const { inputX, inputY } = getInputVector();
+    npcs.forEach(npc=> npc.update(0, 0))
     player.update(inputX, inputY, worldObjects);
 }
 

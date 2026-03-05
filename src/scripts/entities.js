@@ -12,50 +12,44 @@
  * Outros objetos devem herdar dela.
  */
 export class GameObject {
-    constructor({
-        // Nome interno do objeto (ex: "Player", "Tree_01")
-        name,
+    constructor(options = {}) {
+        const {
+            name = '',
+            tag = 'GameObject',
 
-        // Categoria ou tipo do objeto (útil para filtros e regras)
-        tag = 'GameObject',
+            transform = {},
+            position = {},
+            physical = {},
 
-        // Configurações de transformação visual
-        transform: {
-            width = 1,     // largura em tiles
-            height = 1,    // altura em tiles
-            scale = 1      // escala visual (multiplicador)
-        } = {},
+            animation = {},
 
-        // Posição no grid (coordenadas lógicas, não em pixels)
-        position: {
+            showHitbox = false,
+            offSetHitbox = { x: 0, y: 0 },
+            offSetBoxCollide = { x: 0, y: 0 },
+
+            gridSize = 64,
+            canvas
+        } = options;
+
+        const {
+            width = 1,
+            height = 1,
+            scale = 1
+        } = transform;
+
+        const {
             x = 0,
             y = 0
-        } = {},
+        } = position;
 
-        // Configurações físicas
-        physical: {
-            behavior = 'static', // 'static' ou 'dynamic'
-            speed = 2,           // velocidade base
-            mass = 0,            // massa (usada para empurrar objetos)
-            collision = false,   // participa de colisão?
-            smooth = 6,          // fator de suavização do movimento
-        } = {},        
-
-        // Configuração das animações
-        animation = {},
-
-        // Debug
-        showHitbox = false,     // desenhar hitbox na tela?
-        offSetHitbox = 10,      // margem interna do hitbox visual
-        offSetBoxCollide = 0,   // margem do hitbox de colisão
-
-        // Tamanho do grid (ex: 64px por tile)
-        gridSize = 64,
-
-        // Referência do canvas
-        canvas,
-    } = {}) {
-
+        const {
+            behavior = 'static',
+            speed = 2,
+            mass = 0,
+            collision = false,
+            smooth = 6
+        } = physical;
+        
         // ------------------------
         // IDENTIFICAÇÃO
         // ------------------------
@@ -114,10 +108,10 @@ export class GameObject {
         // ------------------------
         // Representa a área real de colisão do objeto.
         this.hitbox = {
-            x: this.x * this.gridSize + this.offSetHitbox,
-            y: this.y * this.gridSize + this.offSetHitbox,
-            width: this.gridSize - (this.offSetHitbox * 2),
-            height: this.gridSize - (this.offSetHitbox * 2)
+            x: this.x * this.gridSize + this.offSetHitbox.x,
+            y: this.y * this.gridSize + this.offSetHitbox.y,
+            width: (this.width * this.gridSize) - (this.offSetHitbox.x * 2),
+            height: (this.height * this.gridSize) - (this.offSetHitbox.y * 2)
         };
     }
 
@@ -351,8 +345,8 @@ export class GameObject {
 
     // Atualiza o hitbox para a posição atual do jogador
     updateHitbox() {
-        this.hitbox.x = this.x * this.gridSize + this.offSetHitbox;
-        this.hitbox.y = this.y * this.gridSize + this.offSetHitbox;
+        this.hitbox.x = this.x * this.gridSize + this.offSetHitbox.x;
+        this.hitbox.y = this.y * this.gridSize + this.offSetHitbox.y;
     }
 
     // Desenha o hitbox do jogador, se a opção estiver ativada
@@ -366,10 +360,10 @@ export class GameObject {
     // Retorna o hitbox para a posição de colisão, que pode ser diferente do hitbox de renderização
     getHitboxCollideAt(nextX, nextY) {
         return {
-            x: nextX * this.gridSize + this.offSetBoxCollide,
-            y: nextY * this.gridSize + this.offSetBoxCollide,
-            width: this.gridSize - (this.offSetBoxCollide * 2),
-            height: this.gridSize - (this.offSetBoxCollide * 2)
+            x: nextX * this.gridSize + this.offSetBoxCollide.x,
+            y: nextY * this.gridSize + this.offSetBoxCollide.y,
+            width: (this.width * this.gridSize) - (this.offSetBoxCollide.x * 2),
+            height: (this.height * this.gridSize) - (this.offSetBoxCollide.y * 2)
         };
     }
 
@@ -578,13 +572,19 @@ export class Player extends GameObject {
                 x: 0, //posição x inicial.
                 y: 0 // posição y inicial.
             },
+            // Configurações de transformação visual
+            transform: {
+                width: 1,     // largura em tiles
+                height: 1,    // altura em tiles
+                scale: 1      // escala visual (multiplicador)
+            },
             // Configuração das animações
             animation: {},
 
             // Debug
             showHitbox: false,     // desenhar hitbox na tela?
-            offSetHitbox: 10,      // margem interna do hitbox visual
-            offSetBoxCollide: 0,   // margem do hitbox de colisão
+            offSetHitbox: {x: 0, y: 0},      // margem interna do hitbox visual
+            offSetBoxCollide: {x: 0, y: 0},   // margem do hitbox de colisão
 
             // Tamanho do grid (ex: 64px por tile)
             gridSize: 64,
@@ -592,12 +592,7 @@ export class Player extends GameObject {
             // Referência do canvas
             canvas,
         }) {
-        super({
-            ...options,
-            physical: {
-                ...options.physical
-            }
-        });
+        super({...options});
     }
 
     /**
@@ -627,13 +622,24 @@ export class Wall extends GameObject {
                 x: 0, //posição x inicial.
                 y: 0 // posição y inicial.
             },
+            transform:{
+                width: 1,
+                height: 1,
+                scale: 1,
+            },
             // Configuração das animações
             animation: {},
 
+            transform: {
+                width: 64,     // largura em tiles
+                height: 64,    // altura em tiles
+                scale: 1      // escala visual (multiplicador)
+            },
+
             // Debug
             showHitbox: false,     // desenhar hitbox na tela?
-            offSetHitbox: 10,      // margem interna do hitbox visual
-            offSetBoxCollide: 0,   // margem do hitbox de colisão
+            offSetHitbox: {x: 0, y: 0},      // margem interna do hitbox visual
+            offSetBoxCollide: {x: 0, y: 0},   // margem do hitbox de colisão
 
             // Tamanho do grid (ex: 64px por tile)
             gridSize: 64,
