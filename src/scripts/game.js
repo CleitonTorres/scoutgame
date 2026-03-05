@@ -1,6 +1,7 @@
 import { Player } from "./entities/Player.js";
 import { Tree } from "./entities/Tree.js";
 import { Wall } from "./entities/Wall.js";
+import { layers } from "./settings/layers.js";
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -138,7 +139,6 @@ for (const [key, npc] of Object.entries(availableNPCs)) {
 }
 //----------------------------------
 
-
 const player = new Player({
     name: "Cleitinho",
     tag: "Player",
@@ -155,12 +155,13 @@ const player = new Player({
         scale: 1,
     },
     position:{x: 1, y: 1},
+    sortLayer: layers.player,
     offSetBoxCollide: {x: 15, y: 0},
     offSetHitbox: {x: 15, y: 0},
-    showHitbox: true,
+    showHitbox: false,
     animation: playerAnimations,
     canvas,
-    gridSize
+    gridSize,
 });
 
 const npcs = [
@@ -177,7 +178,8 @@ const npcs = [
     position:{x: 10, y: 1},
     offSetBoxCollide: {x: 15, y: 0},
     offSetHitbox: {x: 15, y: 0},
-    showHitbox: true,
+    sortLayer: layers.ground,
+    showHitbox: false,
     animation: npcsAnimations.baloo,
     canvas,
     gridSize
@@ -188,6 +190,7 @@ const walls = [
     new Wall({
         name: 'Wall1',
         tag: "Wall",
+        sortLayer: layers.ground,
         position: {x: 4, y: 4},
         offSetBoxCollide: {x: 0, y: 0},
         offSetHitbox: {x: 0, y: 0},
@@ -206,6 +209,7 @@ const walls = [
     new Wall({
         name: 'Wall2',
         tag: "Wall",
+        sortLayer: layers.ground,
         position: {x: 5, y: 5},
         offSetBoxCollide: {x: 0, y: 0},
         offSetHitbox: {x: 0, y: 0},
@@ -224,6 +228,7 @@ const walls = [
     new Wall({
         name: 'Wall3',
         tag: "Wall",
+        sortLayer: layers.ground,
         position: {x: 6, y: 4},
         offSetBoxCollide: {x: 0, y: 0},
         offSetHitbox: {x: 0, y: 0},
@@ -245,25 +250,26 @@ const trees = [
     new Tree({
         name: 'Tree1',
         tag: 'Tree',
-        position: {x: 8, y: 6},
+        sortLayer: layers.ground,
+        position: {x: 9, y: 5},
         showHitbox: true,
         physical: {
             collision: true,
         },
-        offSetBoxCollide: {x: 0, y: 0},
+        offSetBoxCollide: {x: 10, y: 0},
         offSetHitbox: {x: 0, y: 0},
         canvas: canvas,        
     }),
     new Tree({
         name: 'Tree2',
         tag: 'Tree',
+        sortLayer: layers.ground,
         position: {x: 8, y: 8},
         physical: {
-            collision: false,
+            collision: true,
         },
         showHitbox: true,
-        collision: false,
-        offSetBoxCollide: {x: 0, y: 0},
+        offSetBoxCollide: {x: 30, y: 50},
         offSetHitbox: {x: 0, y: 0},
         canvas: canvas,        
     }),
@@ -321,11 +327,17 @@ function draw() {
     // Limpa o canvas antes de desenhar a próxima frame
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    for (const wall of walls) wall.draw();
-    for (const tree of trees) tree.draw();
+    const renderQueue = [...worldObjects, player];
+    renderQueue.sort((a, b) => {
+        // 1) layer base (menor primeiro, maior desenha por último = fica na frente)
+        const layerDiff = (a.sortLayer ?? 0) - (b.sortLayer ?? 0);
+        if (layerDiff !== 0) return layerDiff;
 
-    for (const npc of npcs) npc.draw();
-    player.draw();
+        // 2) desempate opcional por Y (bom para profundidade)
+        return (a.y ?? 0) - (b.y ?? 0);
+    });
+
+    for (const obj of renderQueue) obj.draw();
 }
 
 function gameLoop() {

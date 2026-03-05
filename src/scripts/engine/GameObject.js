@@ -1,4 +1,6 @@
-import { drawAnimation, hasAnimation, normalizeAnimation, setAnimationState, updateAnimation } from "./Animation.js";
+import { drawAnimation, normalizeAnimation, setAnimationState, updateAnimation } from "./Animation.js";
+import { getCollider } from "./GetColliders.js";
+import { isOverlapping } from "./IsOverLapping.js";
 
 /**
  * GameObject
@@ -18,6 +20,7 @@ export class GameObject {
         const {
             name = '',
             tag = 'GameObject',
+            sortLayer = 0,
 
             transform = {},
             position = {},
@@ -40,8 +43,8 @@ export class GameObject {
         } = transform;
 
         const {
-            x = 0,
-            y = 0
+            x = 0, // em tiles
+            y = 0 // em tiles
         } = position;
 
         const {
@@ -57,6 +60,8 @@ export class GameObject {
         // ------------------------
         this.name = name;
         this.tag = tag;
+        this.sortLayer = sortLayer;
+        this.currentSortLayer = 0;
 
         // ------------------------
         // TRANSFORMAÇÃO
@@ -141,41 +146,6 @@ export class GameObject {
         };
     }
 
-    // Verifica colisão entre dois retângulos (AABB collision)
-    // Técnica clássica de colisão retangular.
-    // Essa técnica é chamada de Axis-Aligned Bounding Box (AABB).
-    isOverlapping(objectA, objectB) {
-        return (
-            objectA.x < objectB.x + objectB.width &&
-            objectA.x + objectA.width > objectB.x &&
-            objectA.y < objectB.y + objectB.height &&
-            objectA.y + objectA.height > objectB.y
-        );
-    }
-
-    // Verifica se há um objeto bloqueando a posição de destino
-    getBlockingObject(nextX, nextY, collidables = []) {
-        if (!this.collision) return null;
-
-        // Usa o hitbox de colisão para verificar bloqueios, permitindo que o hitbox de renderização seja diferente
-        const nextHitbox = this.getHitboxCollideAt(nextX, nextY);
-
-        // Verifica cada objeto colidível para ver se há uma colisão
-        for (const object of collidables) {
-            if (!object || object === this || !object.collision) continue;
-
-            const objectHitbox = object.getHitboxCollideAt
-                ? object.getHitboxCollideAt(object.x, object.y)
-                : object.hitbox;
-
-            if (objectHitbox && this.isOverlapping(nextHitbox, objectHitbox)) {
-                return object;
-            }
-        }
-
-        return null;
-    }
-
     isStatic() {
         return this.behavior === 'static';
     }
@@ -197,7 +167,7 @@ export class GameObject {
 
     // Verifica se o jogador pode ocupar a posição de destino, considerando os objetos colidíveis
     canOccupy(nextX, nextY, collidables = [], ignore = null) {
-        const blocker = this.getBlockingObject(nextX, nextY, collidables.filter((obj) => obj !== ignore));
+        const blocker = getCollider(nextX, nextY, collidables.filter((obj) => obj !== ignore), this);
         return !blocker;
     }
 
@@ -255,7 +225,7 @@ export class GameObject {
     // considerando bloqueios e empurrões
     resolveAxis(nextX, nextY, deltaX, deltaY, collidables = []) {
         // Verifica se há um bloqueio na posição de destino
-        const blocker = this.getBlockingObject(nextX, nextY, collidables);
+        const blocker = getCollider(nextX, nextY, collidables, this);
 
         // Se não houver bloqueio, move o jogador para a posição de destino
         if (!blocker) {
@@ -266,7 +236,7 @@ export class GameObject {
 
         // Se houver um bloqueio, tenta empurrar o objeto bloqueador para a posição de destino
         const pushed = this.tryPush(blocker, deltaX, deltaY, collidables);
-        if (pushed && !this.getBlockingObject(nextX, nextY, collidables)) {
+        if (pushed && !getCollider(nextX, nextY, collidables, this)) {
             this.x = nextX;
             this.y = nextY;
             return true;

@@ -157,7 +157,7 @@ a {
     color: #fff;
     text-decoration: none;
     background:
-        linear-gradient(120deg, var(--blue-700), var(--grenat-700));
+        linear-gradient(120deg, var(--blue-700), var(--grenat-700)) !important;
     transition: transform 0.2s ease, filter 0.2s ease;
 }
 
