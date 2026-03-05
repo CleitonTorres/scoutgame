@@ -1,4 +1,6 @@
-import { Player, Wall, Tree } from './entities.js';
+import { Player } from "./entities/Player.js";
+import { Tree } from "./entities/Tree.js";
+import { Wall } from "./entities/Wall.js";
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
