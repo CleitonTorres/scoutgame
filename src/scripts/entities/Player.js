@@ -23,39 +23,23 @@ export class Player extends GameObject {
         super.update(inputX, inputY, collidables);
 
         // layer dinâmica do player.
-        for (const object of collidables) {
-            if(isOverlapping(this, object) && this.tag === "Player"){
+        if(this.tag === "Player"){
+            const collided =  collidables.find((object)=> isOverlapping(this, object));
+            if(collided){
                 //ordena a layer do player de acordo com o colisor.
-                sortLayer(this, object, this.gridSize); 
+                sortLayer(this, collided, this.gridSize); 
                 this.sortLayer = this.currentSortLayer;
-            }else{
-                this.sortLayer = layers.player;
             }
         }
     }
 
     draw(){
         const ctx = this.canvas.getContext("2d");
-        this.drawHP(ctx); //desenha o HP do personagem.
         this.drawLabel(ctx); //desenha o rótulo do personagem.
 
         super.draw();        
     }
 
-    drawHP(ctx){
-        if(!ctx) return;
-
-        //desenha a barra do plano de fundo do HP.
-        ctx.fillStyle = "grey";
-        ctx.fillRect(10, 10, 100, 20);
-
-        //desenha a barra do plano superior do HP.
-        ctx.fillStyle = "red";
-        ctx.fillRect(10, 10, this.hp, 20);
-
-        //salva o estado atual do contexto antes de transformar.
-        ctx.save();
-    }
     drawLabel(ctx){
         if(!ctx) return;
 

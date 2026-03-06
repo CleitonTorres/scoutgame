@@ -2,7 +2,7 @@ import { Player } from "../entities/Player.js";
 import { GameObject } from "./GameObject.js";
 
 /**
- * Função para tornar a disposição de layers dinâmica. De acordo com a posição vertical do player.
+ * Função que seta a layers do player pela profundidade (Y) entre ele e o colisor.
  * @param {Player} entityA 
  * @param {GameObject} entityB 
  * @param {number} gridsize 

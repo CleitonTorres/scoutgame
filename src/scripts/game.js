@@ -2,10 +2,12 @@ import { Player } from "./entities/Player.js";
 import { Tree } from "./entities/Tree.js";
 import { Wall } from "./entities/Wall.js";
 import { layers } from "./settings/layers.js";
+import { UIManager } from "./settings/UIManager.js";
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const gridSize = 64;
+const ui = new UIManager();
 
 let characterSelected = 'leo';
 
@@ -53,7 +55,9 @@ const pathAnimations = {
     ]
 }
 
-//teste commit
+//mostra a mensagem de "carregando..."
+ui.showWarning("Carregando jogo...", 0);
+
 //objeto contendo as animaçoes possiveis do player.
 const playerAnimations = await loadCharacterAnimations(pathAnimations, 6, true);
 
@@ -139,6 +143,10 @@ for (const [key, npc] of Object.entries(availableNPCs)) {
 }
 //----------------------------------
 
+//esconde a mensagem de "carregando ..."
+ui.hideWarning();
+
+//----------------------
 const player = new Player({
     name: "Cleitinho",
     tag: "Player",
@@ -149,12 +157,7 @@ const player = new Player({
         smooth: 6,
         speed: 3
     },
-    transform:{
-        width: 1,
-        height: 1,
-        scale: 1,
-    },
-    position:{x: 1, y: 1},
+    position:{x: 1, y: 2},
     sortLayer: layers.player,
     offSetBoxCollide: {x: 15, y: 0},
     offSetHitbox: {x: 15, y: 0},
@@ -166,7 +169,7 @@ const player = new Player({
 
 const npcs = [
     new Player({
-    name: "Jão",
+    name: "Baloo",
     tag: "NPC",
     physical:{
         behavior: "dynamic",
@@ -176,7 +179,7 @@ const npcs = [
         speed: 3
     },
     position:{x: 10, y: 1},
-    offSetBoxCollide: {x: 15, y: 0},
+    offSetBoxCollide: {x: 20, y: 30},
     offSetHitbox: {x: 15, y: 0},
     sortLayer: layers.ground,
     showHitbox: false,
@@ -256,7 +259,7 @@ const trees = [
         physical: {
             collision: true,
         },
-        offSetBoxCollide: {x: 10, y: 0},
+        offSetBoxCollide: {x: 30, y: 50},
         offSetHitbox: {x: 0, y: 0},
         canvas: canvas,        
     }),
@@ -265,6 +268,32 @@ const trees = [
         tag: 'Tree',
         sortLayer: layers.ground,
         position: {x: 8, y: 8},
+        physical: {
+            collision: true,
+        },
+        showHitbox: true,
+        offSetBoxCollide: {x: 30, y: 50},
+        offSetHitbox: {x: 0, y: 0},
+        canvas: canvas,        
+    }),
+    new Tree({
+        name: 'Tree2',
+        tag: 'Tree',
+        sortLayer: layers.ground,
+        position: {x: 2, y: 8},
+        physical: {
+            collision: true,
+        },
+        showHitbox: true,
+        offSetBoxCollide: {x: 30, y: 50},
+        offSetHitbox: {x: 0, y: 0},
+        canvas: canvas,        
+    }),
+    new Tree({
+        name: 'Tree2',
+        tag: 'Tree',
+        sortLayer: layers.ground,
+        position: {x: 14, y: 10},
         physical: {
             collision: true,
         },
@@ -321,12 +350,14 @@ function update() {
     const { inputX, inputY } = getInputVector();
     npcs.forEach(npc=> npc.update(0, 0));
     player.update(inputX, inputY, worldObjects);
+    ui.setPlayerInfo(player);
 }
 
 function draw() {
     // Limpa o canvas antes de desenhar a próxima frame
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    //desenha cada elemento de acordo com sua layer (profundidade)
     const renderQueue = [...worldObjects, player];
     renderQueue.sort((a, b) => {
         // 1) layer base (menor primeiro, maior desenha por último = fica na frente)
@@ -336,19 +367,38 @@ function draw() {
         // 2) desempate opcional por Y (bom para profundidade)
         return (a.y ?? 0) - (b.y ?? 0);
     });
-
     for (const obj of renderQueue) obj.draw();
 }
 
 function gameLoop() {
     update();
     draw();
-
     requestAnimationFrame(gameLoop);
 }
 
 document.addEventListener('keydown', (event) => {
     updateInputState(event.key, true);
+
+    if (event.repeat) return;
+
+    //ao teclar h simula um aviso na tela.
+    if (event.key === 'h' || event.key === 'H') {
+        ui.showWarning("Aviso: sistema de UI HTML ativo.");
+    }
+
+    //ao teclar j, simula um bação de diálogo na tela.
+    if (event.key === 'j' || event.key === 'J') {
+        ui.toggleDialog({
+            speaker: "Guia",
+            text: "Esta e uma base para seus futuros baloes de dialogo."
+        });
+    }
+
+    //oculta os UI se teclar esc.
+    if (event.key === 'Escape') {
+        ui.hideDialog();
+        ui.hideWarning();
+    }
 });
 
 document.addEventListener('keyup', (event) => {

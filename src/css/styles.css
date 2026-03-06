@@ -179,6 +179,98 @@ canvas {
     background: var(--canvas-background-color);
 }
 
+.game-shell {
+    position: relative;
+    width: fit-content;
+    max-width: 100%;
+}
+
+#ui-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.ui-panel {
+    background: rgba(6, 16, 31, 0.82);
+    border: 1px solid rgba(172, 209, 255, 0.34);
+    border-radius: 10px;
+    color: #f8fbff;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+}
+
+#ui-hud {
+    width: fit-content;
+    min-width: 150px;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    line-height: 1.25;
+}
+
+#ui-hud p {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 0.9rem;
+    color: #f8fbff;
+}
+
+#ui-hud p + p {
+    margin-top: 4px;
+}
+
+.ui-warning {
+    align-self: center;
+    margin-top: auto;
+    margin-bottom: auto;
+    max-width: min(90%, 560px);
+    padding: 14px 18px;
+    font-weight: 600;
+    text-align: center;
+    border-color: rgba(255, 192, 142, 0.45);
+    background: rgba(92, 37, 11, 0.86);
+}
+
+.ui-dialog {
+    align-self: center;
+    width: min(94%, 720px);
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    border-color: rgba(195, 223, 255, 0.42);
+}
+
+.ui-dialog-speaker {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #9ed0ff;
+}
+
+.ui-dialog-text {
+    margin: 8px 0 0 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 1rem;
+    line-height: 1.35;
+    color: #f8fbff;
+}
+
+.is-hidden {
+    display: none;
+}
+
 .container {
     width: 100%;
     min-height: 100vh;
@@ -200,6 +292,18 @@ canvas {
     }
 
     a {
+        width: 100%;
+    }
+
+    #ui-overlay {
+        padding: 10px;
+    }
+
+    #ui-hud {
+        font-size: 0.82rem;
+    }
+
+    .ui-dialog {
         width: 100%;
     }
 }
