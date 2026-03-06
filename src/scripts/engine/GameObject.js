@@ -1,6 +1,5 @@
 import { drawAnimation, normalizeAnimation, setAnimationState, updateAnimation } from "./Animation.js";
 import { getCollider } from "./GetColliders.js";
-import { isOverlapping } from "./IsOverlapping0.js";
 
 /**
  * GameObject
