@@ -1,6 +1,6 @@
 import { Player } from "../entities/Player.js";
 import { GameObject } from "./GameObject.js";
-import { isOverlapping } from "./IsOverLapping.js";
+import { isOverlapping } from "./IsOverlapping0.js";
 
  // Verifica se há um objeto bloqueando/colidindo a posição de destino
  /**

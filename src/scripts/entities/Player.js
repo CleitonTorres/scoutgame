@@ -1,5 +1,5 @@
 import { GameObject } from "../engine/GameObject.js";
-import { isOverlapping } from "../engine/IsOverLapping.js";
+import { isOverlapping } from "../engine/IsOverlapping0.js";
 import { sortLayer } from "../engine/SortLayer.js";
 
 export class Player extends GameObject {
