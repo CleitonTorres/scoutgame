@@ -1,8 +1,10 @@
 import { Player } from "./entities/Player.js";
+import { Ballon } from "./entities/Ballon.js";
 import { Tree } from "./entities/Tree.js";
 import { Wall } from "./entities/Wall.js";
 import { layers } from "./settings/layers.js";
 import { UIManager } from "./settings/UIManager.js";
+import { getRadiusToSpaw } from "./Math/GetRadiusToSpaw.js";
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -197,6 +199,7 @@ const walls = [
         position: {x: 4, y: 4},
         offSetBoxCollide: {x: 0, y: 0},
         offSetHitbox: {x: 0, y: 0},
+        showHitbox: true,
         animation: {},
         physical:{
             behavior: 'static',
@@ -304,6 +307,7 @@ const trees = [
     }),
 ];
 
+//objetos em cena.
 const worldObjects = [...npcs, ...walls, ...trees];
 
 const keysPressed = {
@@ -347,9 +351,21 @@ function getInputVector() {
 }
 
 function update() {
+    //atualiza dados dos NPCs e do Player.
     const { inputX, inputY } = getInputVector();
-    npcs.forEach(npc=> npc.update(0, 0));
+    
     player.update(inputX, inputY, worldObjects);
+    
+    //atual dados dos objetos de cena que precisam ser atualizados.
+    for (let i = worldObjects.length - 1; i >= 0; i--) {
+        const obj = worldObjects[i];
+        if(obj.tag && ["Ballon", "NPC"].includes(obj.tag)) {
+            obj.update(0, 0, [player, ...worldObjects]);
+            if(obj.destroyed) worldObjects.splice(i, 1);
+        }
+    }
+    
+    //atualiza dados do UI.
     ui.setPlayerInfo(player);
 }
 
@@ -381,6 +397,32 @@ document.addEventListener('keydown', (event) => {
 
     if (event.repeat) return;
 
+    if (event.code === "Space") {
+        event.preventDefault();
+        
+        //pegar a posição para spawnar o balão pelo centro do player.
+        const {spawnX, spawnY} = getRadiusToSpaw(player, 10, gridSize);
+
+        //insere a instância no array de objetos globais para ser desenhado.
+        worldObjects.push(new Ballon({
+            name: `Ballon-${Date.now()}`,
+            tag: "Ballon",
+            position: { x: spawnX, y: spawnY },
+            direction: player.facingDirection,
+            physical:{
+                collision: true,
+                mass: 1
+            },
+            owner: player,
+            sortLayer: layers.player,
+            offSetBoxCollide: { x: 0, y: 0 },
+            offSetHitbox: { x: 0, y: 0 },
+            showHitbox: true,
+            canvas,
+            gridSize,
+        }));
+    }
+
     //ao teclar h simula um aviso na tela.
     if (event.key === 'h' || event.key === 'H') {
         ui.showWarning("Aviso: sistema de UI HTML ativo.");
@@ -406,3 +448,4 @@ document.addEventListener('keyup', (event) => {
 });
 
 gameLoop();
+

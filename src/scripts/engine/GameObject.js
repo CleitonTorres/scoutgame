@@ -153,10 +153,10 @@ export class GameObject {
         return this.behavior === 'dynamic' || this.behavior === 'dinamic';
     }
 
-    // Garante que o jogador não saia dos limites do canvas
+    // Garante que o objeto não saia dos limites do canvas
     clampToCanvas(nextX, nextY) {
-        const limitCanvasX = this.canvas.width / this.gridSize - 1;
-        const limitCanvasY = this.canvas.height / this.gridSize - 1;
+        const limitCanvasX = this.canvas.width / (this.width * this.gridSize) - 1;
+        const limitCanvasY = this.canvas.height / (this.height * this.gridSize) - 1;
 
         return {
             x: Math.max(0, Math.min(limitCanvasX, nextX)),

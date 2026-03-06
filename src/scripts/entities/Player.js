@@ -1,5 +1,5 @@
 import { GameObject } from "../engine/GameObject.js";
-import { isOverlapping } from "../engine/IsOverlapping0.js";
+import { isOverlapping } from "../engine/IsOverlapping.js";
 import { sortLayer } from "../engine/SortLayer.js";
 
 export class Player extends GameObject {
@@ -7,6 +7,7 @@ export class Player extends GameObject {
         super({...options});
         
         this.hp = 100; //vida do personagem.
+        this.facingDirection = { x: 0, y: 1 };
     }
 
     /**
@@ -18,6 +19,17 @@ export class Player extends GameObject {
      * - Ataque
      */
     update(inputX, inputY, collidables = []) {
+        const moving = Math.abs(inputX) > 0.001 || Math.abs(inputY) > 0.001;
+        if (moving) {
+            //hypot calcula a distância de um vetor, mais útil para estabilizar o movimento na diagonal.
+            //hypot realiza o calculo de pitagoras para estabelecer um valor equilibrado para o movimento diagonal (hipotenusa)
+            const length = Math.hypot(inputX, inputY) || 1;
+            this.facingDirection = {
+                x: inputX / length,
+                y: inputY / length,
+            };
+        }
+
         // Chama comportamento base de movimento
         super.update(inputX, inputY, collidables);
 

@@ -1,6 +1,6 @@
 import { Player } from "../entities/Player.js";
 import { GameObject } from "./GameObject.js";
-import { isOverlapping } from "./IsOverlapping0.js";
+import { isOverlapping } from "./IsOverlapping.js";
 
  // Verifica se há um objeto bloqueando/colidindo a posição de destino
  /**
@@ -18,19 +18,21 @@ export function getCollider(nextX, nextY, collidables = [], entity) {
     // pega o collide (área de colisão) deste (this) objeto.
     const nextHitbox = entity.getHitboxCollideAt(nextX, nextY);
 
-    // Verifica cada objeto colidível para ver se há uma colisão
-    for (const object of collidables) {
-        if (!object || object === entity || !object.collision) continue;
+    // Verifica cada objeto colidível para ver se há uma 
+    let object = null;
+    for (const obj of collidables) {
+        if (!obj || obj === entity || !obj.collision) continue;
 
         //pega a área de colisão do outro objeto.
-        const objectCollide = object.getHitboxCollideAt
-            ? object.getHitboxCollideAt(object.x, object.y)
-            : object.hitbox; //se não tiver um collide pega a área de hitbox padrão.
+        const objectCollide = obj.getHitboxCollideAt
+            ? obj.getHitboxCollideAt(obj.x, obj.y)
+            : obj.hitbox; //se não tiver um collide pega a área de hitbox padrão.
 
         if (objectCollide && isOverlapping(nextHitbox, objectCollide)) {
-            return object;
+            object = obj;
+            break;
         }
     }
 
-    return null;
+    return object;
 }

@@ -10,7 +10,7 @@ import { GameObject } from "./GameObject.js";
 export function sortLayer(entityA, entityB, gridsize){
     if(!entityA.x || !entityB.y || !gridsize) return;
 
-    const posyA = entityA.y * gridsize; //converte a posição logica para pixel.
+    const posyA = entityA.y * gridsize; //converte a posição logica (tile) para pixel.
     const posyB = entityB.y * gridsize; //converte a posição logica para pixel.
 
     if(posyA < posyB){
