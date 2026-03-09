@@ -1,6 +1,7 @@
 export const layers = {
     background: 0,
     ground: 2,
-    player: 3,
-    forground: 4
+    underFloor: 4,
+    player: 6,
+    forground: 8
 }

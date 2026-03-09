@@ -1,11 +1,11 @@
 import { GameObject } from "../engine/GameObject.js";
 import { isOverlapping } from "../engine/IsOverlapping.js";
 import { sortLayer } from "../engine/SortLayer.js";
+import { layers } from "../settings/layers.js";
 
 export class Player extends GameObject {
     constructor(options= {}) {        
         super({...options});
-        
         this.hp = 100; //vida do personagem.
         this.facingDirection = { x: 0, y: 1 };
     }
@@ -19,6 +19,7 @@ export class Player extends GameObject {
      * - Ataque
      */
     update(inputX, inputY, collidables = []) {
+        //atualiza o facingDirection para ser usado no disparo.
         const moving = Math.abs(inputX) > 0.001 || Math.abs(inputY) > 0.001;
         if (moving) {
             //hypot calcula a distância de um vetor, mais útil para estabilizar o movimento na diagonal.
@@ -29,26 +30,50 @@ export class Player extends GameObject {
                 y: inputY / length,
             };
         }
+        //-----------------------------------------------------
+
+        //verifica se precisa mudar de animação (idle, walkUp, walkDown...)
+        this.updateMovementState(inputX, inputY);
 
         // Chama comportamento base de movimento
         super.update(inputX, inputY, collidables);
 
         // layer dinâmica do player.
         if(this.tag === "Player"){
-            const collided =  collidables.find((object)=> isOverlapping(this, object));
+            const collided =  collidables.find((object)=> {
+                const hitbox = object.getHitbox ? object.getHitbox(object.x, object.y) : object;
+                return isOverlapping(this, hitbox)
+            });
+
             if(collided){
                 //ordena a layer do player de acordo com o colisor.
                 sortLayer(this, collided, this.gridSize); 
-                this.sortLayer = this.currentSortLayer;
+            }else{
+                this.sortLayer = layers.player;
             }
         }
     }
 
-    draw(){
-        const ctx = this.canvas.getContext("2d");
-        this.drawLabel(ctx); //desenha o rótulo do personagem.
+    updateMovementState (inputX, inputY) {
+        const moving = Math.abs(inputX) > 0.001 || Math.abs(inputY) > 0.001;
+        if (!moving) {
+            this.state = "idle";
+            return;
+        }
 
-        super.draw();        
+        if (Math.abs(inputX) > Math.abs(inputY)) {
+            this.state = inputX > 0 ? "walkRight" : "walkLeft";
+            return;
+        }
+
+        this.state = inputY > 0 ? "walkDown" : "walkUp";
+    }
+
+    draw(){
+        if (!this.canvas) return;
+        const ctx = this.canvas.getContext("2d");
+        super.draw();
+        this.drawLabel(ctx); //desenha o rótulo do personagem.
     }
 
     drawLabel(ctx){

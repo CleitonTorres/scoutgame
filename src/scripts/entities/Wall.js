@@ -48,6 +48,7 @@ export class Wall extends GameObject {
 
     // Parede não precisa atualizar movimento
     update() {
-        // Nada acontece
+        this.animator.setState(this.state);
+        this.animator.update(1 / 60);
     }
 }

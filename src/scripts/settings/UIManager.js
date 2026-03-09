@@ -3,13 +3,14 @@ export class UIManager {
         this.playerNameEl = document.getElementById("ui-player-name");
         this.playerHpEl = document.getElementById("ui-player-hp");
         this.playerPosEl = document.getElementById("ui-player-pos");
+        this.playerLayerEl = document.getElementById("ui-player-layer");
 
         this.warningEl = document.getElementById("ui-warning");
 
         this.dialogEl = document.getElementById("ui-dialog");
         this.dialogSpeakerEl = document.getElementById("ui-dialog-speaker");
         this.dialogTextEl = document.getElementById("ui-dialog-text");
-
+        
         this.warningTimeoutId = null;
     }
 
@@ -23,6 +24,9 @@ export class UIManager {
             const x = Number.isFinite(player.x) ? player.x.toFixed(2) : "0.00";
             const y = Number.isFinite(player.y) ? player.y.toFixed(2) : "0.00";
             this.playerPosEl.textContent = `${x}, ${y}`;
+        }
+        if(this.playerLayerEl){
+            this.playerLayerEl.textContent = `${player.sortLayer}`;
         }
     }
 

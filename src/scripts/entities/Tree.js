@@ -87,6 +87,10 @@ export class Tree extends GameObject {
 
     update(inputX, inputY, collides=[]){
         if(this.animation){
+            //verifica se precisa mudar de animação (idle, walkUp, walkDown...)
+            this.state = "move";
+             
+            //update do gameObject
             super.update(inputX, inputY, collides)
         }
     }

@@ -1,4 +1,5 @@
-import { drawAnimation, normalizeAnimation, setAnimationState, updateAnimation } from "./Animation.js";
+import { drawAnimation, normalizeAnimation } from "./Animation.js";
+import { AnimationController } from "./AnimatorController.js";
 import { getCollider } from "./GetColliders.js";
 
 /**
@@ -25,9 +26,14 @@ export class GameObject {
             position = {},
             physical = {},
 
+            state= "idle",
+            animator = null,
             animation = {},
 
             showHitbox = false,
+            showBoxCollide = false,
+            anchorHitBox = {x: 0, y: 0}, //distância do ponto inicial para desenar o box.
+            anchorBoxCollide = {x: 0, y: 0}, //distância do ponto inicial para desenar o box.
             offSetHitbox = { x: 0, y: 0 },
             offSetBoxCollide = { x: 0, y: 0 },
 
@@ -88,6 +94,9 @@ export class GameObject {
         // DEBUG E CONFIGURAÇÕES
         // ------------------------
         this.showHitbox = showHitbox;
+        this.showBoxCollide = showBoxCollide;
+        this.anchorHitBox = anchorHitBox;
+        this.anchorBoxCollide = anchorBoxCollide;
         this.offSetHitbox = offSetHitbox;
         this.offSetBoxCollide = offSetBoxCollide;
         this.gridSize = gridSize;
@@ -104,40 +113,38 @@ export class GameObject {
         // ------------------------
         // SISTEMA DE ANIMAÇÃO
         // ------------------------
+        this.state = state;
+        if (animator instanceof AnimationController) {
+            this.animator = animator;
+            this.animator.entity = this;
+        } else {
+            this.animator = new AnimationController(this);
+        }
         this.animation = normalizeAnimation(animation);
         this.currentAnimation = 'idle';
         this.animationFrame = 0;
-        this.animationElapsed = 0;
+
+        // Mantem estado inicial sincronizado com o controlador.
+        this.animator.setState(state);
+        this.animator.update(0);
 
         // ------------------------
         // HITBOX INICIAL
         // ------------------------
         // Representa a área real de colisão do objeto.
-        this.hitbox = {
-            x: this.x * this.gridSize + this.offSetHitbox.x,
-            y: this.y * this.gridSize + this.offSetHitbox.y,
-            width: (this.width * this.gridSize) - (this.offSetHitbox.x * 2),
-            height: (this.height * this.gridSize) - (this.offSetHitbox.y * 2)
-        };
+        this.hitbox = this.getHitBox(this.x, this.y);
 
-        //Representa a área "sólida" do objeto.
-        this.collide = {
-            x: this.x * this.gridSize + this.offSetBoxCollide.x,
-            y: this.y * this.gridSize + this.offSetBoxCollide.y,
-            width: (this.width * this.gridSize) - (this.offSetBoxCollide.x * 2),
-            height: (this.height * this.gridSize) - (this.offSetBoxCollide.y * 2)
-        }
+        // Representa a área "sólida" do objeto.
+        this.collide = this.getHitboxCollide(this.x, this.y);
     }
 
     // Atualiza o hitbox para a posição atual do jogador
     updateHitbox() {
-        this.hitbox.x = this.x * this.gridSize + this.offSetHitbox.x;
-        this.hitbox.y = this.y * this.gridSize + this.offSetHitbox.y;
+        this.hitbox = this.getHitBox(this.x, this.y);
     }
 
     updateHitBoxCollide(){
-        this.collide.x = this.x * this.gridSize + this.offSetBoxCollide.x;
-        this.collide.y  = this.y * this.gridSize + this.offSetBoxCollide.y;
+        this.collide = this.getHitboxCollide(this.x, this.y);
     }
 
     // Desenha o hitbox do jogador, se a opção estiver ativada
@@ -148,22 +155,36 @@ export class GameObject {
         }
     }
 
+    // Desenha o hitbox do jogador, se a opção estiver ativada
+    drawBoxCollide(ctx) {
+        if (this.showBoxCollide) {
+            ctx.strokeStyle = 'blue';
+            ctx.strokeRect(this.collide.x, this.collide.y, this.collide.width, this.collide.height);
+        }
+    }
+
     // Retorna o hitbox para a posição de colisão, que pode ser diferente do hitbox de renderização
     getHitboxCollide(nextX, nextY) {
+        const scaledWidth = (this.width * this.gridSize) * this.scale;
+        const scaledHeight = (this.height * this.gridSize) * this.scale;
+
         return {
-            x: nextX * this.gridSize + this.offSetBoxCollide.x,
-            y: nextY * this.gridSize + this.offSetBoxCollide.y,
-            width: (this.width * this.gridSize) - (this.offSetBoxCollide.x * 2),
-            height: (this.height * this.gridSize) - (this.offSetBoxCollide.y * 2)
+            x: (nextX * this.gridSize) + this.anchorBoxCollide.x + this.offSetBoxCollide.x,
+            y: (nextY * this.gridSize) + this.anchorBoxCollide.y + this.offSetBoxCollide.y,
+            width: scaledWidth - (this.offSetBoxCollide.x * 2),
+            height: scaledHeight - (this.offSetBoxCollide.y * 2)
         };
     }
 
     getHitBox(nextX, nextY){
+        const scaledWidth = (this.width * this.gridSize) * this.scale;
+        const scaledHeight = (this.height * this.gridSize) * this.scale;
+
         return {
-            x: nextX * this.gridSize + this.offSetHitbox.x,
-            y: nextY * this.gridSize + this.offSetHitbox.y,
-            width: (this.width * this.gridSize) - (this.offSetHitbox.x * 2),
-            height: (this.height * this.gridSize) - (this.offSetHitbox.y * 2)
+            x: (nextX * this.gridSize) + this.anchorHitBox.x + this.offSetHitbox.x,
+            y: nextY * this.gridSize + this.anchorHitBox.y + this.offSetHitbox.y,
+            width: scaledWidth - (this.offSetHitbox.x * 2),
+            height: scaledHeight - (this.offSetHitbox.y * 2)
         };
     }
 
@@ -288,9 +309,6 @@ export class GameObject {
     // Isso cria efeito de aceleração e desaceleração,
     // evitando movimento "seco" e instantâneo.
     update(inputX, inputY, collidables = []) {
-        //verifica se precisa mudar de animação (idle, walkUp, walkDown...)
-        setAnimationState(inputX, inputY, this);
-
         const maxStep = this.speed / 60;
         const smoothFactor = 1 / this.smooth;
 
@@ -320,8 +338,9 @@ export class GameObject {
         this.updateHitbox();
         this.updateHitBoxCollide();
 
-        //atualiza a animação
-        updateAnimation(this, 1/60);
+        // Atualiza animação pelo controlador centralizado.
+        this.animator.setState(this.state);
+        this.animator.update(1 / 60);
     }
 
     // Desenha animação se existir.
@@ -343,5 +362,6 @@ export class GameObject {
         }
 
         this.drawHitbox(ctx);
+        this.drawBoxCollide(ctx);
     }    
 }

@@ -32,7 +32,7 @@ export function getCollider(
 
         //pega a área de colisão do outro objeto.
         const otherBox = mode === "hitbox"
-            ? (obj.getHitbox ? obj.getHitbox(obj.x, obj.y) : obj.hitbox)
+            ? (obj.getHitBox ? obj.getHitBox(obj.x, obj.y) : obj.hitbox)
             : (obj.getHitboxCollide
                 ? obj.getHitboxCollide(obj.x, obj.y)
                 : obj.collide);

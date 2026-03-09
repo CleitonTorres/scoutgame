@@ -4,7 +4,7 @@ import { Tree } from "./entities/Tree.js";
 import { Wall } from "./entities/Wall.js";
 import { layers } from "./settings/layers.js";
 import { UIManager } from "./settings/UIManager.js";
-import { getRadiusToSpaw } from "./Math/GetRadiusToSpaw.js";
+import { getRadiusToSpaw } from "./mathh/GetRadiusToSpaw.js";
 import { loadAnimations } from "./engine/Animation.js";
 import { SpatialHashGrid } from "./engine/SpatialHashGrid.js";
 
@@ -27,6 +27,7 @@ const availablePlayers = {
     marco: "amarco",
     ru: "ru"
 };
+
 // manifesto com os caminhos dos sprites para animação do player.
 const pathAnimationsPlayers = {
     idle: [
@@ -143,7 +144,8 @@ if (ballonAnimation.hit) {
 //carrega animações das árvores.
 const treesAnimations = {}; //await loadAnimations(pathTreesSprites, 6, true);
 const avaliableTrees = {
-    tree01:'tree01'
+    tree01:'tree01',
+    tree07: 'tree07'
 };
 for (const [key, tree] of Object.entries(avaliableTrees)) {
 
@@ -158,7 +160,8 @@ for (const [key, tree] of Object.entries(avaliableTrees)) {
         ],
     };
 
-    treesAnimations[key] = await loadAnimations(paths, 6, true);
+    const randomFps = Math.random() * 3 + 1;
+    treesAnimations[key] = await loadAnimations(paths, randomFps, true);
 }
 //-----------------------------
 
@@ -181,9 +184,11 @@ const player = new Player({
     },
     position:{x: 1, y: 2},
     sortLayer: layers.player,
-    offSetBoxCollide: {x: 15, y: 0},
+    offSetBoxCollide: {x: 15, y: 20},
     offSetHitbox: {x: 15, y: 0},
+    anchorBoxCollide: {x: 0, y: 20},
     showHitbox: false,
+    state: "idle",
     animation: playerAnimations,
     canvas,
     gridSize,
@@ -201,10 +206,12 @@ const npcs = [
         speed: 3
     },
     position:{x: 10, y: 1},
-    offSetBoxCollide: {x: 20, y: 30},
+    offSetBoxCollide: {x: 15, y: 20},
+    anchorBoxCollide: {x: 0, y: 20},
     offSetHitbox: {x: 20, y: 10},
     sortLayer: layers.ground,
     showHitbox: false,
+    state: "idle",
     animation: npcsAnimations.baloo,
     canvas,
     gridSize
@@ -276,57 +283,72 @@ const trees = [
     new Tree({
         name: 'Tree1',
         tag: 'Tree',
-        sortLayer: layers.ground,
-        position: {x: 9, y: 5},
-        showHitbox: false,
+        sortLayer: layers.underFloor,
+        position: {x: 9, y: 5},        
         physical: {
             collision: true,
         },
+        state: "move",
         animation: treesAnimations.tree01,
-        offSetBoxCollide: {x: 30, y: 50},
+        showHitbox: false,
+        showBoxCollide: true,
+        offSetBoxCollide: {x: 25, y: 25},
+        anchorBoxCollide: {x: 0, y: 25},
         offSetHitbox: {x: 20, y: 10},
         canvas: canvas,        
     }),
     new Tree({
         name: 'Tree2',
         tag: 'Tree',
-        sortLayer: layers.ground,
+        sortLayer: layers.underFloor,
         position: {x: 8, y: 8},
         physical: {
             collision: true,
         },
-        animation: treesAnimations.tree01,
-        showHitbox: false,
-        offSetBoxCollide: {x: 30, y: 50},
-        offSetHitbox: {x: 20, y: 10},
+        transform:{
+            scale: 2,
+        },
+        state: "move",
+        animation: treesAnimations.tree07,
+        showBoxCollide: true,
+        anchorHitBox: {x: 0, y: 5},
+        offSetHitbox: {x: 45, y: 5},
+        anchorBoxCollide: {x: 10, y: 60},
+        offSetBoxCollide: {x: 50, y: 60},        
         canvas: canvas,        
     }),
     new Tree({
         name: 'Tree2',
         tag: 'Tree',
-        sortLayer: layers.ground,
+        sortLayer: layers.underFloor,
         position: {x: 2, y: 8},
         physical: {
             collision: true,
         },
+        state: "move",
         animation: treesAnimations.tree01,
-        showHitbox: false,
-        offSetBoxCollide: {x: 30, y: 50},
+        showBoxCollide: true,
+        offSetBoxCollide: {x: 25, y: 25},
+        anchorBoxCollide: {x: 0, y: 25},
         offSetHitbox: {x: 20, y: 10},
+        gridSize,
         canvas: canvas,        
     }),
     new Tree({
         name: 'Tree2',
         tag: 'Tree',
-        sortLayer: layers.ground,
+        sortLayer: layers.underFloor,
         position: {x: 14, y: 10},
         physical: {
             collision: true,
         },
-        animation: treesAnimations.tree01,
-        showHitbox: false,
-        offSetBoxCollide: {x: 30, y: 50},
+        state: "move",
+        animation: treesAnimations.tree07,
+        showBoxCollide: true,
+        offSetBoxCollide: {x: 25, y: 25},
+        anchorBoxCollide: {x: 0, y: 25},
         offSetHitbox: {x: 20, y: 10},
+        gridSize,
         canvas: canvas,        
     }),
 ];
@@ -448,12 +470,13 @@ document.addEventListener('keydown', (event) => {
             physical:{
                 collision: true,
                 mass: 1,
-                speed: 5 
+                speed: 6 
             },
             transform:{
                 width: 0.35,
                 height: 0.35,
             },
+            state: "move",
             animation: ballonAnimation,
             owner: player,
             sortLayer: layers.player,

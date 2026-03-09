@@ -1,4 +1,4 @@
-import { getCenter } from "./GetCenter.js";
+import { getAnchor } from "./GetAnchor.js";
 
 /**
  * Método para calcular um spaw pointer a partir do centro do spawner.
@@ -9,7 +9,7 @@ import { getCenter } from "./GetCenter.js";
  */
 export function getRadiusToSpaw (spawner, spawnGap, gridSize){
     const ballonSizeTiles = 0.35;
-    const { centerX: playerCenterX, centerY: playerCenterY } = getCenter(spawner, gridSize);
+    const { x: playerCenterX, y: playerCenterY } = getAnchor(spawner, gridSize, "middle");
     const playerRadiusPx = (spawner.width * gridSize) / 2;
     const ballonRadiusPx = (ballonSizeTiles * gridSize) / 2;
     const spawnGapPx = spawnGap;

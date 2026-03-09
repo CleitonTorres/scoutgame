@@ -1,4 +1,10 @@
+import { GameObject } from "./GameObject.js";
 import { loadImage } from "./LoadImage.js";
+
+//verifica se existe uma animação.
+export const hasAnimation= (animation={})=> {
+    return Object.keys(animation).length > 0;
+}
 
 /**
  * NORMALIZAÇÃO DE ANIMAÇÕES
@@ -91,82 +97,7 @@ export function normalizeAnimation(animation = {}) {
 
     // Retorna o objeto já padronizado
     return normalized;
-}
-
- //verifica se existe uma animação.
-export const hasAnimation= (animation={})=> {
-    return Object.keys(animation).length > 0;
-}
-
-
-/**
- * Define qual animação deve tocar com base na direção do input.
- *  Exemplo:
- *  inputX = 1  -> walkRight
- *  inputY = -1 -> walkUp
- * @param {number} inputX 
- * @param {number} inputY 
- * @param {} entity - objeto classe a ter a animação setada.
- * @returns {{}} - currentAnimation, animationFrame, animationElapsed
- */
-export function setAnimationState(inputX, inputY, entity) {
-    if (!hasAnimation(entity.animation)) return;
-
-    const moving = Math.abs(inputX) > 0.001 || Math.abs(inputY) > 0.001;
-    let next = ['Ballon', 'Tree'].includes(entity.tag) ? 'move' : 'idle';
-
-    if (moving) {
-        if(['Ballon', 'Tree'].includes(entity.tag)){
-            next = 'move';
-        }
-        else if (Math.abs(inputY) >= Math.abs(inputX)) {
-            next = inputY < 0 ? 'walkUp' : 'walkDown';
-        } else {
-            next = inputX < 0 ? 'walkLeft' : (entity.animation.walkRight ? 'walkRight' : 'walkLeft');
-        }
-    }
-
-    //se não existir a animação setada em next tenta setar para idle ou para a primeira animação do objeto.
-    if (!entity.animation[next]) {
-        next = entity.animation.idle ? 'idle' : Object.keys(entity.animation)[0];
-    }
-
-    // se a animação atual for diferente a animação verificada em next. Troca ela resentando os valores.
-    if (entity.currentAnimation !== next) {
-        entity.currentAnimation = next;
-        entity.animationFrame= 0;
-        entity.animationElapsed= 0;
-    }
-}
-
-/**
- * 
- * @param {number} deltaSeconds - time do loop FPS.
- * @param {{}} animation - animações possíveis.
- * @param {string} currentAnimation - key da animação atual.
- * @param {number} animationElapsed - tempo decorrido entre animações.
- * @param {number} animationFrame - indice da animação atual.
- * @returns {void} - chamada no update.
- */
-export function updateAnimation(entity, deltaSeconds = 1 / 60) {
-    if (!hasAnimation(entity.animation) || !entity) return;
-    
-
-    const clip = entity.animation[entity.currentAnimation];
-    if (!clip || clip.frames.length <= 1) return;
-
-    entity.animationElapsed += deltaSeconds;
-    const frameDuration = 1 / Math.max(1, clip.fps);
-
-    while (entity.animationElapsed >= frameDuration) {
-        entity.animationElapsed -= frameDuration;
-        entity.animationFrame += 1;
-
-        if (entity.animationFrame >= clip.frames.length) {
-            entity.animationFrame = clip.loop ? 0 : clip.frames.length - 1;
-        }
-    }
-}
+} 
 
 /**
  * DESENHA A ANIMAÇÃO ATUAL

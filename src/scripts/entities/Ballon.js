@@ -1,5 +1,4 @@
 import { GameObject } from "../engine/GameObject.js";
-import { updateAnimation } from "../engine/Animation.js";
 import { getCollider } from "../engine/GetColliders.js";
 
 export class Ballon extends GameObject {
@@ -7,23 +6,7 @@ export class Ballon extends GameObject {
         const direction = options.direction ?? { x: 0, y: 1 };
         const length = Math.hypot(direction.x, direction.y) || 1;
 
-        super({
-            ...options,
-            tag: options.tag ?? "Ballon",
-            transform: {
-                width: 0.35,
-                height: 0.35,
-                ...(options.transform ?? {}),
-            },
-            physical: {
-                behavior: "dynamic",
-                collision: false,
-                speed: 10,
-                smooth: 1,
-                ...(options.physical ?? {}),
-            },
-            animation: options.animation,
-        });
+        super({...options});
 
         this.direction = {
             x: direction.x / length,
@@ -62,6 +45,8 @@ export class Ballon extends GameObject {
         // 4️⃣ Marca o objeto como "explodindo".
         // Isso altera o comportamento do update para executar a lógica de hit.
         this.exploding = true;
+        this.state = "hit";
+        this.animator.setState(this.state);
 
         // 5️⃣ Desativa a colisão enquanto o objeto está explodindo,
         // evitando interações indesejadas com outros objetos.
@@ -70,16 +55,6 @@ export class Ballon extends GameObject {
         // 6️⃣ Interrompe completamente qualquer movimento atual.
         this.vx = 0;
         this.vy = 0;
-
-        // 7️⃣ Define a animação atual como "hit".
-        this.currentAnimation = "hit";
-
-        // 8️⃣ Reinicia o frame da animação.
-        this.animationFrame = 0;
-
-        // 9️⃣ Reinicia o contador de tempo da animação.
-        this.animationElapsed = 0;
-
 
         // 🔟 CÁLCULO DO REBOTE
 
@@ -125,39 +100,14 @@ export class Ballon extends GameObject {
         this.reboundStopThreshold = 0.01;
     }
 
-    isHitAnimationFinished() {
-        // 1️⃣ Tenta pegar o "clip" de animação chamado "hit".
-        // O operador ?. evita erro caso this.animation seja undefined.
-        const hitClip = this.animation?.hit;
-
-        // 2️⃣ Se não existir animação de hit,
-        // consideramos que ela já terminou.
-        // Isso evita travar a lógica do jogo.
-        if (!hitClip) return true;
-
-        // 3️⃣ Se a animação estiver marcada como loop,
-        // então ela nunca termina.
-        // Logo retornamos false.
-        if (hitClip.loop) return false;
-
-        // 4️⃣ Calcula o índice do último frame da animação.
-        // Exemplo: se existem 4 frames → índices 0,1,2,3
-        const lastFrameIndex = Math.max(0, hitClip.frames.length - 1);
-
-        // 5️⃣ Verifica duas condições:
-        // - se a animação atual é "hit"
-        // - se o frame atual já chegou ao último frame
-        return this.currentAnimation === "hit" && this.animationFrame >= lastFrameIndex;
-    }
-
     update(_inputX, _inputY, collidables = []) {
         // 1️⃣ Se o objeto já foi destruído, não executa mais nada.
         if (this.destroyed) return;
 
-
         // 2️⃣ Se o objeto já entrou no estado de explosão (hit),
         // executa apenas a lógica de rebote e animação.
         if (this.exploding) {
+            this.state = "hit";
             this.x += this.reboundVX;
             this.y += this.reboundVY;
 
@@ -177,17 +127,17 @@ export class Ballon extends GameObject {
             this.updateHitbox();
             this.updateHitBoxCollide();
 
-            updateAnimation(this, 1/60);
+            //atualiza a animação.
+            this.animator.setState(this.state);
+            this.animator.update(1 / 60);
 
-            if (this.isHitAnimationFinished()) {
+            if (this.animator.isFinished()) {
                 this.destroy();
             }
 
+            //evita a continuação do código seguinte (super.update()).
             return;
         }
-
-
-        // 3️⃣ Detecta se haverá colisão na próxima posição do objeto.
 
         // Calcula quanto o objeto se move por frame.
         const step = this.speed / 60;
@@ -208,6 +158,9 @@ export class Ballon extends GameObject {
 
 
         // 4️⃣ Move o objeto normalmente (sem bloqueio físico automático).
+        //verifica se precisa mudar de animação (idle, walkUp, walkDown...)
+        this.state = "move";
+        
         // A colisão já foi tratada manualmente acima.
         super.update(this.direction.x, this.direction.y, []);
 
