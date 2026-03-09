@@ -119,12 +119,25 @@ export class GameObject {
             width: (this.width * this.gridSize) - (this.offSetHitbox.x * 2),
             height: (this.height * this.gridSize) - (this.offSetHitbox.y * 2)
         };
+
+        //Representa a área "sólida" do objeto.
+        this.collide = {
+            x: this.x * this.gridSize + this.offSetBoxCollide.x,
+            y: this.y * this.gridSize + this.offSetBoxCollide.y,
+            width: (this.width * this.gridSize) - (this.offSetBoxCollide.x * 2),
+            height: (this.height * this.gridSize) - (this.offSetBoxCollide.y * 2)
+        }
     }
 
     // Atualiza o hitbox para a posição atual do jogador
     updateHitbox() {
         this.hitbox.x = this.x * this.gridSize + this.offSetHitbox.x;
         this.hitbox.y = this.y * this.gridSize + this.offSetHitbox.y;
+    }
+
+    updateHitBoxCollide(){
+        this.collide.x = this.x * this.gridSize + this.offSetBoxCollide.x;
+        this.collide.y  = this.y * this.gridSize + this.offSetBoxCollide.y;
     }
 
     // Desenha o hitbox do jogador, se a opção estiver ativada
@@ -136,12 +149,21 @@ export class GameObject {
     }
 
     // Retorna o hitbox para a posição de colisão, que pode ser diferente do hitbox de renderização
-    getHitboxCollideAt(nextX, nextY) {
+    getHitboxCollide(nextX, nextY) {
         return {
             x: nextX * this.gridSize + this.offSetBoxCollide.x,
             y: nextY * this.gridSize + this.offSetBoxCollide.y,
             width: (this.width * this.gridSize) - (this.offSetBoxCollide.x * 2),
             height: (this.height * this.gridSize) - (this.offSetBoxCollide.y * 2)
+        };
+    }
+
+    getHitBox(nextX, nextY){
+        return {
+            x: nextX * this.gridSize + this.offSetHitbox.x,
+            y: nextY * this.gridSize + this.offSetHitbox.y,
+            width: (this.width * this.gridSize) - (this.offSetHitbox.x * 2),
+            height: (this.height * this.gridSize) - (this.offSetHitbox.y * 2)
         };
     }
 
@@ -153,7 +175,12 @@ export class GameObject {
         return this.behavior === 'dynamic' || this.behavior === 'dinamic';
     }
 
-    // Garante que o objeto não saia dos limites do canvas
+    /**
+     * Garante que o objeto não saia dos limites do canvas
+     * @param {*} nextX - posição X de destino 
+     * @param {*} nextY - posição Y de destino.
+     * @returns {} posX e posY garantidos que ele não vai sair da ela.
+     */
     clampToCanvas(nextX, nextY) {
         const limitCanvasX = this.canvas.width / (this.width * this.gridSize) - 1;
         const limitCanvasY = this.canvas.height / (this.height * this.gridSize) - 1;
@@ -165,8 +192,14 @@ export class GameObject {
     }
 
     // Verifica se o jogador pode ocupar a posição de destino, considerando os objetos colidíveis
-    canOccupy(nextX, nextY, collidables = [], ignore = null) {
-        const blocker = getCollider(nextX, nextY, collidables.filter((obj) => obj !== ignore), this);
+    canOccupy(nextPosX, nextPosY, collidables = [], ignore = null) {
+        const blocker = getCollider(
+            nextPosX,
+            nextPosY,
+            collidables.filter((obj) => obj !== ignore), 
+            "collide", 
+            this
+        );
         return !blocker;
     }
 
@@ -220,11 +253,18 @@ export class GameObject {
         return true;
     }
 
-    // Tenta resolver o movimento para a posição de destino, 
-    // considerando bloqueios e empurrões
+    /**
+     * Tenta resolver o movimento para a posição de destino, considerando se há bloqueios ou objeto que podem ser empurados.
+     * @param {*} nextX - posX de destino.
+     * @param {*} nextY - posY de destino.
+     * @param {*} deltaX - direção X.
+     * @param {*} deltaY - direção Y.
+     * @param {*} collidables - objetos globais.
+     * @returns {boolean} - se puder seguir adiante retorna true, se não, false.
+     */
     resolveAxis(nextX, nextY, deltaX, deltaY, collidables = []) {
         // Verifica se há um bloqueio na posição de destino
-        const blocker = getCollider(nextX, nextY, collidables, this);
+        const blocker = getCollider(nextX, nextY, collidables, "collide", this);
 
         // Se não houver bloqueio, move o jogador para a posição de destino
         if (!blocker) {
@@ -235,7 +275,7 @@ export class GameObject {
 
         // Se houver um bloqueio, tenta empurrar o objeto bloqueador para a posição de destino
         const pushed = this.tryPush(blocker, deltaX, deltaY, collidables);
-        if (pushed && !getCollider(nextX, nextY, collidables, this)) {
+        if (pushed && !getCollider(nextX, nextY, collidables, "collide", this)) {
             this.x = nextX;
             this.y = nextY;
             return true;
@@ -265,6 +305,7 @@ export class GameObject {
         // Primeiro resolve o eixo X
         // Depois resolve o eixo Y
         // Isso evita bugs de colisão diagonal
+        //this.x + thisvx calcula o nextPosX.
         const nextPosX = this.clampToCanvas(this.x + this.vx, this.y);
         const movedX = this.resolveAxis(nextPosX.x, this.y, this.vx, 0, collidables);
         if (!movedX) this.vx = 0;
@@ -275,7 +316,9 @@ export class GameObject {
         if (!movedY) this.vy = 0;
 
         // Atualiza o hitbox para a nova posição do jogador
+        // Nesse momento posição x e y do player já está resulvida.
         this.updateHitbox();
+        this.updateHitBoxCollide();
 
         //atualiza a animação
         updateAnimation(this, 1/60);

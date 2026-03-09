@@ -1,3 +1,5 @@
+import { loadImage } from "./LoadImage.js";
+
 /**
  * NORMALIZAÇÃO DE ANIMAÇÕES
  * ------------------------------------------------------
@@ -40,17 +42,11 @@
 export function normalizeAnimation(animation = {}) {
     if(!hasAnimation(animation)) return {};
 
-    // Estados de animação suportados pela engine.
-    // Aqui estamos definindo um padrão.
-    const keys = ['idle', 'walkUp', 'walkDown', 'walkLeft', 'walkRight'];
-
     // Objeto final normalizado que será retornado.
     const normalized = {};
 
-    // Percorre todos os estados possíveis
-    for (const key of keys) {
-        // Pega a animação correspondente à chave atual
-        const clip = animation[key];
+    // Percorre todos os estados recebidos (ex: idle, walkUp, move, hit...)
+    for (const [key, clip] of Object.entries(animation)) {
 
         // Se o desenvolvedor não definiu essa animação,
         // simplesmente ignora.
@@ -117,10 +113,13 @@ export function setAnimationState(inputX, inputY, entity) {
     if (!hasAnimation(entity.animation)) return;
 
     const moving = Math.abs(inputX) > 0.001 || Math.abs(inputY) > 0.001;
-    let next = 'idle';
+    let next = ['Ballon', 'Tree'].includes(entity.tag) ? 'move' : 'idle';
 
     if (moving) {
-        if (Math.abs(inputY) >= Math.abs(inputX)) {
+        if(['Ballon', 'Tree'].includes(entity.tag)){
+            next = 'move';
+        }
+        else if (Math.abs(inputY) >= Math.abs(inputX)) {
             next = inputY < 0 ? 'walkUp' : 'walkDown';
         } else {
             next = inputX < 0 ? 'walkLeft' : (entity.animation.walkRight ? 'walkRight' : 'walkLeft');
@@ -151,6 +150,7 @@ export function setAnimationState(inputX, inputY, entity) {
  */
 export function updateAnimation(entity, deltaSeconds = 1 / 60) {
     if (!hasAnimation(entity.animation) || !entity) return;
+    
 
     const clip = entity.animation[entity.currentAnimation];
     if (!clip || clip.frames.length <= 1) return;
@@ -188,7 +188,9 @@ export function updateAnimation(entity, deltaSeconds = 1 / 60) {
 export function drawAnimation(entity, ctx) {
     // Pega o clip da animação atual (ex: idle, walkDown...)
     const clip = entity.animation[entity.currentAnimation];
-    
+
+    // console.log("clip", entity.tag, entity.animation, clip)
+
     // Se não houver animação válida, não desenha
     if (!clip || clip.frames.length === 0) return false;
 
@@ -246,3 +248,28 @@ export function drawAnimation(entity, ctx) {
     // Se não conseguiu desenhar, retorna false
     return false;
 }
+
+/**
+ * Recebe os caminhos de sprites que serão usados em animações.
+ * @param {Array} pathToAnimations - objeto contendo os caminhos dos sprites de cada estado de animação.
+ * @param {number} fps - velocidade da animação.
+ * @param {boolean} loop - se a animação vai rodar em loop.
+ * @returns {Promise<{string: {frames: [], fps: number, loop: boolean }}>} - um objeto com com as animaçoes possiveis, já com imagens já carregadas.
+ */
+export async function loadAnimations(pathToAnimations, fps=6, loop=true) {
+  const loadFrames = async (paths = []) =>
+    Promise.all(paths.map(loadImage));
+
+  const animations = {};
+
+  for (const key in pathToAnimations) {
+    animations[key] = {
+        frames: await loadFrames(pathToAnimations[key]),
+        fps,
+        loop
+    };
+  }
+
+  return animations;
+}
+// -------------------------------------------------

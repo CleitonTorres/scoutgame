@@ -47,37 +47,47 @@ export class Tree extends GameObject {
     }
 
     draw() {
-        const ctx = this.canvas.getContext('2d');
-        const size = this.gridSize;
+        if(this.animation){
+            super.draw();
+        }else{
+            const ctx = this.canvas.getContext('2d');
+            const size = this.gridSize;
 
-        const pixelX = this.x * size;
-        const pixelY = this.y * size;
+            const pixelX = this.x * size;
+            const pixelY = this.y * size;
 
-        const width = size * (this.width ?? 1) * (this.scale ?? 1);
-        const height = size * (this.height ?? 1) * (this.scale ?? 1);
+            const width = size * (this.width ?? 1) * (this.scale ?? 1);
+            const height = size * (this.height ?? 1) * (this.scale ?? 1);
 
-        const centerX = pixelX + width / 2;
+            const centerX = pixelX + width / 2;
 
-        // Tronco
-        ctx.fillStyle = "#8B4513";
-        ctx.fillRect(
-            centerX - width * 0.1,   // centraliza o tronco
-            pixelY + height * 0.5,   // metade da altura
-            width * 0.2,             // 20% da largura
-            height * 0.5             // metade da altura
-        );
+            // Tronco
+            ctx.fillStyle = "#8B4513";
+            ctx.fillRect(
+                centerX - width * 0.1,   // centraliza o tronco
+                pixelY + height * 0.5,   // metade da altura
+                width * 0.2,             // 20% da largura
+                height * 0.5             // metade da altura
+            );
 
-        // Copa
-        ctx.fillStyle = "#246c1d";
+            // Copa
+            ctx.fillStyle = "#246c1d";
 
-        ctx.beginPath();
-        ctx.arc(
-            centerX,
-            pixelY + height * 0.4,
-            width * 0.4,
-            0,
-            Math.PI * 2
-        );
-        ctx.fill();
+            ctx.beginPath();
+            ctx.arc(
+                centerX,
+                pixelY + height * 0.4,
+                width * 0.4,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+        }
+    }
+
+    update(inputX, inputY, collides=[]){
+        if(this.animation){
+            super.update(inputX, inputY, collides)
+        }
     }
 }

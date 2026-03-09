@@ -24,7 +24,7 @@
             </h2>
             <ul>
                 <li>Classe base GameObject.</li>
-                <li>Classes Player, Wall e Tree.</li>
+                <li>Classes Player, Wall, Ballon e Tree.</li>
                 <li>
                     A classe GameObject é responsavel por gerenciar: <br />
                     - controle do player <br />
@@ -37,14 +37,16 @@
                     Método isOverLapping para detectar colisões ou sobreposições.
                 </li>
                 <li>
-                    Método getCollider para pegar objetos colididos.
+                    Método getCollider para pegar objetos colididos em conjunto com o SpatialHashGrid para verificar
+                    apenas objetos próximos e não todos os objetos do mapa.
                 </li>
                 <li>
                     Método sortLayer que define a ordem em layer de acordo com a posição Y, usada para definir a lógica
                     de draw dinâmico respeitando a ordem de layer de cada objeto.
                 </li>
                 <li>
-                    Conjunto de métodos para tratar e padronizar sprites para animações top-down.
+                    Conjunto de métodos para tratar e padronizar sprites para animações top-down e objetos diversos
+                    (bexiga, árvores, etc).
                 </li>
             </ul>
         </section>

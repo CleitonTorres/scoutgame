@@ -5,18 +5,25 @@ import { isOverlapping } from "./IsOverlapping.js";
  // Verifica se há um objeto bloqueando/colidindo a posição de destino
  /**
   * 
-  * @param {number} nextX - distino X do player. 
-  * @param {number} nextY - destino Y do player.
   * @param {GameObject} collidables - world objetos.
   * @param {Player} entity - player.
+  * @param {string} mode - tipo de objeto a ser detectado na colisão hitbox ou collide.
   * @returns {GameObject} - retorna o objeto colidido ou null.
   */
-export function getCollider(nextX, nextY, collidables = [], entity) {
+export function getCollider(
+    nextX,
+    nextY,
+    collidables = [], 
+    mode= "collide", //collide | hitbox
+    entity,
+) {
     if (!entity || !entity.collision) return null;
 
-    // Usa o hitbox de colisão para verificar bloqueios.
-    // pega o collide (área de colisão) deste (this) objeto.
-    const nextHitbox = entity.getHitboxCollideAt(nextX, nextY);
+    // Usa o mode para verificar bloqueios ou colisão.
+    // pega o collide (área de colisão ou de hit) deste (this) objeto.
+    const entityBox =
+        mode === "hitbox"
+            ? entity.getHitBox(nextX, nextY) : entity.getHitboxCollide(nextX, nextY);
 
     // Verifica cada objeto colidível para ver se há uma 
     let object = null;
@@ -24,11 +31,13 @@ export function getCollider(nextX, nextY, collidables = [], entity) {
         if (!obj || obj === entity || !obj.collision) continue;
 
         //pega a área de colisão do outro objeto.
-        const objectCollide = obj.getHitboxCollideAt
-            ? obj.getHitboxCollideAt(obj.x, obj.y)
-            : obj.hitbox; //se não tiver um collide pega a área de hitbox padrão.
+        const otherBox = mode === "hitbox"
+            ? (obj.getHitbox ? obj.getHitbox(obj.x, obj.y) : obj.hitbox)
+            : (obj.getHitboxCollide
+                ? obj.getHitboxCollide(obj.x, obj.y)
+                : obj.collide);
 
-        if (objectCollide && isOverlapping(nextHitbox, objectCollide)) {
+        if (otherBox && isOverlapping(entityBox, otherBox)) {
             object = obj;
             break;
         }

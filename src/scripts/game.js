@@ -5,6 +5,8 @@ import { Wall } from "./entities/Wall.js";
 import { layers } from "./settings/layers.js";
 import { UIManager } from "./settings/UIManager.js";
 import { getRadiusToSpaw } from "./Math/GetRadiusToSpaw.js";
+import { loadAnimations } from "./engine/Animation.js";
+import { SpatialHashGrid } from "./engine/SpatialHashGrid.js";
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -15,6 +17,8 @@ let characterSelected = 'leo';
 
 //carregamento de imagens das animações do player.
 const pathCharacters = "./src/assets/characters/";
+const patchObjects = "./src/assets/objects/";
+
 const availablePlayers = {
     lipe: "lipe",
     maria: "maria",
@@ -24,7 +28,7 @@ const availablePlayers = {
     ru: "ru"
 };
 // manifesto com os caminhos dos sprites para animação do player.
-const pathAnimations = {
+const pathAnimationsPlayers = {
     idle: [
         `${pathCharacters}${availablePlayers[characterSelected]}/idle/down/0.png`,
         `${pathCharacters}${availablePlayers[characterSelected]}/idle/down/1.png`,
@@ -57,44 +61,28 @@ const pathAnimations = {
     ]
 }
 
+//manifesto com os caminhos dos sprites do ballon.
+const pathBallonSprites = {
+    move:[
+        `${patchObjects}bexiga/move/0.png`,
+        `${patchObjects}bexiga/move/1.png`,
+        `${patchObjects}bexiga/move/2.png`,
+        `${patchObjects}bexiga/move/3.png`,
+    ],
+    hit:[
+        `${patchObjects}bexiga/hit/0.png`,
+        `${patchObjects}bexiga/hit/1.png`,
+        `${patchObjects}bexiga/hit/2.png`,
+        `${patchObjects}bexiga/hit/3.png`,
+        `${patchObjects}bexiga/hit/4.png`,
+    ],
+}
+
 //mostra a mensagem de "carregando..."
 ui.showWarning("Carregando jogo...", 0);
 
 //objeto contendo as animaçoes possiveis do player.
-const playerAnimations = await loadCharacterAnimations(pathAnimations, 6, true);
-
-// recebe o caminho da imagem a ser carregada.
-function loadImage(src) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error(`Falha ao carregar: ${src}`));
-        img.src = src;
-    });
-}
-
-/**
- * Recebe os caminhos de sprites que serão usados em animações.
- * @param {*} pathToAnimations - objeto contendo os caminhos dos sprites de cada estado de animação.
- * @returns {Promise<{string: {frames: [], fps: number, loop: boolean }}>} - um objeto com com as animaçoes possiveis, já com imagens já carregadas.
- */
-async function loadCharacterAnimations(pathToAnimations, fps=6, loop=true) {
-  const loadFrames = async (paths = []) =>
-    Promise.all(paths.map(loadImage));
-
-  const animations = {};
-
-  for (const key in pathToAnimations) {
-    animations[key] = {
-        frames: await loadFrames(pathToAnimations[key]),
-        fps,
-        loop
-    };
-  }
-
-  return animations;
-}
-// -------------------------------------------------
+const playerAnimations = await loadAnimations(pathAnimationsPlayers, 6, true);
 
 //carregamento de animações dos npcs.
 const availableNPCs = {
@@ -141,9 +129,41 @@ for (const [key, npc] of Object.entries(availableNPCs)) {
         ]
     };
 
-    npcsAnimations[key] = await loadCharacterAnimations(paths, 4, true);
+    npcsAnimations[key] = await loadAnimations(paths, 4, true);
 }
 //----------------------------------
+
+//carrega animações de objetos.
+const ballonAnimation = await loadAnimations(pathBallonSprites, 6, true);
+if (ballonAnimation.hit) {
+    ballonAnimation.hit.loop = false;
+}
+//-----------------------------
+
+//carrega animações das árvores.
+const treesAnimations = {}; //await loadAnimations(pathTreesSprites, 6, true);
+const avaliableTrees = {
+    tree01:'tree01'
+};
+for (const [key, tree] of Object.entries(avaliableTrees)) {
+
+    const paths = {
+        move: [
+            `${patchObjects}arvores/${tree}/move/0.png`,
+            `${patchObjects}arvores/${tree}/move/1.png`,
+            `${patchObjects}arvores/${tree}/move/2.png`,
+            `${patchObjects}arvores/${tree}/move/3.png`,
+            `${patchObjects}arvores/${tree}/move/4.png`,
+            `${patchObjects}arvores/${tree}/move/5.png`,
+        ],
+    };
+
+    treesAnimations[key] = await loadAnimations(paths, 6, true);
+}
+//-----------------------------
+
+//instancia o grid virtual para colisões.
+const grid = new SpatialHashGrid(2);
 
 //esconde a mensagem de "carregando ..."
 ui.hideWarning();
@@ -182,7 +202,7 @@ const npcs = [
     },
     position:{x: 10, y: 1},
     offSetBoxCollide: {x: 20, y: 30},
-    offSetHitbox: {x: 15, y: 0},
+    offSetHitbox: {x: 20, y: 10},
     sortLayer: layers.ground,
     showHitbox: false,
     animation: npcsAnimations.baloo,
@@ -258,12 +278,13 @@ const trees = [
         tag: 'Tree',
         sortLayer: layers.ground,
         position: {x: 9, y: 5},
-        showHitbox: true,
+        showHitbox: false,
         physical: {
             collision: true,
         },
+        animation: treesAnimations.tree01,
         offSetBoxCollide: {x: 30, y: 50},
-        offSetHitbox: {x: 0, y: 0},
+        offSetHitbox: {x: 20, y: 10},
         canvas: canvas,        
     }),
     new Tree({
@@ -274,9 +295,10 @@ const trees = [
         physical: {
             collision: true,
         },
-        showHitbox: true,
+        animation: treesAnimations.tree01,
+        showHitbox: false,
         offSetBoxCollide: {x: 30, y: 50},
-        offSetHitbox: {x: 0, y: 0},
+        offSetHitbox: {x: 20, y: 10},
         canvas: canvas,        
     }),
     new Tree({
@@ -287,9 +309,10 @@ const trees = [
         physical: {
             collision: true,
         },
-        showHitbox: true,
+        animation: treesAnimations.tree01,
+        showHitbox: false,
         offSetBoxCollide: {x: 30, y: 50},
-        offSetHitbox: {x: 0, y: 0},
+        offSetHitbox: {x: 20, y: 10},
         canvas: canvas,        
     }),
     new Tree({
@@ -300,9 +323,10 @@ const trees = [
         physical: {
             collision: true,
         },
-        showHitbox: true,
+        animation: treesAnimations.tree01,
+        showHitbox: false,
         offSetBoxCollide: {x: 30, y: 50},
-        offSetHitbox: {x: 0, y: 0},
+        offSetHitbox: {x: 20, y: 10},
         canvas: canvas,        
     }),
 ];
@@ -353,14 +377,16 @@ function getInputVector() {
 function update() {
     //atualiza dados dos NPCs e do Player.
     const { inputX, inputY } = getInputVector();
-    
-    player.update(inputX, inputY, worldObjects);
+
+    const collidesGridPlayer = grid.query(player.x, player.y);
+    player.update(inputX, inputY, collidesGridPlayer);
     
     //atual dados dos objetos de cena que precisam ser atualizados.
     for (let i = worldObjects.length - 1; i >= 0; i--) {
         const obj = worldObjects[i];
-        if(obj.tag && ["Ballon", "NPC"].includes(obj.tag)) {
-            obj.update(0, 0, [player, ...worldObjects]);
+        if(obj.tag && ["Ballon", "NPC", "Tree"].includes(obj.tag)) {
+            const collidesGridOthers = grid.query(obj.x, obj.y);
+            obj.update(0, 0, [player, ...collidesGridOthers]);
             if(obj.destroyed) worldObjects.splice(i, 1);
         }
     }
@@ -386,7 +412,17 @@ function draw() {
     for (const obj of renderQueue) obj.draw();
 }
 
+function updateWorld(objects) {
+    grid.clear();
+
+    for (const obj of objects) {
+        grid.insert(obj);
+    }
+
+}
+
 function gameLoop() {
+    updateWorld(worldObjects);
     update();
     draw();
     requestAnimationFrame(gameLoop);
@@ -411,13 +447,19 @@ document.addEventListener('keydown', (event) => {
             direction: player.facingDirection,
             physical:{
                 collision: true,
-                mass: 1
+                mass: 1,
+                speed: 5 
             },
+            transform:{
+                width: 0.35,
+                height: 0.35,
+            },
+            animation: ballonAnimation,
             owner: player,
             sortLayer: layers.player,
             offSetBoxCollide: { x: 0, y: 0 },
             offSetHitbox: { x: 0, y: 0 },
-            showHitbox: true,
+            showHitbox: false,
             canvas,
             gridSize,
         }));
