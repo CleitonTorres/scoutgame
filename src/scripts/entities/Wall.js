@@ -47,8 +47,13 @@ export class Wall extends GameObject {
     }
 
     // Parede não precisa atualizar movimento
-    update() {
-        this.animator.setState(this.state);
-        this.animator.update(1 / 60);
+    update() {        
+        if(this.animation){
+            //verifica se precisa mudar de animação (idle, walkUp, walkDown...)
+            this.state = "move";
+             
+            //update do gameObject
+            super.update(0, 0, [])
+        }
     }
 }

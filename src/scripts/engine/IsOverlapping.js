@@ -7,6 +7,9 @@ import { GameObject } from "./GameObject.js";
  * @returns 
  */
 export function isOverlapping(objectA, objectB) {
+    //evita colisão consigo mesmo
+    if(objectA === objectB) return;
+
     return (
         objectA.x < objectB.x + objectB.width &&
         objectA.x + objectA.width > objectB.x &&

@@ -24,7 +24,7 @@
             </h2>
             <ul>
                 <li>Classe base GameObject.</li>
-                <li>Classes Player, Wall, Ballon e Tree.</li>
+                <li>Classes Player, NPC, Wall, Ballon e Tree.</li>
                 <li>
                     A classe GameObject é responsavel por gerenciar: <br />
                     - controle do player <br />
@@ -32,6 +32,10 @@
                     - fisica relacionada a massa e a empurrar coisas <br />
                     - atribui caracteristicas de objeto estático ou dinâmico <br />
                     - impede objeto de sair da tela
+                </li>
+                <li>
+                    Classe UIManager para integrar Interface Estatica HTML com loop do jogo, exibir avisos, HUD do
+                    player e diálogos com NPCs.
                 </li>
                 <li>
                     Método isOverLapping para detectar colisões ou sobreposições.
@@ -45,8 +49,20 @@
                     de draw dinâmico respeitando a ordem de layer de cada objeto.
                 </li>
                 <li>
+                    Método getAnchor para pegar pontos específicos de um objeto (topLeft, middle etc).
+                </li>
+                <li>
+                    Classe AnimatorController que é responsável por atualiza as animações de acordo com o estado
+                    recebido.
+                </li>
+                <li>
                     Conjunto de métodos para tratar e padronizar sprites para animações top-down e objetos diversos
                     (bexiga, árvores, etc).
+                </li>
+                <li>
+                    Criado classes CharacterController e NPCController. Agora o controle de set dos estados de animações
+                    é feito por estas classes.
+                    NPCControle permite simulação de caminhada do NPC por check points.
                 </li>
             </ul>
         </section>
@@ -55,8 +71,10 @@
             <h2 id="titulo-instrucoes">Instruções</h2>
             <ul>
                 <li>Use as setas do teclado para se mover pelo mapa.</li>
-                <li>Pressione a barra de espaço para interagir com objetos e personagens.</li>
+                <li>Pressione a barra de espaço para disparar uma bexida d'água.</li>
                 <li>Colete itens para melhorar suas habilidades e enfrentar desafios mais difíceis.</li>
+                <li>Deve existir coisas escondidas sob objetos especiais.</li>
+                <li>Use a tecla shift esquerda junto com a seta de direção para tentar empurar coisas.</li>
                 <li>Explore o mundo e descubra segredos escondidos!</li>
             </ul>
         </section>

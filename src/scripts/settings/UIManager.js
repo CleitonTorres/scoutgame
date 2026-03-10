@@ -4,6 +4,7 @@ export class UIManager {
         this.playerHpEl = document.getElementById("ui-player-hp");
         this.playerPosEl = document.getElementById("ui-player-pos");
         this.playerLayerEl = document.getElementById("ui-player-layer");
+        this.playerAnimEl = document.getElementById("ui-player-anim");
 
         this.warningEl = document.getElementById("ui-warning");
 
@@ -27,6 +28,9 @@ export class UIManager {
         }
         if(this.playerLayerEl){
             this.playerLayerEl.textContent = `${player.sortLayer}`;
+        }
+        if(this.playerAnimEl){
+            this.playerAnimEl.textContent = `${player.state}`;
         }
     }
 

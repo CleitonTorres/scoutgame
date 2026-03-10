@@ -40,6 +40,8 @@ export class SpatialHashGrid {
 
     // 4️⃣ Insere um objeto na célula correspondente à sua posição.
     insert(obj) {
+        if(!obj) return;
+
         // Descobre qual célula corresponde à posição do objeto.
         const key = this.getCellKey(obj.x, obj.y);
 
@@ -61,7 +63,6 @@ export class SpatialHashGrid {
      * @returns {Array<GameObject>} - retornar um array contendo os objetos próximos.
      */
     query(x, y) {
-
         // Descobre a célula onde a posição do objeto está localizada.
         const cx = Math.floor(x / this.cellSize);
         const cy = Math.floor(y / this.cellSize);

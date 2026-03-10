@@ -100,9 +100,11 @@ export class Ballon extends GameObject {
         this.reboundStopThreshold = 0.01;
     }
 
-    update(_inputX, _inputY, collidables = []) {
+    update(grid) {
         // 1️⃣ Se o objeto já foi destruído, não executa mais nada.
         if (this.destroyed) return;
+
+        const collidables = grid?.query(this.x, this.y) || [];
 
         // 2️⃣ Se o objeto já entrou no estado de explosão (hit),
         // executa apenas a lógica de rebote e animação.

@@ -1,4 +1,3 @@
-import { GameObject } from "./GameObject.js";
 import { loadImage } from "./LoadImage.js";
 
 //verifica se existe uma animação.
@@ -135,8 +134,8 @@ export function drawAnimation(entity, ctx) {
     */
     const drawX = entity.x * entity.gridSize;
     const drawY = entity.y * entity.gridSize;
-    const drawW = entity.gridSize * (entity.width ?? 1) * (entity.scale ?? 1);
-    const drawH = entity.gridSize * (entity.height ?? 1) * (entity.scale ?? 1);
+    const drawW = (entity.gridSize * (entity.width ?? 1)) * (entity.scale ?? 1);
+    const drawH = (entity.gridSize * (entity.height ?? 1)) * (entity.scale ?? 1);
 
     /**
     * Detecta se o frame é uma imagem direta
@@ -146,8 +145,20 @@ export function drawAnimation(entity, ctx) {
     const isCanvas = typeof HTMLCanvasElement !== 'undefined' && frame instanceof HTMLCanvasElement;
     const isBitmap = typeof ImageBitmap !== 'undefined' && frame instanceof ImageBitmap;
 
+    // Detecta se precisa espelhar
+    const flipX = entity.facingDirection?.x === -1;
+    
     // Caso 1: frame é uma imagem direta
-    if (isImage || isCanvas || isBitmap) {
+    if (isImage || isCanvas || isBitmap) {        
+        if(entity.tag === "Player" && flipX && entity.state === "push" ){ 
+            ctx.save();
+            ctx.scale(-1, 1);
+            const x = flipX ? -drawX - drawW : drawX;
+            ctx.drawImage(frame, x, drawY, drawW, drawH);
+            ctx.restore();
+            return true;
+        }
+
         ctx.drawImage(frame, drawX, drawY, drawW, drawH);
         return true;
     }
@@ -170,7 +181,16 @@ export function drawAnimation(entity, ctx) {
 
         // Define largura e altura do recorte
         const sw = frame.sw ?? frame.frameWidth ?? frame.image.width;
-        const sh = frame.sh ?? frame.frameHeight ?? frame.image.height;
+        const sh = frame.sh ?? frame.frameHeight ?? frame.image.height;        
+
+        if(entity.tag === "Player" && flipX && entity.state === "push" ){ 
+            ctx.save();
+            ctx.scale(-1, 1);
+            const x = flipX ? -drawX - drawW : drawX;
+            ctx.drawImage(frame.image, sx, sy, sw, sh, x, drawY, drawW, drawH);
+            ctx.restore();
+            return true;
+        }
 
         ctx.drawImage(frame.image, sx, sy, sw, sh, drawX, drawY, drawW, drawH);
         return true;

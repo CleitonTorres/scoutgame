@@ -295,13 +295,14 @@ export class GameObject {
         }
 
         // Se houver um bloqueio, tenta empurrar o objeto bloqueador para a posição de destino
-        const pushed = this.tryPush(blocker, deltaX, deltaY, collidables);
-        if (pushed && !getCollider(nextX, nextY, collidables, "collide", this)) {
-            this.x = nextX;
-            this.y = nextY;
-            return true;
+        if (this.state === "push" && blocker) {
+            const pushed = this.tryPush(blocker, deltaX, deltaY, collidables);
+            if (pushed && !getCollider(nextX, nextY, collidables, "collide", this)) {
+                this.x = nextX;
+                this.y = nextY;
+                return true;
+            }
         }
-
         return false;
     }
 
@@ -339,8 +340,8 @@ export class GameObject {
         this.updateHitBoxCollide();
 
         // Atualiza animação pelo controlador centralizado.
-        this.animator.setState(this.state);
-        this.animator.update(1 / 60);
+        this.animator?.setState(this.state);
+        this.animator?.update(1 / 60);
     }
 
     // Desenha animação se existir.

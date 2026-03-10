@@ -1,54 +1,29 @@
 import { GameObject } from "../engine/GameObject.js";
+import { drawLabel } from "../tools/DrawLabel.js";
 
 /**
- * Parametros default para instanciar a classe.
- * 
- * {
- *      name = '',
-        tag = 'Tree',
-
-        transform = {
-            width = 1,
-            height = 1,
-            scale = 1
-        },
-        position = {
-            x = 0,
-            y = 0
-        },
-        physical = {
-            behavior = 'static',
-            speed = 0,
-            mass = 0,
-            collision = true,
-            smooth = 0
-        },
-
-        animation =  animation = {
-            idle: {
-                frames: [];
-                fps: number;
-                loop: boolean;
-            },
-            ...
-        },
-
-        showHitbox = false,
-        offSetHitbox = { x: 0, y: 0 },
-        offSetBoxCollide = { x: 0, y: 0 },
-
-        gridSize = 64,
-        canvas
-    }
+ * Classe de objetos staticos especialmente árvores e plantas.
 */
 export class Tree extends GameObject {
     constructor(options = {}) {        
         super({...options});
+    }    
+
+    update(){
+        if(this.animation){
+            //verifica se precisa mudar de animação (idle, walkUp, walkDown...)
+            this.state = "move";
+             
+            // Atualiza animação pelo controlador centralizado.
+            this.animator?.setState(this.state);
+            this.animator?.update(1 / 60);
+        }
     }
 
     draw() {
         if(this.animation){
             super.draw();
+            // drawLabel(this, this.canvas.getContext("2d"), this.x); //desenha o rótulo do personagem.
         }else{
             const ctx = this.canvas.getContext('2d');
             const size = this.gridSize;
@@ -82,16 +57,6 @@ export class Tree extends GameObject {
                 Math.PI * 2
             );
             ctx.fill();
-        }
-    }
-
-    update(inputX, inputY, collides=[]){
-        if(this.animation){
-            //verifica se precisa mudar de animação (idle, walkUp, walkDown...)
-            this.state = "move";
-             
-            //update do gameObject
-            super.update(inputX, inputY, collides)
         }
     }
 }

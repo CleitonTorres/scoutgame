@@ -1,12 +1,14 @@
 import { Player } from "./entities/Player.js";
-import { Ballon } from "./entities/Ballon.js";
 import { Tree } from "./entities/Tree.js";
 import { Wall } from "./entities/Wall.js";
 import { layers } from "./settings/layers.js";
 import { UIManager } from "./settings/UIManager.js";
-import { getRadiusToSpaw } from "./mathh/GetRadiusToSpaw.js";
 import { loadAnimations } from "./engine/Animation.js";
 import { SpatialHashGrid } from "./engine/SpatialHashGrid.js";
+import { shooter } from "./engine/Shooter.js";
+import { getCollider } from "./engine/GetColliders.js";
+import { CharacterController } from "./engine/CharacterController.js";
+import { NPC } from "./entities/NPC.js";
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -55,6 +57,12 @@ const pathAnimationsPlayers = {
         `${pathCharacters}${availablePlayers[characterSelected]}/walk/left/3.png`,
     ], 
     walkRight: [
+        `${pathCharacters}${availablePlayers[characterSelected]}/walk/right/0.png`,
+        `${pathCharacters}${availablePlayers[characterSelected]}/walk/right/1.png`,
+        `${pathCharacters}${availablePlayers[characterSelected]}/walk/right/2.png`,
+        `${pathCharacters}${availablePlayers[characterSelected]}/walk/right/3.png`,
+    ],
+    push:[
         `${pathCharacters}${availablePlayers[characterSelected]}/walk/right/0.png`,
         `${pathCharacters}${availablePlayers[characterSelected]}/walk/right/1.png`,
         `${pathCharacters}${availablePlayers[characterSelected]}/walk/right/2.png`,
@@ -134,7 +142,7 @@ for (const [key, npc] of Object.entries(availableNPCs)) {
 }
 //----------------------------------
 
-//carrega animações de objetos.
+//carrega animações da bexiga d'água.
 const ballonAnimation = await loadAnimations(pathBallonSprites, 6, true);
 if (ballonAnimation.hit) {
     ballonAnimation.hit.loop = false;
@@ -166,10 +174,19 @@ for (const [key, tree] of Object.entries(avaliableTrees)) {
 //-----------------------------
 
 //instancia o grid virtual para colisões.
-const grid = new SpatialHashGrid(2);
+const grid = new SpatialHashGrid(3);
 
 //esconde a mensagem de "carregando ..."
 ui.hideWarning();
+
+//estados das teclas.
+const inputState = {
+    up:false,
+    down:false,
+    left:false,
+    right:false,
+    shift:false
+};
 
 //----------------------
 const player = new Player({
@@ -182,10 +199,11 @@ const player = new Player({
         smooth: 6,
         speed: 3
     },
+    controller: new CharacterController(inputState),
     position:{x: 1, y: 2},
     sortLayer: layers.player,
     offSetBoxCollide: {x: 15, y: 20},
-    offSetHitbox: {x: 15, y: 0},
+    offSetHitbox: {x: 10, y: -5},
     anchorBoxCollide: {x: 0, y: 20},
     showHitbox: false,
     state: "idle",
@@ -194,28 +212,58 @@ const player = new Player({
     gridSize,
 });
 
+//points para simulação de caminhada.
+const patrolPoints = [
+    { x: 2, y: 10 },
+    { x: 10, y: 5 },
+    { x: 10, y: 8 },
+    { x: 5, y: 8 }
+];
+
 const npcs = [
-    new Player({
-    name: "Baloo",
-    tag: "NPC",
-    physical:{
-        behavior: "dynamic",
-        collision: true,
-        mass: 7,
-        smooth: 6,
-        speed: 3
-    },
-    position:{x: 10, y: 1},
-    offSetBoxCollide: {x: 15, y: 20},
-    anchorBoxCollide: {x: 0, y: 20},
-    offSetHitbox: {x: 20, y: 10},
-    sortLayer: layers.ground,
-    showHitbox: false,
-    state: "idle",
-    animation: npcsAnimations.baloo,
-    canvas,
-    gridSize
-}),
+    new NPC({
+        name: "Baloo",
+        tag: "NPC",
+        physical:{
+            behavior: "dynamic",
+            collision: true,
+            mass: 7,
+            smooth: 6,
+            speed: 3
+        },
+        position:{x: 10, y: 1},
+        offSetBoxCollide: {x: 15, y: 20},
+        anchorBoxCollide: {x: 0, y: 20},
+        offSetHitbox: {x: 15, y: 10},
+        sortLayer: layers.underFloor,
+        showHitbox: false,
+        state: "idle",
+        animation: npcsAnimations.baloo,
+        canvas,
+        gridSize
+    }),
+    new NPC({
+        name: "BP",
+        tag: "NPC",
+        physical:{
+            behavior: "dynamic",
+            collision: true,
+            mass: 7,
+            smooth: 6,
+            speed: 0.5
+        },
+        patrolPoints,
+        position:{x: 2, y: 10},
+        offSetBoxCollide: {x: 15, y: 20},
+        anchorBoxCollide: {x: 0, y: 20},
+        offSetHitbox: {x: 10, y: 10},
+        sortLayer: layers.underFloor,
+        showHitbox: true,
+        state: "idle",
+        animation: npcsAnimations.bp,
+        canvas,
+        gridSize
+    }),
 ];
 
 const walls = [
@@ -225,7 +273,7 @@ const walls = [
         sortLayer: layers.ground,
         position: {x: 4, y: 4},
         offSetBoxCollide: {x: 0, y: 0},
-        offSetHitbox: {x: 0, y: 0},
+        offSetHitbox: {x: 0, y: 0}, //hitbox ligeiramente maior que o objeto.
         showHitbox: true,
         animation: {},
         physical:{
@@ -291,7 +339,7 @@ const trees = [
         state: "move",
         animation: treesAnimations.tree01,
         showHitbox: false,
-        showBoxCollide: true,
+        showBoxCollide: false,
         offSetBoxCollide: {x: 25, y: 25},
         anchorBoxCollide: {x: 0, y: 25},
         offSetHitbox: {x: 20, y: 10},
@@ -301,20 +349,24 @@ const trees = [
         name: 'Tree2',
         tag: 'Tree',
         sortLayer: layers.underFloor,
-        position: {x: 8, y: 8},
+        position: {x: 6, y: 7.5},
         physical: {
             collision: true,
         },
         transform:{
-            scale: 2,
+            width: 2,
+            height: 2,
+            scale: 1,
         },
         state: "move",
         animation: treesAnimations.tree07,
-        showBoxCollide: true,
+        showBoxCollide: false,
+        showHitbox: true,
         anchorHitBox: {x: 0, y: 5},
-        offSetHitbox: {x: 45, y: 5},
+        offSetHitbox: {x: 20, y: 5},
         anchorBoxCollide: {x: 10, y: 60},
-        offSetBoxCollide: {x: 50, y: 60},        
+        offSetBoxCollide: {x: 50, y: 60}, 
+        gridSize,       
         canvas: canvas,        
     }),
     new Tree({
@@ -327,7 +379,7 @@ const trees = [
         },
         state: "move",
         animation: treesAnimations.tree01,
-        showBoxCollide: true,
+        showBoxCollide: false,
         offSetBoxCollide: {x: 25, y: 25},
         anchorBoxCollide: {x: 0, y: 25},
         offSetHitbox: {x: 20, y: 10},
@@ -344,7 +396,7 @@ const trees = [
         },
         state: "move",
         animation: treesAnimations.tree07,
-        showBoxCollide: true,
+        showBoxCollide: false,
         offSetBoxCollide: {x: 25, y: 25},
         anchorBoxCollide: {x: 0, y: 25},
         offSetHitbox: {x: 20, y: 10},
@@ -354,14 +406,7 @@ const trees = [
 ];
 
 //objetos em cena.
-const worldObjects = [...npcs, ...walls, ...trees];
-
-const keysPressed = {
-    up: false,
-    down: false,
-    left: false,
-    right: false,
-};
+const worldObjects = [...npcs, ...walls, ...trees, player];
 
 // Atualiza o estado das teclas pressionadas com base no evento de teclado
 function updateInputState(key, isPressed) {
@@ -369,48 +414,44 @@ function updateInputState(key, isPressed) {
         case 'ArrowUp':
         case 'w':
         case 'W':
-            keysPressed.up = isPressed;
+            inputState.up = isPressed;
             break;
         case 'ArrowDown':
         case 's':
         case 'S':
-            keysPressed.down = isPressed;
+            inputState.down = isPressed;
             break;
         case 'ArrowLeft':
         case 'a':
         case 'A':
-            keysPressed.left = isPressed;
+            inputState.left = isPressed;
             break;
         case 'ArrowRight':
         case 'd':
         case 'D':
-            keysPressed.right = isPressed;
+            inputState.right = isPressed;
+            break;
+        case 'ShiftLeft':
+        case 'Shift':
+            inputState.shift = isPressed;
             break;
     }
 }
 
-// Converte o estado das teclas pressionadas em um vetor de entrada para o movimento do jogador
-function getInputVector() {
-    const inputX = (keysPressed.right ? 1 : 0) - (keysPressed.left ? 1 : 0);
-    const inputY = (keysPressed.down ? 1 : 0) - (keysPressed.up ? 1 : 0);
-    return { inputX, inputY };
-}
-
-function update() {
-    //atualiza dados dos NPCs e do Player.
-    const { inputX, inputY } = getInputVector();
-
-    const collidesGridPlayer = grid.query(player.x, player.y);
-    player.update(inputX, inputY, collidesGridPlayer);
-    
+function update() {    
     //atual dados dos objetos de cena que precisam ser atualizados.
-    for (let i = worldObjects.length - 1; i >= 0; i--) {
-        const obj = worldObjects[i];
-        if(obj.tag && ["Ballon", "NPC", "Tree"].includes(obj.tag)) {
-            const collidesGridOthers = grid.query(obj.x, obj.y);
-            obj.update(0, 0, [player, ...collidesGridOthers]);
-            if(obj.destroyed) worldObjects.splice(i, 1);
+    const resolve = worldObjects.filter(Boolean);
+    for (let i = resolve.length - 1; i >= 0; i--) {
+        const obj = resolve[i];
+        if(!obj || !obj.tag) return;
+
+        if(["Wall", "Tree"].includes(obj.tag)) {
+            obj.update(grid);
+        }else if(["NPC", "Player", "Ballon"].includes(obj.tag)){
+            obj.update(grid);
         }
+
+        if(obj.destroyed) worldObjects.splice(i, 1);
     }
     
     //atualiza dados do UI.
@@ -422,7 +463,7 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     //desenha cada elemento de acordo com sua layer (profundidade)
-    const renderQueue = [...worldObjects, player];
+    const renderQueue = [...worldObjects, player].filter(Boolean);
     renderQueue.sort((a, b) => {
         // 1) layer base (menor primeiro, maior desenha por último = fica na frente)
         const layerDiff = (a.sortLayer ?? 0) - (b.sortLayer ?? 0);
@@ -451,6 +492,7 @@ function gameLoop() {
 }
 
 document.addEventListener('keydown', (event) => {
+    event.preventDefault();
     updateInputState(event.key, true);
 
     if (event.repeat) return;
@@ -458,36 +500,29 @@ document.addEventListener('keydown', (event) => {
     if (event.code === "Space") {
         event.preventDefault();
         
-        //pegar a posição para spawnar o balão pelo centro do player.
-        const {spawnX, spawnY} = getRadiusToSpaw(player, 10, gridSize);
+        const isCollided = getCollider(
+            player.x, player.y, 
+            grid.query(player.x, player.y), 
+            "hitbox", 
+            player
+        ) ? true : false;
 
-        //insere a instância no array de objetos globais para ser desenhado.
-        worldObjects.push(new Ballon({
-            name: `Ballon-${Date.now()}`,
-            tag: "Ballon",
-            position: { x: spawnX, y: spawnY },
-            direction: player.facingDirection,
-            physical:{
-                collision: true,
-                mass: 1,
-                speed: 6 
-            },
-            transform:{
-                width: 0.35,
-                height: 0.35,
-            },
-            state: "move",
-            animation: ballonAnimation,
-            owner: player,
-            sortLayer: layers.player,
-            offSetBoxCollide: { x: 0, y: 0 },
-            offSetHitbox: { x: 0, y: 0 },
-            showHitbox: false,
-            canvas,
-            gridSize,
-        }));
+        if(isCollided){
+            //detecta uma colisão para decidir se muda de animação push ou arremessa um ballon.
+            ui.showDialog({
+                speaker: "Sistema",
+                text: "empurrando"
+            });
+            setTimeout(()=>{
+                ui.hideDialog()
+            }, 2000);
+            updateInputState(event.key, true);
+        } else{
+            //insere a instância no array de objetos globais para ser desenhado.
+            worldObjects.push(shooter(player, ballonAnimation, canvas, gridSize));
+        }
     }
-
+    
     //ao teclar h simula um aviso na tela.
     if (event.key === 'h' || event.key === 'H') {
         ui.showWarning("Aviso: sistema de UI HTML ativo.");
