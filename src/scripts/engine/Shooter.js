@@ -19,13 +19,17 @@ export function shooter(player, ballonAnimation, canvas, gridSize){
             width: 0.35,
             height: 0.35,
         },
+        hitboxes: [
+            {
+                offSetHitbox: {x:0, y:0},
+                anchorHitBox: {x:0, y:0},
+                showHitbox:true
+            }
+        ],
         state: "move",
         animation: ballonAnimation,
         owner: player,
         sortLayer: layers.player,
-        offSetBoxCollide: { x: 0, y: 0 },
-        offSetHitbox: { x: 0, y: 0 },
-        showHitbox: false,
         canvas,
         gridSize,
     });

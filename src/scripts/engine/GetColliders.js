@@ -1,47 +1,53 @@
-import { Player } from "../entities/Player.js";
-import { GameObject } from "./GameObject.js";
 import { isOverlapping } from "./IsOverlapping.js";
 
- // Verifica se há um objeto bloqueando/colidindo a posição de destino
- /**
-  * 
-  * @param {GameObject} collidables - world objetos.
-  * @param {Player} entity - player.
-  * @param {string} mode - tipo de objeto a ser detectado na colisão hitbox ou collide.
-  * @returns {GameObject} - retorna o objeto colidido ou null.
-  */
+/**
+ * Verifica colisão entre entidades considerando múltiplas caixas
+ */
 export function getCollider(
     nextX,
     nextY,
-    collidables = [], 
-    mode= "collide", //collide | hitbox
-    entity,
+    collidables = [],
+    mode = "collide", // "collide" | "hitbox"
+    entity
 ) {
+
     if (!entity || !entity.collision) return null;
 
-    // Usa o mode para verificar bloqueios ou colisão.
-    // pega o collide (área de colisão ou de hit) deste (this) objeto.
-    const entityBox =
+    // pega as caixas da entidade
+    const entityBoxes =
         mode === "hitbox"
-            ? entity.getHitBox(nextX, nextY) : entity.getHitboxCollide(nextX, nextY);
+            ? (entity.hitboxes || []).map(h => h.getHitBox(nextX, nextY))
+            : (entity.collides || []).map(c => c.getBoxCollide(nextX, nextY));
 
-    // Verifica cada objeto colidível para ver se há uma 
-    let object = null;
+    if (!entityBoxes.length) return null;
+
     for (const obj of collidables) {
+
         if (!obj || obj === entity || !obj.collision) continue;
 
-        //pega a área de colisão do outro objeto.
-        const otherBox = mode === "hitbox"
-            ? (obj.getHitBox ? obj.getHitBox(obj.x, obj.y) : obj.hitbox)
-            : (obj.getHitboxCollide
-                ? obj.getHitboxCollide(obj.x, obj.y)
-                : obj.collide);
+        // pega caixas do outro objeto
+        const otherBoxes =
+            mode === "hitbox"
+                ? (obj.hitboxes || []).map(h => h.getHitBox())
+                : (obj.collides || []).map(c => c.getBoxCollide());
 
-        if (otherBox && isOverlapping(entityBox, otherBox)) {
-            object = obj;
-            break;
+        for (const entityBox of entityBoxes) {
+
+            if (!entityBox) continue;
+
+            for (const otherBox of otherBoxes) {
+
+                if (!otherBox) continue;
+
+                if (isOverlapping(entityBox, otherBox)) {
+                    return obj;
+                }
+
+            }
+
         }
+
     }
 
-    return object;
+    return null;
 }

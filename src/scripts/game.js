@@ -199,13 +199,23 @@ const player = new Player({
         smooth: 6,
         speed: 3
     },
+    hitboxes: [
+        {
+            offSetHitbox: {x:10, y:-5},
+            anchorHitBox: {x:0, y:0},
+            showHitbox:false
+        }
+    ],
+    collides:[
+        {
+            offSetBoxCollide: {x: 15, y: 20},
+            anchorBoxCollide: {x: 0, y: 20},
+            showBoxCollide:false
+        }
+    ],
     controller: new CharacterController(inputState),
     position:{x: 1, y: 2},
     sortLayer: layers.player,
-    offSetBoxCollide: {x: 15, y: 20},
-    offSetHitbox: {x: 10, y: -5},
-    anchorBoxCollide: {x: 0, y: 20},
-    showHitbox: false,
     state: "idle",
     animation: playerAnimations,
     canvas,
@@ -232,11 +242,21 @@ const npcs = [
             speed: 3
         },
         position:{x: 10, y: 1},
-        offSetBoxCollide: {x: 15, y: 20},
-        anchorBoxCollide: {x: 0, y: 20},
-        offSetHitbox: {x: 15, y: 10},
+        hitboxes: [
+            {
+                offSetHitbox: {x: 15, y: 10},
+                anchorHitBox: {x:0, y:0},
+                showHitbox:false
+            }
+        ],
+        collides:[
+            {
+                offSetBoxCollide: {x: 15, y: 20},
+                anchorBoxCollide: {x: 0, y: 20},
+                showBoxCollide: false
+            }
+        ],
         sortLayer: layers.underFloor,
-        showHitbox: false,
         state: "idle",
         animation: npcsAnimations.baloo,
         canvas,
@@ -254,11 +274,21 @@ const npcs = [
         },
         patrolPoints,
         position:{x: 2, y: 10},
-        offSetBoxCollide: {x: 15, y: 20},
-        anchorBoxCollide: {x: 0, y: 20},
-        offSetHitbox: {x: 10, y: 10},
+        hitboxes: [
+            {
+                offSetHitbox: {x: 10, y: 10},
+                anchorHitBox: {x:0, y:0},
+                showHitbox:false
+            }
+        ],
+        collides:[
+            {
+                offSetBoxCollide: {x: 15, y: 20},
+                anchorBoxCollide: {x: 0, y: 20},
+                showBoxCollide: false
+            }
+        ],
         sortLayer: layers.underFloor,
-        showHitbox: true,
         state: "idle",
         animation: npcsAnimations.bp,
         canvas,
@@ -272,9 +302,6 @@ const walls = [
         tag: "Wall",
         sortLayer: layers.ground,
         position: {x: 4, y: 4},
-        offSetBoxCollide: {x: 0, y: 0},
-        offSetHitbox: {x: 0, y: 0}, //hitbox ligeiramente maior que o objeto.
-        showHitbox: true,
         animation: {},
         physical:{
             behavior: 'static',
@@ -284,6 +311,20 @@ const walls = [
         transform:{
             height: 0.5,
         },
+        hitboxes: [
+            {
+                offSetHitbox: {x:0, y:0},
+                anchorHitBox: {x:0, y:0},
+                showHitbox:false
+            }
+        ],
+        collides:[
+            {
+                offSetBoxCollide: {x: 0, y: 0},
+                anchorBoxCollide: {x: 0, y: 0},
+                showBoxCollide: false
+            }
+        ],
         gridSize,
         canvas,        
     }),
@@ -292,8 +333,6 @@ const walls = [
         tag: "Wall",
         sortLayer: layers.ground,
         position: {x: 5, y: 5},
-        offSetBoxCollide: {x: 0, y: 0},
-        offSetHitbox: {x: 0, y: 0},
         animation: {},
         physical:{
             behavior: 'static',
@@ -303,6 +342,20 @@ const walls = [
         transform:{
             height: 0.5,
         },
+        hitboxes: [
+            {
+                offSetHitbox: {x:0, y:0},
+                anchorHitBox: {x:0, y:0},
+                showHitbox:true
+            }
+        ],
+        collides:[
+            {
+                offSetBoxCollide: {x: 0, y: 0},
+                anchorBoxCollide: {x: 0, y: 0},
+                showBoxCollide: true
+            }
+        ],
         gridSize,
         canvas,        
     }),
@@ -311,8 +364,6 @@ const walls = [
         tag: "Wall",
         sortLayer: layers.ground,
         position: {x: 6, y: 4},
-        offSetBoxCollide: {x: 0, y: 0},
-        offSetHitbox: {x: 0, y: 0},
         animation: {},
         physical:{
             behavior: 'static',
@@ -322,6 +373,20 @@ const walls = [
         transform:{
             height: 0.5,
         },
+        hitboxes: [
+            {
+                offSetHitbox: {x:0, y:0},
+                anchorHitBox: {x:0, y:0},
+                showHitbox:true
+            }
+        ],
+        collides:[
+            {
+                offSetBoxCollide: {x: 0, y: 0},
+                anchorBoxCollide: {x: 0, y: 0},
+                showBoxCollide: true
+            }
+        ],
         gridSize,
         canvas,        
     }),
@@ -336,13 +401,22 @@ const trees = [
         physical: {
             collision: true,
         },
+        hitboxes: [
+            {
+                offSetHitbox: {x: 20, y: 10},
+                anchorHitBox: {x:0, y:0},
+                showHitbox:false
+            }
+        ],
+        collides:[
+            {
+                offSetBoxCollide: {x: 25, y: 25},
+                anchorBoxCollide: {x: 0, y: 25},
+                showBoxCollide: false
+            }
+        ],
         state: "move",
         animation: treesAnimations.tree01,
-        showHitbox: false,
-        showBoxCollide: false,
-        offSetBoxCollide: {x: 25, y: 25},
-        anchorBoxCollide: {x: 0, y: 25},
-        offSetHitbox: {x: 20, y: 10},
         canvas: canvas,        
     }),
     new Tree({
@@ -358,14 +432,22 @@ const trees = [
             height: 2,
             scale: 1,
         },
+        hitboxes: [
+            {
+                offSetHitbox: {x: 30, y: 5},
+                anchorHitBox: {x: 0, y: 5},
+                showHitbox:false
+            }
+        ],
+        collides:[
+            {
+                offSetBoxCollide: {x: 50, y: 60},
+                anchorBoxCollide: {x: 10, y: 60},
+                showBoxCollide: false
+            }
+        ],
         state: "move",
         animation: treesAnimations.tree07,
-        showBoxCollide: false,
-        showHitbox: true,
-        anchorHitBox: {x: 0, y: 5},
-        offSetHitbox: {x: 20, y: 5},
-        anchorBoxCollide: {x: 10, y: 60},
-        offSetBoxCollide: {x: 50, y: 60}, 
         gridSize,       
         canvas: canvas,        
     }),
@@ -377,12 +459,23 @@ const trees = [
         physical: {
             collision: true,
         },
+        hitboxes: [
+            {
+                offSetHitbox: {x: 20, y: 10},
+                anchorHitBox: {x: 0, y: 0},
+                showHitbox:false
+            }
+        ],
+        collides:[
+            {
+                offSetBoxCollide: {x: 25, y: 25},
+                anchorBoxCollide: {x: 0, y: 25},
+                showBoxCollide: false
+            }
+        ],
         state: "move",
         animation: treesAnimations.tree01,
         showBoxCollide: false,
-        offSetBoxCollide: {x: 25, y: 25},
-        anchorBoxCollide: {x: 0, y: 25},
-        offSetHitbox: {x: 20, y: 10},
         gridSize,
         canvas: canvas,        
     }),
@@ -394,12 +487,22 @@ const trees = [
         physical: {
             collision: true,
         },
+        hitboxes: [
+            {
+                offSetHitbox: {x: 20, y: 10},
+                anchorHitBox: {x: 0, y: 0},
+                showHitbox:false
+            }
+        ],
+        collides:[
+            {
+                offSetBoxCollide: {x: 25, y: 25},
+                anchorBoxCollide: {x: 0, y: 25},
+                showBoxCollide: false
+            }
+        ],
         state: "move",
         animation: treesAnimations.tree07,
-        showBoxCollide: false,
-        offSetBoxCollide: {x: 25, y: 25},
-        anchorBoxCollide: {x: 0, y: 25},
-        offSetHitbox: {x: 20, y: 10},
         gridSize,
         canvas: canvas,        
     }),
@@ -507,17 +610,7 @@ document.addEventListener('keydown', (event) => {
             player
         ) ? true : false;
 
-        if(isCollided){
-            //detecta uma colisão para decidir se muda de animação push ou arremessa um ballon.
-            ui.showDialog({
-                speaker: "Sistema",
-                text: "empurrando"
-            });
-            setTimeout(()=>{
-                ui.hideDialog()
-            }, 2000);
-            updateInputState(event.key, true);
-        } else{
+        if(!isCollided){
             //insere a instância no array de objetos globais para ser desenhado.
             worldObjects.push(shooter(player, ballonAnimation, canvas, gridSize));
         }

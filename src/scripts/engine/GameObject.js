@@ -1,6 +1,8 @@
 import { drawAnimation, normalizeAnimation } from "./Animation.js";
 import { AnimationController } from "./AnimatorController.js";
 import { getCollider } from "./GetColliders.js";
+import { HitBox } from "../entities/Hitbox.js";
+import { Collide } from "../entities/BoxCollide.js";
 
 /**
  * GameObject
@@ -30,12 +32,8 @@ export class GameObject {
             animator = null,
             animation = {},
 
-            showHitbox = false,
-            showBoxCollide = false,
-            anchorHitBox = {x: 0, y: 0}, //distância do ponto inicial para desenar o box.
-            anchorBoxCollide = {x: 0, y: 0}, //distância do ponto inicial para desenar o box.
-            offSetHitbox = { x: 0, y: 0 },
-            offSetBoxCollide = { x: 0, y: 0 },
+            hitboxes = [],
+            collides = [],
 
             gridSize = 64,
             canvas
@@ -80,6 +78,8 @@ export class GameObject {
         // ------------------------
         this.x = x;
         this.y = y;
+        this.nextPosX = x;
+        this.nextPosY = y;
 
         // ------------------------
         // PROPRIEDADES FÍSICAS
@@ -93,12 +93,6 @@ export class GameObject {
         // ------------------------
         // DEBUG E CONFIGURAÇÕES
         // ------------------------
-        this.showHitbox = showHitbox;
-        this.showBoxCollide = showBoxCollide;
-        this.anchorHitBox = anchorHitBox;
-        this.anchorBoxCollide = anchorBoxCollide;
-        this.offSetHitbox = offSetHitbox;
-        this.offSetBoxCollide = offSetBoxCollide;
         this.gridSize = gridSize;
         this.canvas = canvas;
 
@@ -132,60 +126,20 @@ export class GameObject {
         // HITBOX INICIAL
         // ------------------------
         // Representa a área real de colisão do objeto.
-        this.hitbox = this.getHitBox(this.x, this.y);
+        this.hitboxes = (hitboxes || []).map(config =>
+            new HitBox({
+                ...config,
+                entity: this
+            })
+        );
 
         // Representa a área "sólida" do objeto.
-        this.collide = this.getHitboxCollide(this.x, this.y);
-    }
-
-    // Atualiza o hitbox para a posição atual do jogador
-    updateHitbox() {
-        this.hitbox = this.getHitBox(this.x, this.y);
-    }
-
-    updateHitBoxCollide(){
-        this.collide = this.getHitboxCollide(this.x, this.y);
-    }
-
-    // Desenha o hitbox do jogador, se a opção estiver ativada
-    drawHitbox(ctx) {
-        if (this.showHitbox) {
-            ctx.strokeStyle = 'red';
-            ctx.strokeRect(this.hitbox.x, this.hitbox.y, this.hitbox.width, this.hitbox.height);
-        }
-    }
-
-    // Desenha o hitbox do jogador, se a opção estiver ativada
-    drawBoxCollide(ctx) {
-        if (this.showBoxCollide) {
-            ctx.strokeStyle = 'blue';
-            ctx.strokeRect(this.collide.x, this.collide.y, this.collide.width, this.collide.height);
-        }
-    }
-
-    // Retorna o hitbox para a posição de colisão, que pode ser diferente do hitbox de renderização
-    getHitboxCollide(nextX, nextY) {
-        const scaledWidth = (this.width * this.gridSize) * this.scale;
-        const scaledHeight = (this.height * this.gridSize) * this.scale;
-
-        return {
-            x: (nextX * this.gridSize) + this.anchorBoxCollide.x + this.offSetBoxCollide.x,
-            y: (nextY * this.gridSize) + this.anchorBoxCollide.y + this.offSetBoxCollide.y,
-            width: scaledWidth - (this.offSetBoxCollide.x * 2),
-            height: scaledHeight - (this.offSetBoxCollide.y * 2)
-        };
-    }
-
-    getHitBox(nextX, nextY){
-        const scaledWidth = (this.width * this.gridSize) * this.scale;
-        const scaledHeight = (this.height * this.gridSize) * this.scale;
-
-        return {
-            x: (nextX * this.gridSize) + this.anchorHitBox.x + this.offSetHitbox.x,
-            y: nextY * this.gridSize + this.anchorHitBox.y + this.offSetHitbox.y,
-            width: scaledWidth - (this.offSetHitbox.x * 2),
-            height: scaledHeight - (this.offSetHitbox.y * 2)
-        };
+        this.collides = (collides || []).map(config =>
+            new Collide({
+                ...config,
+                entity: this
+            })
+        );
     }
 
     isStatic() {
@@ -193,7 +147,7 @@ export class GameObject {
     }
 
     isDynamic() {
-        return this.behavior === 'dynamic' || this.behavior === 'dinamic';
+        return this.behavior === 'dynamic';
     }
 
     /**
@@ -270,7 +224,7 @@ export class GameObject {
         target.y = clamped.y;
 
         // Atualiza hitbox se existir
-        if (target.updateHitbox) target.updateHitbox();
+        // if (target.updateHitbox) target.updateHitbox();
         return true;
     }
 
@@ -297,12 +251,21 @@ export class GameObject {
         // Se houver um bloqueio, tenta empurrar o objeto bloqueador para a posição de destino
         if (this.state === "push" && blocker) {
             const pushed = this.tryPush(blocker, deltaX, deltaY, collidables);
-            if (pushed && !getCollider(nextX, nextY, collidables, "collide", this)) {
-                this.x = nextX;
-                this.y = nextY;
-                return true;
+            
+            if (pushed) {
+
+                const stillBlocked = getCollider(nextX, nextY, collidables, "collide", this);
+
+                if (!stillBlocked) {
+                    this.x = nextX;
+                    this.y = nextY;
+                    return true;
+                }
+
             }
         }
+
+        // bloqueado → cancela movimento
         return false;
     }
 
@@ -313,31 +276,32 @@ export class GameObject {
         const maxStep = this.speed / 60;
         const smoothFactor = 1 / this.smooth;
 
-        const length = Math.hypot(inputX, inputY) || 1;
-        const targetVX = (inputX / length) * maxStep;
-        const targetVY = (inputY / length) * maxStep;
+        const length = Math.hypot(inputX, inputY);
+        const targetVX = length ? (inputX / length) * maxStep : 0;
+        const targetVY = length  ? (inputY / length) * maxStep : 0;
 
         // Isso é uma interpolação gradual até a velocidade alvo.
         this.vx += (targetVX - this.vx) * smoothFactor;
         this.vy += (targetVY - this.vy) * smoothFactor;
 
+        // fricção natural
+        if (length === 0) {
+            this.vx *= 0.6;
+            this.vy *= 0.6;
+        }
+
         // Primeiro resolve o eixo X
         // Depois resolve o eixo Y
         // Isso evita bugs de colisão diagonal
         //this.x + thisvx calcula o nextPosX.
-        const nextPosX = this.clampToCanvas(this.x + this.vx, this.y);
-        const movedX = this.resolveAxis(nextPosX.x, this.y, this.vx, 0, collidables);
+        this.nextPosX = this.clampToCanvas(this.x + this.vx, this.y).x;
+        const movedX = this.resolveAxis(this.nextPosX, this.y, this.vx, 0, collidables);
         if (!movedX) this.vx = 0;
 
         // Depois de resolver o movimento no eixo X, tenta resolver o movimento no eixo Y
-        const nextPosY = this.clampToCanvas(this.x, this.y + this.vy);
-        const movedY = this.resolveAxis(this.x, nextPosY.y, 0, this.vy, collidables);
+        this.nextPosY = this.clampToCanvas(this.x, this.y + this.vy).y;
+        const movedY = this.resolveAxis(this.x, this.nextPosY, 0, this.vy, collidables);
         if (!movedY) this.vy = 0;
-
-        // Atualiza o hitbox para a nova posição do jogador
-        // Nesse momento posição x e y do player já está resulvida.
-        this.updateHitbox();
-        this.updateHitBoxCollide();
 
         // Atualiza animação pelo controlador centralizado.
         this.animator?.setState(this.state);
@@ -362,7 +326,19 @@ export class GameObject {
             );
         }
 
-        this.drawHitbox(ctx);
-        this.drawBoxCollide(ctx);
+        //detecta sobreposições.
+        if(this.hitboxes && this.hitboxes.length > 0){
+            this.hitboxes.filter(Boolean).forEach(box => {
+                box.draw()
+            });
+        }
+
+        // detecta bloqueios físicos.
+        if(this.collides && this.collides.length > 0){
+            this.collides.filter(Boolean).forEach(box => {
+                box.draw()
+            });
+        }
+
     }    
 }
