@@ -10,14 +10,18 @@ import { GameObject } from "./GameObject.js";
  */
 export function sortLayer(entityA, entityB, gridsize){
     if (!entityA || !entityB || !Number.isFinite(gridsize) || gridsize <= 0) return;
+    if(entityA.name === entityB.owner?.name) return;
+
+    // Se entityB for um colisor, usamos o 'owner' dele.
+    const target = entityB.owner ? entityB.owner : entityB;
 
     // Compara profundidade pelo "pé" do objeto (âncora bottomCenter).
-    const posyA = getAnchor(entityA, gridsize, "bottomCenter").y;
-    const posyB = getAnchor(entityB, gridsize, "bottomCenter").y;
+    const posyA = getAnchor(entityA, "bottomCenter").y;
+    const posyB = getAnchor(target, "bottomCenter").y;
 
     if (posyA < posyB) {
-        entityA.sortLayer = entityB.sortLayer - 1;
+        entityA.sortLayer = target.sortLayer - 1;
     } else {
-        entityA.sortLayer = entityB.sortLayer + 1;
+        entityA.sortLayer = target.sortLayer + 1;
     }
 }

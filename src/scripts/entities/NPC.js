@@ -1,6 +1,5 @@
 import { setFacingDirection } from "../engine/FacingDirectio.js";
 import { GameObject } from "../engine/GameObject.js";
-import { isOverlapping } from "../engine/IsOverlapping.js";
 import { NPCController } from "../engine/NPCController.js";
 import { sortLayer } from "../engine/SortLayer.js";
 import { layers } from "../settings/layers.js";
@@ -35,25 +34,21 @@ export class NPC extends GameObject {
         const state = this.controller.getState();
         this.state = state;
 
-        const collides = grid.query(this.x, this.y);
-        
+        const collidables = grid.query(this.x, this.y);
+                
+        // Chama o movimento base (que já atualiza todos os hitboxes internamente)
+        super.update(inputX, inputY, collidables);
+
+        // Busca automaticamente se algum hitbox detectou colisão
+        const collidedHitbox = [...this.hitboxes, ...this.collides].find(h => h.hits);
+
         // layer dinâmica.
-        if(this.tag === "NPC"){
-            const collided =  collides.find((object)=> {
-                const hitbox = 
-                    object.getHitbox ? object.getHitbox(object.x, object.y) : object;
-                return isOverlapping(this, hitbox)
-            });
-
-            if(collided){
-                //ordena a layer do player de acordo com o colisor.
-                sortLayer(this, collided, this.gridSize); 
-            }else{
-                this.sortLayer = layers.underFloor;
-            }
+        if(collidedHitbox){
+            // O sortLayer agora recebe o objeto colidido (h.hits)
+            sortLayer(this, collidedHitbox.hits, this.gridSize); 
+        } else {
+            this.sortLayer = layers.player;
         }
-
-        super.update(inputX, inputY, collides);
     }
 
     draw(){
@@ -75,6 +70,6 @@ export class NPC extends GameObject {
         const posx = (this.x * this.gridSize) + (this.width * this.gridSize) / 2;
         const posy = (this.y * this.gridSize);
         //desenha o texto.
-        ctx.fillText(this.name, posx, posy);
+        ctx.fillText(this.name + " " + this.sortLayer, posx, posy);
     }
 }

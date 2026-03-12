@@ -5,22 +5,22 @@ import { getAnchor } from "./GetAnchor.js";
  * @param {*} spawner - objeto que invoca o spaw.
  * @param {number} spawnGap - distância extra em pixel entre spawner e spaw.
  * @param {*} gridSize - tamanho do tile em px.
- * @returns - retorna a posição de spaw do objeto.
+ * @returns {{x: number, y: number}}- retorna a posição de spaw do objeto em tiles.
  */
 export function getRadiusToSpaw (spawner, spawnGap, gridSize){
     const ballonSizeTiles = 0.35;
-    const { x: playerCenterX, y: playerCenterY } = getAnchor(spawner, gridSize, "middle");
-    const playerRadiusPx = (spawner.width * gridSize) / 2;
-    const ballonRadiusPx = (ballonSizeTiles * gridSize) / 2;
-    const spawnGapPx = spawnGap;
+    const { x: playerCenterX, y: playerCenterY } = getAnchor(spawner, "middle");
+    const playerRadiusPx = spawner.width / 2;
+    const ballonRadiusPx = ballonSizeTiles / 2;
+    const spawnGapPx = spawnGap / gridSize;
     const spawnDistancePx = playerRadiusPx + ballonRadiusPx + spawnGapPx;
     const ballonCenterX = playerCenterX + (spawner.facingDirection.x * spawnDistancePx);
     const ballonCenterY = playerCenterY + (spawner.facingDirection.y * spawnDistancePx);
-    const spawnX = (ballonCenterX - ballonRadiusPx) / gridSize;
-    const spawnY = (ballonCenterY - ballonRadiusPx) / gridSize;
+    const spawnX = (ballonCenterX - ballonRadiusPx);
+    const spawnY = (ballonCenterY - ballonRadiusPx);
 
     return{
-        spawnX,
-        spawnY
+        x: spawnX,
+        y: spawnY
     }
 }

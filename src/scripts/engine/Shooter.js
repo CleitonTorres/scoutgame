@@ -4,11 +4,11 @@ import { layers } from "../settings/layers.js";
 
 export function shooter(player, ballonAnimation, canvas, gridSize){
     //pegar a posição para spawnar o balão pelo centro do player.
-    const {spawnX, spawnY} = getRadiusToSpaw(player, 10, gridSize);
+    const {x, y} = getRadiusToSpaw(player, 10, gridSize);
     const ballon = new Ballon({
         name: `Ballon-${Date.now()}`,
         tag: "Ballon",
-        position: { x: spawnX, y: spawnY },
+        position: { x, y },
         direction: player.facingDirection,
         physical:{
             collision: true,
@@ -23,7 +23,7 @@ export function shooter(player, ballonAnimation, canvas, gridSize){
             {
                 offSetHitbox: {x:0, y:0},
                 anchorHitBox: {x:0, y:0},
-                showHitbox:true
+                showHitbox:false
             }
         ],
         state: "move",

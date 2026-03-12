@@ -1,6 +1,5 @@
 import { drawAnimation, normalizeAnimation } from "./Animation.js";
 import { AnimationController } from "./AnimatorController.js";
-import { getCollider } from "./GetColliders.js";
 import { HitBox } from "../entities/Hitbox.js";
 import { Collide } from "../entities/BoxCollide.js";
 
@@ -64,7 +63,6 @@ export class GameObject {
         this.name = name;
         this.tag = tag;
         this.sortLayer = sortLayer;
-        this.currentSortLayer = 0;
 
         // ------------------------
         // TRANSFORMAÇÃO
@@ -129,7 +127,7 @@ export class GameObject {
         this.hitboxes = (hitboxes || []).map(config =>
             new HitBox({
                 ...config,
-                entity: this
+                owner: this
             })
         );
 
@@ -137,7 +135,7 @@ export class GameObject {
         this.collides = (collides || []).map(config =>
             new Collide({
                 ...config,
-                entity: this
+                owner: this
             })
         );
     }
@@ -167,14 +165,8 @@ export class GameObject {
     }
 
     // Verifica se o jogador pode ocupar a posição de destino, considerando os objetos colidíveis
-    canOccupy(nextPosX, nextPosY, collidables = [], ignore = null) {
-        const blocker = getCollider(
-            nextPosX,
-            nextPosY,
-            collidables.filter((obj) => obj !== ignore), 
-            "collide", 
-            this
-        );
+    canOccupy() {
+        const blocker = this.collides.find(hit => hit.hits);
         return !blocker;
     }
 
@@ -190,41 +182,45 @@ export class GameObject {
     * 
     * Se todas as regras forem satisfeitas,
     * o objeto é movido.
+    * @param {GameObject} target - entidade a ser movida.
+    * @param {number} deltaX - direção x
+    * @param {number} deltaY - direção y.
+    * @param {GameObject[]} collidables - entidades próximas a colisão.
     */
-    tryPush(target, deltaX, deltaY, collidables = []) {
+    tryPush(target, deltaX, deltaY, collidables) {
+        // Se entityB for um colisor, usamos o 'owner' dele.
+        const targetResolved = target.owner ? target.hits : target;
+
         // Se não existe alvo ou ele não participa de colisão
-        if (!target || !target.collision) return false;
+        if (!targetResolved) return false;
         // Objetos estáticos nunca podem ser empurrados
-        if (target.isStatic && target.isStatic()) return false;
+        if (targetResolved.isStatic && targetResolved.isStatic()) return false;
         // Apenas objetos dinâmicos podem se mover
-        if (!(target.isDynamic && target.isDynamic())) return false;
+        if (!(targetResolved.isDynamic && targetResolved.isDynamic())) return false;
         // Verifica regra de massa (força)
-        if (this.mass <= target.mass) return false;
+        if (this.mass <= targetResolved.mass) return false;
 
         /**
         * Calcula nova posição desejada
         * Também respeita limites do canvas
         */
-        const clamped = target.clampToCanvas
-            ? target.clampToCanvas(target.x + deltaX, target.y + deltaY)
-            : { x: target.x + deltaX, y: target.y + deltaY };
+        const clamped = targetResolved.clampToCanvas
+            ? targetResolved.clampToCanvas(target.x + deltaX, target.y + deltaY)
+            : { x: targetResolved.x + deltaX, y: targetResolved.y + deltaY };
 
         /**
         * Verifica se o local para onde o alvo
         * será empurrado está livre
         */
-        const canMove = target.canOccupy
-            ? target.canOccupy(clamped.x, clamped.y, collidables, this)
+        const canMove = targetResolved.canOccupy
+            ? targetResolved.canOccupy()
             : true;
-
         if (!canMove) return false;
 
         // Move o objeto
-        target.x = clamped.x;
-        target.y = clamped.y;
+        targetResolved.x = clamped.x;
+        targetResolved.y = clamped.y;
 
-        // Atualiza hitbox se existir
-        // if (target.updateHitbox) target.updateHitbox();
         return true;
     }
 
@@ -239,8 +235,9 @@ export class GameObject {
      */
     resolveAxis(nextX, nextY, deltaX, deltaY, collidables = []) {
         // Verifica se há um bloqueio na posição de destino
-        const blocker = getCollider(nextX, nextY, collidables, "collide", this);
-
+        // const blocker = getCollider(this, collidables, "collide");
+        const blocker = this.collides.find(collide=> collide.hits)?.hits;
+        
         // Se não houver bloqueio, move o jogador para a posição de destino
         if (!blocker) {
             this.x = nextX;
@@ -251,10 +248,8 @@ export class GameObject {
         // Se houver um bloqueio, tenta empurrar o objeto bloqueador para a posição de destino
         if (this.state === "push" && blocker) {
             const pushed = this.tryPush(blocker, deltaX, deltaY, collidables);
-            
             if (pushed) {
-
-                const stillBlocked = getCollider(nextX, nextY, collidables, "collide", this);
+                const stillBlocked = this.collides.find(collide => collide.hits);
 
                 if (!stillBlocked) {
                     this.x = nextX;
@@ -269,9 +264,14 @@ export class GameObject {
         return false;
     }
 
-    // Movimento suavizado usando interpolação linear.
-    // Isso cria efeito de aceleração e desaceleração,
-    // evitando movimento "seco" e instantâneo.
+    /**
+    * Movimento suavizado usando interpolação linear.
+    * Isso cria efeito de aceleração e desaceleração,
+    * evitando movimento "seco" e instantâneo.
+    * @param {number} inputX 
+    * @param {number} inputY 
+    * @param {GameObject[] | null} collidables 
+    */
     update(inputX, inputY, collidables = []) {
         const maxStep = this.speed / 60;
         const smoothFactor = 1 / this.smooth;
@@ -294,14 +294,26 @@ export class GameObject {
         // Depois resolve o eixo Y
         // Isso evita bugs de colisão diagonal
         //this.x + thisvx calcula o nextPosX.
+        // Eixo X
         this.nextPosX = this.clampToCanvas(this.x + this.vx, this.y).x;
+        this.nextPosY = this.y; // Mantém Y atual
+        this.updateCollides(collidables); // Atualiza os hits na posição nextPosX
         const movedX = this.resolveAxis(this.nextPosX, this.y, this.vx, 0, collidables);
-        if (!movedX) this.vx = 0;
+        if (!movedX) {
+            this.vx = 0;
+            this.nextPosX = this.x; // Reseta nextPos para evitar "ghosting"
+        }
 
         // Depois de resolver o movimento no eixo X, tenta resolver o movimento no eixo Y
+        // Eixo Y
         this.nextPosY = this.clampToCanvas(this.x, this.y + this.vy).y;
+        this.nextPosX = this.x; // Mantém X atualizado
+        this.updateCollides(collidables); // Atualiza os hits na posição nextPosY
         const movedY = this.resolveAxis(this.x, this.nextPosY, 0, this.vy, collidables);
-        if (!movedY) this.vy = 0;
+        if (!movedY) {
+            this.vy = 0;
+            this.nextPosY = this.y;
+        }
 
         // Atualiza animação pelo controlador centralizado.
         this.animator?.setState(this.state);
@@ -340,5 +352,19 @@ export class GameObject {
             });
         }
 
-    }    
+    }
+    
+    /**
+     * 
+     * @param {GameObject[]} collidables 
+     */
+    updateCollides(collidables){
+        if(this.hitboxes){
+            this.hitboxes.forEach(h => h.update(collidables));
+        }
+
+        if(this.collides){
+            this.collides.forEach(h => h.update(collidables));
+        }
+    }
 }

@@ -26,37 +26,37 @@ export class Ballon extends GameObject {
     }
 
     startHit(reboundSource = this.direction) {
-        // 1️⃣ Evita executar o hit mais de uma vez.
+        // Evita executar o hit mais de uma vez.
         // Se o objeto já foi destruído ou já está no estado de explosão/hit,
         // a função é interrompida imediatamente.
         if (this.destroyed || this.exploding) return;
 
-        // 2️⃣ Obtém o "clip" de animação chamado "hit".
+        // Obtém o "clip" de animação chamado "hit".
         // O operador ?. evita erro caso this.animation seja undefined.
         const hitClip = this.animation?.hit;
 
-        // 3️⃣ Se não existir animação de hit ou se ela não possuir frames válidos,
+        // Se não existir animação de hit ou se ela não possuir frames válidos,
         // não faz sentido executar a animação. Nesse caso o objeto é destruído diretamente.
         if (!hitClip || !Array.isArray(hitClip.frames) || hitClip.frames.length === 0) {
             this.destroy();
             return;
         }
 
-        // 4️⃣ Marca o objeto como "explodindo".
+        // Marca o objeto como "explodindo".
         // Isso altera o comportamento do update para executar a lógica de hit.
         this.exploding = true;
         this.state = "hit";
         this.animator.setState(this.state);
 
-        // 5️⃣ Desativa a colisão enquanto o objeto está explodindo,
+        // Desativa a colisão enquanto o objeto está explodindo,
         // evitando interações indesejadas com outros objetos.
         this.collision = false;
 
-        // 6️⃣ Interrompe completamente qualquer movimento atual.
+        // Interrompe completamente qualquer movimento atual.
         this.vx = 0;
         this.vy = 0;
 
-        // 🔟 CÁLCULO DO REBOTE
+        // CÁLCULO DO REBOTE
 
         // 10.1 Calcula a direção oposta ao impacto.
         // Se o projétil veio da direita (1,0), o rebote será para a esquerda (-1,0).
@@ -146,25 +146,27 @@ export class Ballon extends GameObject {
         const nextY = this.y + (this.direction.y * step);
 
         // Verifica se haverá colisão na próxima posição.
-        const collided = getCollider(nextX, nextY, collidables, "hitbox", this);
+        // const collided = getCollider(collidables, "hitbox", this);
+        // Em Ballon.js -> update()
+        this.nextPosX = nextX;
+        this.nextPosY = nextY;
+        this.updateCollides(collidables); // Força atualização antes de checar
 
-        // Se houve colisão e o objeto colidido não é o dono do projétil,
-        // inicia o hit/explosão.
+        const collided = this.hitboxes.find(hit => hit.hits);
         if (collided && collided !== this.owner) {
             this.startHit();
             return;
         }
 
-
-        // 4️⃣ Move o objeto normalmente (sem bloqueio físico automático).
+        // Move o objeto normalmente (sem bloqueio físico automático).
         //verifica se precisa mudar de animação (idle, walkUp, walkDown...)
         this.state = "move";
         
-        // A colisão já foi tratada manualmente acima.
+        // Não passa o collidables porque a colisão já foi tratada manualmente acima.
         super.update(this.direction.x, this.direction.y, []);
 
 
-        // 5️⃣ Verifica se o objeto saiu da área visível do canvas.
+        // Verifica se o objeto saiu da área visível do canvas.
 
         const limitX = (this.canvas.width / this.gridSize) - this.width;
         const limitY = (this.canvas.height / this.gridSize) - this.height;
@@ -176,7 +178,7 @@ export class Ballon extends GameObject {
             this.y >= limitY;
 
 
-        // 6️⃣ Diminui o tempo máximo de vida do objeto.
+        // Diminui o tempo máximo de vida do objeto.
         this.maxLifetime -= 1;
 
         // Se saiu da tela ou o tempo de vida acabou,

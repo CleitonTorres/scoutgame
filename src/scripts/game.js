@@ -174,7 +174,7 @@ for (const [key, tree] of Object.entries(avaliableTrees)) {
 //-----------------------------
 
 //instancia o grid virtual para colisões.
-const grid = new SpatialHashGrid(3);
+const grid = new SpatialHashGrid(2);
 
 //esconde a mensagem de "carregando ..."
 ui.hideWarning();
@@ -236,7 +236,7 @@ const npcs = [
         tag: "NPC",
         physical:{
             behavior: "dynamic",
-            collision: true,
+            collision: false,
             mass: 7,
             smooth: 6,
             speed: 3
@@ -434,9 +434,16 @@ const trees = [
         },
         hitboxes: [
             {
-                offSetHitbox: {x: 30, y: 5},
-                anchorHitBox: {x: 0, y: 5},
+                shape: "box",
+                offSetHitbox: {x: 50, y: 25},
+                anchorHitBox: {x: 8, y: 25},
                 showHitbox:false
+            },
+            {
+                shape: "circle",
+                offSetHitbox:  {x: 15, y: 15}, 
+                anchorHitBox:  {x: -15, y: -33},
+                showHitbox: false, 
             }
         ],
         collides:[
@@ -603,12 +610,7 @@ document.addEventListener('keydown', (event) => {
     if (event.code === "Space") {
         event.preventDefault();
         
-        const isCollided = getCollider(
-            player.x, player.y, 
-            grid.query(player.x, player.y), 
-            "hitbox", 
-            player
-        ) ? true : false;
+        const isCollided = player.hitboxes?.find(hit=> hit.hits) ? true : false;
 
         if(!isCollided){
             //insere a instância no array de objetos globais para ser desenhado.

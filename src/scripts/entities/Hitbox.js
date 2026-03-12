@@ -1,34 +1,89 @@
+import { getCollider } from "../engine/GetColliders.js";
+import { getAnchor } from "../mathh/GetAnchor.js";
+
 /**
  * Classe para detectar sobreposições.
  */
 export class HitBox{
-    constructor({entity, showHitbox, offSetHitbox, anchorHitBox}={}){
+    constructor({owner, showHitbox, offSetHitbox, anchorHitBox, shape}={}){
         this.showHitbox = showHitbox || false;
         this.offSetHitbox = offSetHitbox || {x: 0, y: 0};
         this.anchorHitBox = anchorHitBox || {x: 0, y:0};
-        this.entity = entity || null;
-        this.ctx = this.entity?.canvas.getContext("2d") || null;
+        this.owner = owner || null;
+        this.ctx = this.owner?.canvas.getContext("2d") || null;
+        this.sortLayer = this.owner?.sortLayer || 1;
+        this.shape = shape || "box";
+        this.hits = null; //GameObjects Colididos
+        this.collision = this.owner?.collision || false;
     }
 
-    getHitBox(){
-        const scaledWidth = (this.entity.width * this.entity.gridSize) * this.entity.scale;
-        const scaledHeight = (this.entity.height * this.entity.gridSize) * this.entity.scale;
+    /**
+    * retorna valores em tiles. Faço o calculo em pixel depois retorno para tile para evitar
+    * erro na multiplicação da escala por valores pequenos (0,001).
+    * @returns 
+    */
+    getHit(){
+        //para o circle
+        const radius = (this.owner.width * this.owner.scale) / 2;
+        const center = getAnchor(this.owner, "middle");
 
-        return {
-            x: (this.entity.nextPosX * this.entity.gridSize) + this.anchorHitBox.x + this.offSetHitbox.x,
-            y: this.entity.nextPosY * this.entity.gridSize + this.anchorHitBox.y + this.offSetHitbox.y,
-            width: scaledWidth - (this.offSetHitbox.x * 2),
-            height: scaledHeight - (this.offSetHitbox.y * 2)
-        };
+        //para o box
+        const scaledWidth = this.owner.width * this.owner.scale;
+        const scaledHeight = this.owner.height * this.owner.scale;
+
+        //offSetHit e anchorHit vem em pixel e precisa ser convertido para tile.
+        const anchorTileX = this.anchorHitBox.x / this.owner.gridSize;
+        const anchorTileY = this.anchorHitBox.y / this.owner.gridSize;
+        const offSetX = this.offSetHitbox.x / this.owner.gridSize;
+        const offSetY = this.offSetHitbox.y / this.owner.gridSize;
+
+        if(this.shape === "circle"){
+            return {
+                x: center.x + anchorTileX + offSetX,
+                y: center.y + anchorTileY + offSetY,
+                radius: radius - (offSetX * 2),
+            };
+        } else {
+            return {
+                x: this.owner.nextPosX + anchorTileX + offSetX,
+                y: this.owner.nextPosY + anchorTileY + offSetY,
+                width: scaledWidth - (offSetX * 2),
+                height: scaledHeight - (offSetY * 2)
+            };
+        }
+    }
+
+    update(otherCollides){
+        if(!this.collision) return;
+        
+        this.hits = getCollider(this, this.owner, otherCollides, "hitbox") ?? null;
     }
 
     // Desenha o hitbox do jogador, se a opção estiver ativada
     draw() {
-        const hitbox = this.getHitBox();
+        const hitbox = this.getHit();
 
         if (this.showHitbox && this.ctx) {
-            this.ctx.strokeStyle = 'red';
-            this.ctx.strokeRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+            if(this.shape === "circle"){
+                this.ctx.strokeStyle = 'red';
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    hitbox.x * this.owner.gridSize, 
+                    hitbox.y * this.owner.gridSize, 
+                    hitbox.radius * this.owner.gridSize, 
+                    0, 
+                    2 * Math.PI,
+                );
+                this.ctx.stroke();
+            }else{
+                this.ctx.strokeStyle = 'red';
+                this.ctx.strokeRect(
+                    (hitbox.x * this.owner.gridSize), 
+                    (hitbox.y * this.owner.gridSize), 
+                    (hitbox.width * this.owner.gridSize), 
+                    (hitbox.height * this.owner.gridSize)
+                );
+            }
         }
     }
 }

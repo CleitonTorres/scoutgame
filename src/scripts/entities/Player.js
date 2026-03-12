@@ -1,6 +1,5 @@
 import { setFacingDirection } from "../engine/FacingDirectio.js";
 import { GameObject } from "../engine/GameObject.js";
-import { isOverlapping } from "../engine/IsOverlapping.js";
 import { sortLayer } from "../engine/SortLayer.js";
 import { layers } from "../settings/layers.js";
 import { drawLabel } from "../tools/DrawLabel.js";
@@ -32,19 +31,16 @@ export class Player extends GameObject {
         //atualiza dados dos NPCs e do Player.
         const collidables = grid?.query(this.x, this.y);
 
-        // Chama comportamento base de movimento
+        // Chama o movimento base (que já atualiza todos os hitboxes internamente)
         super.update(inputX, inputY, collidables);
 
-        // layer dinâmica do player.
-        const collided =  collidables.find((object)=> {
-            const hitbox = object.getHitbox ? object.getHitbox(object.x, object.y) : object;
-            return isOverlapping(this, hitbox)
-        });
+        // Busca automaticamente se algum hitbox detectou colisão
+        const collidedHitbox = [...this.hitboxes, ...this.collides].find(h => h.hits);
 
-        if(collided){
-            //ordena a layer do player de acordo com o colisor.
-            sortLayer(this, collided, this.gridSize); 
-        }else{
+        if(collidedHitbox){
+            // O sortLayer agora recebe o objeto colidido (h.hits)
+            sortLayer(this, collidedHitbox.hits, this.gridSize); 
+        } else {
             this.sortLayer = layers.player;
         }
     }

@@ -1,50 +1,45 @@
+import { Collide } from "../entities/BoxCollide.js";
+import { HitBox } from "../entities/Hitbox.js";
+import { GameObject } from "./GameObject.js";
 import { isOverlapping } from "./IsOverlapping.js";
 
 /**
- * Verifica colisão entre entidades considerando múltiplas caixas
+ * Verifica colisão entre entidades considerando múltiplas 
+ * @param {GameObject} collidables - objetos que possuem um hitbox, circleBox, ou boxCollide.
+ * @param {string} mode - mode de colisão a ser detectada.
+ * @param {HitBox | Collide} entity - entidade que quer detectar colisões.
+ * @returns {GameObject | null} - se colidir retorna o objeto se não retorna null
  */
 export function getCollider(
-    nextX,
-    nextY,
+    entity,
+    owner,
     collidables = [],
     mode = "collide", // "collide" | "hitbox"
-    entity
 ) {
 
     if (!entity || !entity.collision) return null;
 
-    // pega as caixas da entidade
-    const entityBoxes =
-        mode === "hitbox"
-            ? (entity.hitboxes || []).map(h => h.getHitBox(nextX, nextY))
-            : (entity.collides || []).map(c => c.getBoxCollide(nextX, nextY));
-
-    if (!entityBoxes.length) return null;
-
     for (const obj of collidables) {
 
-        if (!obj || obj === entity || !obj.collision) continue;
+        if (!obj || obj === entity || 
+            obj.name === owner.name || 
+            obj.owner?.name === owner.name
+        ) continue;
 
         // pega caixas do outro objeto
         const otherBoxes =
             mode === "hitbox"
-                ? (obj.hitboxes || []).map(h => h.getHitBox())
-                : (obj.collides || []).map(c => c.getBoxCollide());
+                ? [...(obj.hitboxes || []), ...(obj.hitCicles || [])]
+                : (obj.collides || []);
 
-        for (const entityBox of entityBoxes) {
+        if (!entity) continue;
 
-            if (!entityBox) continue;
+        for (const otherBox of otherBoxes) {
+            if (!otherBox) continue;
 
-            for (const otherBox of otherBoxes) {
-
-                if (!otherBox) continue;
-
-                if (isOverlapping(entityBox, otherBox)) {
-                    return obj;
-                }
-
+            if (isOverlapping(entity, otherBox)) {
+                return obj;
             }
-
         }
 
     }
