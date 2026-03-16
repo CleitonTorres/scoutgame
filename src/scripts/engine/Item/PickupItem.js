@@ -1,5 +1,9 @@
+import { ItemData } from "./ItemData.js";
 import { ItemEntity } from "./ItemEntity.js";
 
+/**
+ * Classe de item coletável.
+ */
 export class PickupItem extends ItemEntity {
     constructor(options = {}) {
         super(options);

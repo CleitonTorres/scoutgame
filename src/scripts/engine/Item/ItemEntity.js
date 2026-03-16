@@ -2,6 +2,9 @@ import { layers } from "../../settings/layers.js";
 import { drawLabel } from "../../tools/DrawLabel.js";
 import { GameObject } from "../GameObject.js";
 
+/**
+ * Classe de objeto do tipo item. Se for um item coletável precisa ser instanciado pelo PickupItem. 
+ */
 export class ItemEntity extends GameObject {
     constructor(options = {}) {
         const {
