@@ -40,12 +40,12 @@ export class NPC extends GameObject {
         super.update(inputX, inputY, collidables);
 
         // Busca automaticamente se algum hitbox detectou colisão
-        const collidedHitbox = [...this.hitboxes, ...this.collides].find(h => h.hits);
+        const collidedHitbox = [...this.hitboxes, ...this.collides].find(box => box.hit);
 
         // layer dinâmica.
         if(collidedHitbox){
-            // O sortLayer agora recebe o objeto colidido (h.hits)
-            sortLayer(this, collidedHitbox.hits, this.gridSize); 
+            // O sortLayer agora recebe o objeto colidido (box.hit)
+            sortLayer(this, collidedHitbox.hit, this.gridSize); 
         } else {
             this.sortLayer = layers.player;
         }

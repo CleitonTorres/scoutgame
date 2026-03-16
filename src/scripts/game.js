@@ -6,9 +6,11 @@ import { UIManager } from "./settings/UIManager.js";
 import { loadAnimations } from "./engine/Animation.js";
 import { SpatialHashGrid } from "./engine/SpatialHashGrid.js";
 import { shooter } from "./engine/Shooter.js";
-import { getCollider } from "./engine/GetColliders.js";
 import { CharacterController } from "./engine/CharacterController.js";
 import { NPC } from "./entities/NPC.js";
+import { Inventory } from "./engine/Inventory.js";
+import { PickupItem } from "./engine/Item/PickupItem.js";
+import { ItemData } from "./engine/Item/ItemData.js";
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -176,6 +178,31 @@ for (const [key, tree] of Object.entries(avaliableTrees)) {
 //instancia o grid virtual para colisões.
 const grid = new SpatialHashGrid(2);
 
+//carregar objetos coletáveis.
+const item01 = new PickupItem({
+    itemData: new ItemData({
+        id: "apple",
+        name: "Maçã",
+        stackable: true,
+        maxStack: 10,
+        type: "food",
+        onUse(player){
+            player.hp += 5
+        }
+    }),
+    quantity: 2,
+    position: {x: 4, y: 9},
+    transform: {
+        width: 0.5,
+        height: 0.5
+    },
+    canvas
+});
+const itens = [
+    item01
+]
+//---------------------------
+
 //esconde a mensagem de "carregando ..."
 ui.hideWarning();
 
@@ -214,6 +241,7 @@ const player = new Player({
         }
     ],
     controller: new CharacterController(inputState),
+    inventory: new Inventory(20),
     position:{x: 1, y: 2},
     sortLayer: layers.player,
     state: "idle",
@@ -516,7 +544,7 @@ const trees = [
 ];
 
 //objetos em cena.
-const worldObjects = [...npcs, ...walls, ...trees, player];
+const worldObjects = [...npcs, ...walls, ...trees, player, ...itens];
 
 // Atualiza o estado das teclas pressionadas com base no evento de teclado
 function updateInputState(key, isPressed) {

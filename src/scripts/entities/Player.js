@@ -7,6 +7,7 @@ import { drawLabel } from "../tools/DrawLabel.js";
 export class Player extends GameObject {
     constructor(options= {}) {        
         super({...options});
+        this.inventory = options?.inventory || null;
         this.hp = 100; //vida do personagem.
         this.facingDirection = { x: 0, y: 1 };
         this.controller = options?.controller || null;
@@ -21,9 +22,11 @@ export class Player extends GameObject {
      * - Ataque
      */
     update(grid) {        
-        const { inputX, inputY } = this.controller.getMovement();
+        //se tiver um controller setado pega os valores dos inputs, se não retorna sempre o.
+        const { inputX, inputY } = this.controller?.getMovement() || {x: 0, y: 0};
 
-        this.state = this.controller.getState(inputX, inputY);
+        //se tiver um controller setado pegar o estado atual da animação, se não, retorna idle por padrão.
+        this.state = this.controller?.getState(inputX, inputY) || "idle";
 
         //atualiza o facingDirection para ser usado no disparo.
         setFacingDirection(this, inputX, inputY); 
@@ -35,11 +38,14 @@ export class Player extends GameObject {
         super.update(inputX, inputY, collidables);
 
         // Busca automaticamente se algum hitbox detectou colisão
-        const collidedHitbox = [...this.hitboxes, ...this.collides].find(h => h.hits);
+        const collidedHitbox = [...this.hitboxes, ...this.collides].find(box => box.hit);
+
+        //sistema de coleta de itens.
+        this.itemPickup()
 
         if(collidedHitbox){
-            // O sortLayer agora recebe o objeto colidido (h.hits)
-            sortLayer(this, collidedHitbox.hits, this.gridSize); 
+            // O sortLayer agora recebe o objeto colidido (box.hit)
+            sortLayer(this, collidedHitbox.hit, this.gridSize); 
         } else {
             this.sortLayer = layers.player;
         }
@@ -50,5 +56,13 @@ export class Player extends GameObject {
         const ctx = this.canvas.getContext("2d");
         super.draw();
         drawLabel(this, ctx, this.name); //desenha o rótulo do personagem.
+    }
+
+    itemPickup(){
+        this.hitboxes.forEach(box => {
+            if(box.hit?.tag === "Item"){
+                box.hit.tryCollect(this);
+            }
+        });
     }
 }

@@ -5,6 +5,7 @@ export class UIManager {
         this.playerPosEl = document.getElementById("ui-player-pos");
         this.playerLayerEl = document.getElementById("ui-player-layer");
         this.playerAnimEl = document.getElementById("ui-player-anim");
+        this.playerInventory = document.getElementById("ui-player-invent");
 
         this.warningEl = document.getElementById("ui-warning");
 
@@ -32,6 +33,7 @@ export class UIManager {
         if(this.playerAnimEl){
             this.playerAnimEl.textContent = `${player.state}`;
         }
+        if(this.playerInventory) this.playerInventory.textContent = `${player.inventory?.slots?.length || 0}`
     }
 
     showWarning(message, durationMs = 2200) {

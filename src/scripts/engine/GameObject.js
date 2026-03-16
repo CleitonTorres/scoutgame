@@ -166,7 +166,7 @@ export class GameObject {
 
     // Verifica se o jogador pode ocupar a posição de destino, considerando os objetos colidíveis
     canOccupy() {
-        const blocker = this.collides.find(hit => hit.hits);
+        const blocker = this.collides.find(box => box.hit);
         return !blocker;
     }
 
@@ -187,9 +187,9 @@ export class GameObject {
     * @param {number} deltaY - direção y.
     * @param {GameObject[]} collidables - entidades próximas a colisão.
     */
-    tryPush(target, deltaX, deltaY, collidables) {
+    tryPush(target, deltaX, deltaY) {
         // Se entityB for um colisor, usamos o 'owner' dele.
-        const targetResolved = target.owner ? target.hits : target;
+        const targetResolved = target.owner ? target.hit : target;
 
         // Se não existe alvo ou ele não participa de colisão
         if (!targetResolved) return false;
@@ -236,7 +236,7 @@ export class GameObject {
     resolveAxis(nextX, nextY, deltaX, deltaY, collidables = []) {
         // Verifica se há um bloqueio na posição de destino
         // const blocker = getCollider(this, collidables, "collide");
-        const blocker = this.collides.find(collide=> collide.hits)?.hits;
+        const blocker = this.collides.find(collide=> collide.hit)?.hit;
         
         // Se não houver bloqueio, move o jogador para a posição de destino
         if (!blocker) {
@@ -249,7 +249,7 @@ export class GameObject {
         if (this.state === "push" && blocker) {
             const pushed = this.tryPush(blocker, deltaX, deltaY, collidables);
             if (pushed) {
-                const stillBlocked = this.collides.find(collide => collide.hits);
+                const stillBlocked = this.collides.find(collide => collide.hit);
 
                 if (!stillBlocked) {
                     this.x = nextX;
@@ -273,38 +273,92 @@ export class GameObject {
     * @param {GameObject[] | null} collidables 
     */
     update(inputX, inputY, collidables = []) {
+        //maxStep: Imagina que this.speed é a velocidade máxima do seu personagem (por exemplo, 100 pixels por segundo). 
+        // Como a função update é chamada 60 vezes por segundo, maxStep calcula quantos pixels o personagem pode 
+        // se mover em um único quadro (100 / 60). Isso garante que o movimento seja consistente, independentemente 
+        // da taxa de quadros.
         const maxStep = this.speed / 60;
+        
+        // smoothFactor: Este valor controla a suavidade do movimento. Se this.smooth for um número alto, 
+        // o smoothFactor será pequeno, e o personagem levará mais tempo para atingir a velocidade máxima,
+        // resultando em um movimento mais suave (como um carro acelerando). Se this.smooth for baixo, o 
+        // movimento será mais responsivo (como um kart).
         const smoothFactor = 1 / this.smooth;
 
+        // calcula movimentos diagonais (hipotenusa: x² + y² = h² ).
+        // length (Math.hypot) calcula a distância da sua intenção de movimento a partir do centro.
+        // Por exemplo, se você pressionar para a direita (inputX = 1, inputY = 0), 
+        // length será 1. Se você pressionar para cima e para a direita (inputX = 1, inputY = 1), 
+        // length será sqrt(1² + 1²) = 1.414.... Isso é importante para garantir que o personagem não se mova 
+        // mais rápido na diagonal.
         const length = Math.hypot(inputX, inputY);
+
+        // targetVX, targetVY: Estas são as velocidades alvo nos eixos X e Y. Elas representam a velocidade
+        // que o personagem deseja ter, baseada na sua entrada. Se length for 0 (nenhuma entrada), as 
+        // velocidades alvo são 0. Caso contrário, inputX / length e inputY / length "normalizam" a direção
+        // (transformam o vetor de entrada em um vetor de comprimento 1), e então multiplicamos por maxStep
+        // para obter a velocidade máxima nessa direção.
         const targetVX = length ? (inputX / length) * maxStep : 0;
         const targetVY = length  ? (inputY / length) * maxStep : 0;
 
-        // Isso é uma interpolação gradual até a velocidade alvo.
+        // Isso é uma interpolação gradual (ou lerp) até a velocidade alvo.
+        // Em vez de mudar instantaneamente para targetVX, o código adiciona apenas uma fração da diferença
+        // entre a velocidade atual (this.vx) e a velocidade alvo (targetVX). Essa fração é controlada por
+        // smoothFactor. Isso faz com que o personagem acelere e desacelere de forma natural, em vez de 
+        // parar e começar abruptamente.
         this.vx += (targetVX - this.vx) * smoothFactor;
         this.vy += (targetVY - this.vy) * smoothFactor;
 
         // fricção natural
+        // O que acontece quando você para de pressionar as teclas? O personagem deve parar imediatamente 
+        // ou deslizar um pouco? A fricção cuida disso.
+        // Se não houver entrada do jogador (length === 0), o código aplica uma fricção. Ele multiplica as
+        // velocidades atuais (this.vx, this.vy) por 0.6. Isso significa que a cada quadro, a velocidade 
+        // diminui 40%. O personagem vai desacelerar gradualmente até parar, simulando a fricção do mundo 
+        // real.
         if (length === 0) {
             this.vx *= 0.6;
             this.vy *= 0.6;
         }
 
         // Primeiro resolve o eixo X
-        // Depois resolve o eixo Y
-        // Isso evita bugs de colisão diagonal
-        //this.x + thisvx calcula o nextPosX.
+        // Esta é uma das partes mais importantes e um pouco mais complexas. Para evitar que o personagem
+        // "grude" nas paredes ou passe por elas de forma estranha, o código resolve o movimento e as 
+        // colisões em eixos separados (primeiro X, depois Y).
+        
+        // Primeiro, o código calcula a próxima posição potencial em X (this.x + this.vx). 
+        // A função this.clampToCanvas limita a posição do personagem dentro dos limites da tela do jogo.
+        // Isso evita que o personagem saia da tela.
         // Eixo X
         this.nextPosX = this.clampToCanvas(this.x + this.vx, this.y).x;
-        this.nextPosY = this.y; // Mantém Y atual
+
+        //  Para o eixo X, a posição Y é mantida a mesma. Estamos testando apenas o movimento horizontal.
+        this.nextPosY = this.y; 
+
+        // updateCollides é crucial. Ela verifica se o personagem colidirá com algum objeto (collidables)
+        // se ele se movesse para this.nextPosX (e this.nextPosY). Ela atualiza alguma propriedade interna
+        // dos objetos de colisão (this.hitboxes e this.collides) com informações atualizadas da possição do seu owner.
         this.updateCollides(collidables); // Atualiza os hits na posição nextPosX
+        
+        // this.resolveAxis é a que realmente lida com a colisão. Ela tenta mover o personagem para 
+        // this.nextPosX. Se houver uma colisão, ela ajusta a posição final para que o personagem pare 
+        // exatamente na frente do obstáculo, e não o atravesse. Ela retorna true se o personagem 
+        // conseguiu se mover (total ou parcialmente) e false se ele não conseguiu se mover nada 
+        // (porque bateu em algo).
         const movedX = this.resolveAxis(this.nextPosX, this.y, this.vx, 0, collidables);
+        
+        // Se resolveAxis disser que o personagem não conseguiu se mover no eixo X (bateu em uma parede), 
+        // então a velocidade horizontal (this.vx) é zerada, e a nextPosX é resetada para a posição atual
+        // this.x. Isso impede que o personagem continue tentando se mover para dentro da parede e evita 
+        // um efeito visual estranho chamado "ghosting" (onde o personagem parece estar um pouco dentro da
+        // parede).
         if (!movedX) {
             this.vx = 0;
             this.nextPosX = this.x; // Reseta nextPos para evitar "ghosting"
         }
 
-        // Depois de resolver o movimento no eixo X, tenta resolver o movimento no eixo Y
+        // Depois de resolver o movimento horizontal, o código faz exatamente a mesma coisa para o
+        // movimento vertical.
         // Eixo Y
         this.nextPosY = this.clampToCanvas(this.x, this.y + this.vy).y;
         this.nextPosX = this.x; // Mantém X atualizado
@@ -315,8 +369,20 @@ export class GameObject {
             this.nextPosY = this.y;
         }
 
-        // Atualiza animação pelo controlador centralizado.
+        // Por que tratar eixos separados? Imagine que seu personagem está se movendo na diagonal em direção a um
+        // canto. Se você tentar resolver o movimento nos dois eixos ao mesmo tempo, pode ser difícil 
+        // determinar qual parede ele atingiu primeiro ou como ele deve "deslizar" pelo canto. Ao resolver
+        // um eixo de cada vez, o processo se torna muito mais simples e robusto, evitando os temidos 
+        // "bugs de colisão diagonal".
+
+        // é um objeto que gerencia as animações do seu personagem (por exemplo, "andando", "parado", 
+        // "pulando"). setState informa ao animador qual estado de animação deve ser exibido. 
+        // O this.state seria uma variável que indica o estado atual do personagem (por exemplo, se ele 
+        // está se movendo, this.state pode ser "walking").
         this.animator?.setState(this.state);
+
+        // Esta linha avança a animação em um pequeno passo de tempo (1/60 de segundo, que é o tempo de 
+        // um quadro). Isso faz com que a animação "se mova" junto com o personagem.
         this.animator?.update(1 / 60);
     }
 

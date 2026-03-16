@@ -9,7 +9,7 @@ export class Collide{
         this.ctx = this.owner?.canvas.getContext("2d") || null;
         this.sortLayer = this.owner?.sortLayer || 1;
         this.shape = shape || "box";
-        this.hits = null;
+        this.hit = null;
         this.collision = this.owner?.collision || false;
     }
 
@@ -36,7 +36,7 @@ export class Collide{
     }
 
     update(otherCollides){
-        this.hits = getCollider(this, this.owner, otherCollides, "collide");
+        this.hit = getCollider(this, this.owner, otherCollides, "collide");
     }
     
     // Desenha o hitbox do jogador, se a opção estiver ativada
