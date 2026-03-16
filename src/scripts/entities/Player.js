@@ -1,16 +1,28 @@
+import { CharacterController } from "../engine/CharacterController.js";
 import { setFacingDirection } from "../engine/FacingDirectio.js";
 import { GameObject } from "../engine/GameObject.js";
+import { Inventory } from "../engine/Inventory.js";
 import { sortLayer } from "../engine/SortLayer.js";
 import { layers } from "../settings/layers.js";
+import { tags } from "../settings/tags.js";
+import { UIManager } from "../settings/UIManager.js";
 import { drawLabel } from "../tools/DrawLabel.js";
 
 export class Player extends GameObject {
+    /**
+    * @param {{
+    *   hud?: UIManager,
+    *   inventory?: Inventory,
+    *   controller?: CharacterController
+    * }} options
+    */
     constructor(options= {}) {        
         super({...options});
+        this.hud = options.hud instanceof UIManager ? options.hud : null;
         this.inventory = options?.inventory || null;
+        this.controller = options?.controller || null;
         this.hp = 100; //vida do personagem.
         this.facingDirection = { x: 0, y: 1 };
-        this.controller = options?.controller || null;
     }
 
     /**
@@ -41,7 +53,7 @@ export class Player extends GameObject {
         const collidedHitbox = [...this.hitboxes, ...this.collides].find(box => box.hit);
 
         //sistema de coleta de itens.
-        this.itemPickup()
+        this.getCollides()
 
         if(collidedHitbox){
             // O sortLayer agora recebe o objeto colidido (box.hit)
@@ -58,11 +70,22 @@ export class Player extends GameObject {
         drawLabel(this, ctx, this.name); //desenha o rótulo do personagem.
     }
 
-    itemPickup(){
+    getCollides(){
         this.hitboxes.forEach(box => {
-            if(box.hit?.tag === "Item"){
+            if(box.hit?.tag === tags.ITEM){
                 box.hit.tryCollect(this);
             }
+            
+            if(box.hit?.tag === tags.NPC_quest && this.hud){
+                this.hud.showDialog({
+                    speaker: box.hit?.name || "",
+                    text: "Sempre Alerta!"
+                })
+            }
         });
+
+        if(this.hitboxes.every(b=> b.hit?.tag !== tags.NPC_quest)){
+            this.hud.hideDialog();
+        }
     }
 }

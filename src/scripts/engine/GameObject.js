@@ -2,6 +2,9 @@ import { drawAnimation, normalizeAnimation } from "./Animation.js";
 import { AnimationController } from "./AnimatorController.js";
 import { HitBox } from "../entities/Hitbox.js";
 import { Collide } from "../entities/BoxCollide.js";
+import { tags } from "../settings/tags.js";
+import { layers } from "../settings/layers.js";
+import { behaviors } from "../settings/behaviors.js";
 
 /**
  * GameObject
@@ -17,10 +20,38 @@ import { Collide } from "../entities/BoxCollide.js";
  * Outros objetos devem herdar dela.
  */
 export class GameObject {
+    /**
+    * 
+    * @param {{
+    *  name: string,
+    *  tag: tags,
+    *  sortLayer: layers,
+    *  transform: {
+    *    width: number,
+    *    height: number,
+    *    scale: number
+    *  },
+    *  position: {x: number, y: number},
+    *  physical: {
+    *    behavior: behaviors,
+    *    speed: number,
+    *    mass: number,
+    *    collision: boolean,
+    *    smooth: number
+    *  },
+    *  state: string,
+    *  animator?: AnimationController,
+    *  animation?: {},
+    *  hitboxes: HitBox[],
+    *  collides: Collide[],
+    *  gridSize: number,
+    *  canvas: HTMLCanvasElement
+    * }} options 
+    */
     constructor(options = {}) {
         const {
             name = '',
-            tag = 'GameObject',
+            tag = tags.GAMEOBJECT,
             sortLayer = 0,
 
             transform = {},
@@ -50,7 +81,7 @@ export class GameObject {
         } = position;
 
         const {
-            behavior = 'static',
+            behavior = behaviors.STATIC,
             speed = 2,
             mass = 0,
             collision = false,

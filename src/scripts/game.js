@@ -11,6 +11,8 @@ import { NPC } from "./entities/NPC.js";
 import { Inventory } from "./engine/Inventory.js";
 import { PickupItem } from "./engine/Item/PickupItem.js";
 import { ItemData } from "./engine/Item/ItemData.js";
+import { tags } from "./settings/tags.js";
+import { shapes } from "./settings/shapes.js";
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -233,7 +235,7 @@ const inputState = {
 //----------------------
 const player = new Player({
     name: "Cleitinho",
-    tag: "Player",
+    tag: tags.PLAYER,
     physical:{
         behavior: "dynamic",
         collision: true,
@@ -261,6 +263,7 @@ const player = new Player({
     sortLayer: layers.player,
     state: "idle",
     animation: playerAnimations,
+    hud: ui,
     canvas,
     gridSize,
 });
@@ -276,7 +279,7 @@ const patrolPoints = [
 const npcs = [
     new NPC({
         name: "Baloo",
-        tag: "NPC",
+        tag: tags.NPC_quest,
         physical:{
             behavior: "dynamic",
             collision: false,
@@ -342,7 +345,7 @@ const npcs = [
 const walls = [
     new Wall({
         name: 'Wall1',
-        tag: "Wall",
+        tag: tags.WALL,
         sortLayer: layers.ground,
         position: {x: 4, y: 4},
         animation: {},
@@ -373,7 +376,7 @@ const walls = [
     }),
     new Wall({
         name: 'Wall2',
-        tag: "Wall",
+        tag: tags.WALL,
         sortLayer: layers.ground,
         position: {x: 5, y: 5},
         animation: {},
@@ -404,7 +407,7 @@ const walls = [
     }),
     new Wall({
         name: 'Wall3',
-        tag: "Wall",
+        tag: tags.WALL,
         sortLayer: layers.ground,
         position: {x: 6, y: 4},
         animation: {},
@@ -438,7 +441,7 @@ const walls = [
 const trees = [
     new Tree({
         name: 'Tree1',
-        tag: 'Tree',
+        tag: tags.TREE,
         sortLayer: layers.underFloor,
         position: {x: 9, y: 5},        
         physical: {
@@ -464,7 +467,7 @@ const trees = [
     }),
     new Tree({
         name: 'Tree2',
-        tag: 'Tree',
+        tag: tags.TREE,
         sortLayer: layers.underFloor,
         position: {x: 6, y: 7.5},
         physical: {
@@ -477,13 +480,12 @@ const trees = [
         },
         hitboxes: [
             {
-                shape: "box",
                 offSetHitbox: {x: 50, y: 25},
                 anchorHitBox: {x: 8, y: 25},
                 showHitbox:false
             },
             {
-                shape: "circle",
+                shape: shapes.CIRCLE,
                 offSetHitbox:  {x: 15, y: 15}, 
                 anchorHitBox:  {x: -15, y: -33},
                 showHitbox: false, 
@@ -503,7 +505,7 @@ const trees = [
     }),
     new Tree({
         name: 'Tree2',
-        tag: 'Tree',
+        tag: tags.TREE,
         sortLayer: layers.underFloor,
         position: {x: 2, y: 8},
         physical: {
@@ -531,7 +533,7 @@ const trees = [
     }),
     new Tree({
         name: 'Tree2',
-        tag: 'Tree',
+        tag: tags.TREE,
         sortLayer: layers.underFloor,
         position: {x: 14, y: 10},
         physical: {

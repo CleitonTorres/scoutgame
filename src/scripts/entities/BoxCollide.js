@@ -1,6 +1,18 @@
+import { GameObject } from "../engine/GameObject.js";
 import { getCollider } from "../engine/GetColliders.js";
+import { shapes } from "../settings/shapes.js";
 
 export class Collide{
+    /**
+     * Classe para detectar obstaculos
+     * @param {{
+     * owner: GameObject
+     * showBoxCollide: boolean, 
+     * offSetBoxCollide: {x: number, y: number}, 
+     * anchorBoxCollide: {x: number, y: number}, 
+     * shape: shapes
+     * }} options 
+     */
     constructor({owner, showBoxCollide, offSetBoxCollide, anchorBoxCollide, shape}={}){
         this.showBoxCollide = showBoxCollide || false;
         this.offSetBoxCollide = offSetBoxCollide || {x: 0, y: 0};
@@ -8,7 +20,7 @@ export class Collide{
         this.owner = owner || null;
         this.ctx = this.owner?.canvas.getContext("2d") || null;
         this.sortLayer = this.owner?.sortLayer || 1;
-        this.shape = shape || "box";
+        this.shape = shape || shapes.BOX;
         this.hit = null;
         this.collision = this.owner?.collision || false;
     }

@@ -1,4 +1,5 @@
 import { layers } from "../../settings/layers.js";
+import { tags } from "../../settings/tags.js";
 import { drawLabel } from "../../tools/DrawLabel.js";
 import { GameObject } from "../GameObject.js";
 
@@ -14,7 +15,7 @@ export class ItemEntity extends GameObject {
 
         super({
             ...options,
-            tag: "Item",
+            tag: tags.ITEM,
             name: options?.itemData?.name || '',
             physical: {
                 behavior: "static",

@@ -1,10 +1,22 @@
+import { GameObject } from "../engine/GameObject.js";
 import { getCollider } from "../engine/GetColliders.js";
 import { getAnchor } from "../mathh/GetAnchor.js";
+import { shapes } from "../settings/shapes.js";
 
 /**
  * Classe para detectar sobreposições.
  */
 export class HitBox{
+    /**
+     * Classe para detectar colisões
+     * @param {{
+     * owner: GameObject
+     * showHitbox: boolean, 
+     * offSetHitbox: {x: number, y: number}, 
+     * anchorHitBox: {x: number, y: number}, 
+     * shape: shapes
+     * }} options 
+     */
     constructor({owner, showHitbox, offSetHitbox, anchorHitBox, shape}={}){
         this.showHitbox = showHitbox || false;
         this.offSetHitbox = offSetHitbox || {x: 0, y: 0};
@@ -12,7 +24,7 @@ export class HitBox{
         this.owner = owner || null;
         this.ctx = this.owner?.canvas.getContext("2d") || null;
         this.sortLayer = this.owner?.sortLayer || 1;
-        this.shape = shape || "box";
+        this.shape = shape || shapes.BOX;
         this.hit = null; //GameObjects Colididos
         this.collision = this.owner?.collision || false;
     }

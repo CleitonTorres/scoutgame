@@ -1,3 +1,4 @@
+import { tags } from "../settings/tags.js";
 import { loadImage } from "./LoadImage.js";
 
 //verifica se existe uma animação.
@@ -150,7 +151,7 @@ export function drawAnimation(entity, ctx) {
     
     // Caso 1: frame é uma imagem direta
     if (isImage || isCanvas || isBitmap) {        
-        if(entity.tag === "Player" && flipX && entity.state === "push" ){ 
+        if(entity.tag === tags.PLAYER && flipX && entity.state === "push" ){ 
             ctx.save();
             ctx.scale(-1, 1);
             const x = flipX ? -drawX - drawW : drawX;
@@ -183,7 +184,7 @@ export function drawAnimation(entity, ctx) {
         const sw = frame.sw ?? frame.frameWidth ?? frame.image.width;
         const sh = frame.sh ?? frame.frameHeight ?? frame.image.height;        
 
-        if(entity.tag === "Player" && flipX && entity.state === "push" ){ 
+        if(entity.tag === tags.PLAYER && flipX && entity.state === "push" ){ 
             ctx.save();
             ctx.scale(-1, 1);
             const x = flipX ? -drawX - drawW : drawX;

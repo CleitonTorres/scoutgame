@@ -1,18 +1,19 @@
 import { Ballon } from "../entities/Ballon.js";
 import { getRadiusToSpaw } from "../mathh/GetRadiusToSpaw.js";
 import { layers } from "../settings/layers.js";
+import { tags } from "../settings/tags.js";
 
 export function shooter(player, ballonAnimation, canvas, gridSize){
     //pegar a posição para spawnar o balão pelo centro do player.
     const {x, y} = getRadiusToSpaw(player, 10, gridSize);
     const ballon = new Ballon({
         name: `Ballon-${Date.now()}`,
-        tag: "Ballon",
+        tag: tags.BALLON,
         position: { x, y },
         direction: player.facingDirection,
         physical:{
             collision: true,
-            mass: 1,
+            mass: 8,
             speed: 6 
         },
         transform:{
