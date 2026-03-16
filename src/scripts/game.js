@@ -179,6 +179,20 @@ for (const [key, tree] of Object.entries(avaliableTrees)) {
 const grid = new SpatialHashGrid(2);
 
 //carregar objetos coletáveis.
+const itensAnimatios = {};
+const avaliableItens= {
+    maca: "apple_01"
+}
+for (const [key, item] of Object.entries(avaliableItens)) {
+    const paths = {
+        idle: [
+            `${patchObjects}forest-pack-sprites/${item}.png`,
+        ],
+    };
+
+    const randomFps = Math.random() * 3 + 1;
+    itensAnimatios[key] = await loadAnimations(paths, randomFps, false);
+}
 const item01 = new PickupItem({
     itemData: new ItemData({
         id: "apple",
@@ -196,6 +210,7 @@ const item01 = new PickupItem({
         width: 0.5,
         height: 0.5
     },
+    animation: itensAnimatios.maca,
     canvas
 });
 const itens = [

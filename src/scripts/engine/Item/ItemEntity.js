@@ -12,6 +12,7 @@ export class ItemEntity extends GameObject {
         super({
             ...options,
             tag: "Item",
+            name: options?.itemData?.name || '',
             physical: {
                 behavior: "static",
                 collision: false
@@ -31,7 +32,7 @@ export class ItemEntity extends GameObject {
     }
 
     draw(){
-        drawLabel(this, this.canvas.getContext("2d"), "Item")
+        drawLabel(this, this.canvas.getContext("2d"), this.name)
         super.draw()
     }
 }

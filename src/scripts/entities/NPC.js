@@ -3,6 +3,7 @@ import { GameObject } from "../engine/GameObject.js";
 import { NPCController } from "../engine/NPCController.js";
 import { sortLayer } from "../engine/SortLayer.js";
 import { layers } from "../settings/layers.js";
+import { drawLabel } from "../tools/DrawLabel.js";
 
 export class NPC extends GameObject {
     constructor(options= {}) {        
@@ -55,21 +56,6 @@ export class NPC extends GameObject {
         if (!this.canvas) return;
         const ctx = this.canvas.getContext("2d");
         super.draw();
-        this.drawLabel(ctx); //desenha o rótulo do personagem.
-    }
-
-    drawLabel(ctx){
-        if(!ctx) return;
-
-        //estilo do texto.
-        ctx.font = "12px Arial";
-        ctx.fillStyle = "white";
-        ctx.textAlign = "center"; // left | center | right
-        ctx.textBaseline = "bottom"; // top | middle | bottom
-
-        const posx = (this.x * this.gridSize) + (this.width * this.gridSize) / 2;
-        const posy = (this.y * this.gridSize);
-        //desenha o texto.
-        ctx.fillText(this.name + " " + this.sortLayer, posx, posy);
+        drawLabel(this, ctx, this.name); //desenha o rótulo do personagem.
     }
 }
