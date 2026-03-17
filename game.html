@@ -13,8 +13,6 @@
 <body>
     <main class="container">
         <div class="game-shell">
-            <canvas id="gameCanvas" width="1024" height="768"></canvas>
-
             <section id="ui-overlay" aria-live="polite">
                 <div id="ui-hud" class="ui-panel">
                     <p><strong>Player:</strong> <span id="ui-player-name">-</span></p>
@@ -31,7 +29,63 @@
                     <p class="ui-dialog-speaker" id="ui-dialog-speaker">Narrador</p>
                     <p class="ui-dialog-text" id="ui-dialog-text"></p>
                 </div>
+
+                <div id="iu-conteiner-inventory" class="ui-panel ui-conteiner-inventory is-hidden" role="info"
+                    aria-modal="true">
+                    <p><strong>Inventário</strong></span></p>
+                    <div id="ui-inventory">
+                        <div class="item-inventory empty">
+                            <img src="" alt="">
+                            <span>x0</span>
+                        </div>
+                        <div class="item-inventory empty">
+                            <img src="" alt="">
+                            <span>x0</span>
+                        </div>
+                        <div class="item-inventory empty">
+                            <img src="" alt="">
+                            <span>x0</span>
+                        </div>
+                        <div class="item-inventory empty">
+                            <img src="" alt="">
+                            <span>x0</span>
+                        </div>
+                        <div class="item-inventory empty">
+                            <img src="" alt="">
+                            <span>x0</span>
+                        </div>
+                        <div class="item-inventory empty">
+                            <img src="" alt="">
+                            <span>x0</span>
+                        </div>
+                        <div class="item-inventory empty">
+                            <img src="" alt="">
+                            <span>x0</span>
+                        </div>
+                        <div class="item-inventory empty">
+                            <img src="" alt="">
+                            <span>x0</span>
+                        </div>
+                        <div class="item-inventory empty">
+                            <img src="" alt="">
+                            <span>x0</span>
+                        </div>
+                        <div class="item-inventory empty">
+                            <img src="" alt="">
+                            <span>x0</span>
+                        </div>
+                        <div class="item-inventory empty">
+                            <img src="" alt="">
+                            <span>x0</span>
+                        </div>
+                        <div class="item-inventory empty">
+                            <img src="" alt="">
+                            <span>x0</span>
+                        </div>
+                    </div>
+                </div>
             </section>
+            <canvas id="gameCanvas" width="1024" height="768"></canvas>
         </div>
     </main>
 

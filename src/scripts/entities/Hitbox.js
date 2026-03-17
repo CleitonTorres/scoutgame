@@ -1,4 +1,3 @@
-import { GameObject } from "../engine/GameObject.js";
 import { getCollider } from "../engine/GetColliders.js";
 import { getAnchor } from "../mathh/GetAnchor.js";
 import { shapes } from "../settings/shapes.js";
@@ -25,7 +24,16 @@ export class HitBox{
         this.ctx = this.owner?.canvas.getContext("2d") || null;
         this.sortLayer = this.owner?.sortLayer || 1;
         this.shape = shape || shapes.BOX;
-        this.hit = null; //GameObjects Colididos
+        /**
+         * Importação feita nesse modelo para evitar erro de referencia circular.
+         * @typedef {import("../engine/GameObject.js").GameObject} GameObject
+         * @typedef {import("../engine/Item/PickupItem.js").PickupItem} PickupItem
+        */
+
+        /**
+         * @type {GameObject | PickupItem | null}
+        */
+        this.hit = null;//GameObjects Colididos
         this.collision = this.owner?.collision || false;
     }
 

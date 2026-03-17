@@ -1,4 +1,4 @@
-import { ItemData } from "./ItemData.js";
+import { Player } from "../../entities/Player.js";
 import { ItemEntity } from "./ItemEntity.js";
 
 /**
@@ -11,9 +11,15 @@ export class PickupItem extends ItemEntity {
         this.autoPickup = true;
     }
 
+    /**
+     * 
+     * @param {Player} target 
+     * @returns {boolean}
+     */
     tryCollect(target){
         if(!target.inventory) return false;
-
+        if(this.destroyed) return false;
+        
         const collected = target.inventory.addItem(
             this.itemData,
             this.quantity

@@ -1,3 +1,5 @@
+import { Inventory } from "../engine/Inventory.js";
+
 export class UIManager {
     constructor() {
         this.playerNameEl = document.getElementById("ui-player-name");
@@ -7,6 +9,9 @@ export class UIManager {
         this.playerAnimEl = document.getElementById("ui-player-anim");
         this.playerInventory = document.getElementById("ui-player-invent");
 
+        this.inventoryConteiner = document.getElementById("iu-conteiner-inventory");
+        this.inventorySlots = document.querySelectorAll("#ui-inventory .item-inventory");
+
         this.warningEl = document.getElementById("ui-warning");
 
         this.dialogEl = document.getElementById("ui-dialog");
@@ -14,6 +19,12 @@ export class UIManager {
         this.dialogTextEl = document.getElementById("ui-dialog-text");
         
         this.warningTimeoutId = null;
+
+        this.inventorySlots.forEach((slot, index) => {
+            slot.addEventListener("click", () => {
+                console.log("clicou no slot", index);
+            });
+        });
     }
 
     setPlayerInfo(player) {
@@ -69,6 +80,11 @@ export class UIManager {
         this.dialogEl.classList.remove("is-hidden");
     }
 
+    toggleInventory(){
+        if(!this.inventoryConteiner) return;
+        this.inventoryConteiner.classList.toggle("is-hidden")
+    }
+
     hideDialog() {
         if (!this.dialogEl) return;
 
@@ -84,5 +100,39 @@ export class UIManager {
         }
 
         this.hideDialog();
+    }
+
+    /**
+     * 
+     * @param {Inventory} inventory 
+     * @returns 
+     */
+    renderInventory(inventory) {
+        if (!this.inventorySlots) return;
+
+        inventory.slots.forEach((itemData, index) => {
+            const slotEl = this.inventorySlots[index];
+            if (!slotEl) return;
+
+            const img = slotEl.querySelector("img");
+            const span = slotEl.querySelector("span");
+
+            if (itemData) {
+                slotEl.classList.remove("empty");
+
+                img.src = itemData.item.icon;
+                console.log(itemData.item);
+                img.style.display = "block";
+
+                span.textContent = `x${itemData.quantity}`;
+            } else {
+                slotEl.classList.add("empty");
+
+                img.src = "";
+                img.style.display = "none";
+
+                span.textContent = "";
+            }
+        });
     }
 }

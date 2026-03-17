@@ -73,7 +73,10 @@ export class Player extends GameObject {
     getCollides(){
         this.hitboxes.forEach(box => {
             if(box.hit?.tag === tags.ITEM){
-                box.hit.tryCollect(this);
+                const colected = box.hit.tryCollect(this);
+                if(colected){
+                    this.hud.renderInventory(this.inventory);
+                }
             }
             
             if(box.hit?.tag === tags.NPC_quest && this.hud){

@@ -202,6 +202,7 @@ const item01 = new PickupItem({
         stackable: true,
         maxStack: 10,
         type: "food",
+        icon: itensAnimatios.maca.idle?.frames?.[0]?.src || "src/assets/objects/forest-pack-sprites/spider.png",
         onUse(player){
             player.hp += 5
         }
@@ -668,6 +669,9 @@ document.addEventListener('keydown', (event) => {
         ui.showWarning("Aviso: sistema de UI HTML ativo.");
     }
 
+    if(["i", "I"].includes(event.key)){
+        player.hud.toggleInventory();
+    }
     //ao teclar j, simula um bação de diálogo na tela.
     if (event.key === 'j' || event.key === 'J') {
         ui.toggleDialog({
