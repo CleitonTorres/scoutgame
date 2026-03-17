@@ -1,4 +1,15 @@
+/**
+ * Importação feita nesse modelo para evitar erro de referencia circular.
+ * @typedef {import("../entities/NPC.js").NPC} NPC
+*/
+
 export class NPCController {
+    /**
+     * Controlador de movimento e estado do NPC.
+     * @param {NPC} entity 
+     * @param {{x: number, y: number}[]} points 
+     * @param {number} speed 
+     */
     constructor(entity, points = [], speed = 1) {
         this.entity = entity;
 
@@ -21,6 +32,13 @@ export class NPCController {
 
     update() {
         if (!this.points.length) return;
+
+        //se colidir com o player muda para animação parado.
+        if(this.entity.hitboxes.some(box=> box.hit?.tag === "Player")){
+            this.inputX = 0;
+            this.inputY = 0;
+            return;
+        }
 
         const target = this.points[this.currentPoint];
 
@@ -50,7 +68,6 @@ export class NPCController {
         if (Math.abs(this.inputX) > 0.01) {
             this.entity.facing = this.inputX > 0 ? 1 : -1;
         }
-
     }
 
     getMovement() {

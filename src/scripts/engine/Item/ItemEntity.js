@@ -10,7 +10,8 @@ export class ItemEntity extends GameObject {
     constructor(options = {}) {
         const {
             itemData, //dados que vem de ItemData, informado na instanciação.
-            quantity = 1
+            quantity = 1,
+            sortLayer
         } = options;
 
         super({
@@ -28,7 +29,7 @@ export class ItemEntity extends GameObject {
                     showHitbox: false
                 }
             ],
-            sortLayer: layers.underFloor,
+            sortLayer: sortLayer || layers.underFloor,
         });
 
         this.itemData = itemData;

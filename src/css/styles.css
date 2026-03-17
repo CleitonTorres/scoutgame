@@ -271,7 +271,32 @@ canvas {
     line-height: 1.35;
     color: #f8fbff;
 }
-
+.ui-conteiner-button-dialog{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    z-index: 12;
+    pointer-events: all;
+    margin-top: 10px;
+}
+.ui-conteiner-button-dialog button{
+    background-color: var(--canvas-background-color);
+    border: 1px solid #6f9f87;
+    border-radius: 10px;
+    width: auto;
+    min-width: 60px;
+    height: 20px;
+    box-shadow: 0px 2px 0px 2px var(--canvas-background-color);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--blue-900);
+}
+.ui-conteiner-button-dialog button:hover{
+    cursor: pointer;
+}
+.ui-conteiner-button-dialog button:active{
+    background-color: #6f9f87;
+}
 .ui-conteiner-inventory{
     display: flex;
     flex-direction: column;

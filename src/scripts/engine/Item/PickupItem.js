@@ -27,6 +27,7 @@ export class PickupItem extends ItemEntity {
 
         if(collected){
             this.onCollected();
+            this.itemData.onUse(target);
         }
 
         return collected;

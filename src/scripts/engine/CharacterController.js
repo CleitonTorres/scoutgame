@@ -1,4 +1,15 @@
 export class CharacterController {
+    /**
+     * 
+     * @param {{
+     *   up: boolean,
+     *   down: boolean,
+     *   left: boolean,
+     *   right: boolean,
+     *   shift: boolean,
+     *   dialog:  boolean,
+     * }} input 
+     */
     constructor(input) {
         this.input = input;
     }
@@ -19,10 +30,33 @@ export class CharacterController {
         return this.input.shift;
     }
 
-    getState(inputX, inputY) {
+    isDialog(){
+        return this.input.dialog;
+    }
+    
+    /**
+     * 
+     * @param {number} inputX 
+     * @param {number} inputY 
+     * @param {{x: number, y: number}} facingDirection 
+     * @returns 
+     */
+    getState(inputX, inputY, facingDirection) {
         const moving = inputX !== 0 || inputY !== 0;
 
-        if (!moving) return "idle";
+        if (!moving) {
+            if(facingDirection.x === 1){
+               return "idleRight" 
+            }else if(facingDirection.x === -1){
+                return "idleLeft" 
+            }else if (facingDirection.y === 1){
+                return "idleDown"
+            }else if (facingDirection.y === -1){
+                return "idleUp"
+            }else {
+                return "idle"
+            }
+        };
 
         if (this.isPushing()) return "push";
 

@@ -1,11 +1,33 @@
+import { itemsTypes } from "../../settings/itemsTypes.js";
+/**
+ * Importação feita nesse modelo para evitar erro de referencia circular.
+ * @typedef {import("../../entities/Player.js").Player} Player
+*/
+
+/**
+ * Estrutura de dados de item.
+ */
 export class ItemData {
+    /**
+     * Estrutura de dados de item.
+     * @param {{
+     * id: number,
+     * name: string,
+     * description: string,
+     * stackable: boolean,
+     * maxStack: number,
+     * type: itemsTypes,
+     * icon: string,
+     * onUse: (player: Player)=>void
+     * }} options
+     */
     constructor({
         id,
         name,
         description = "",
         stackable = false,
         maxStack = 1,
-        type = "generic",
+        type = itemsTypes.GENERIC,
         icon = null,
         onUse = null
     }) {

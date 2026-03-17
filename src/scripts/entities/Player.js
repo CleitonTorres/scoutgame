@@ -38,7 +38,7 @@ export class Player extends GameObject {
         const { inputX, inputY } = this.controller?.getMovement() || {x: 0, y: 0};
 
         //se tiver um controller setado pegar o estado atual da animação, se não, retorna idle por padrão.
-        this.state = this.controller?.getState(inputX, inputY) || "idle";
+        this.state = this.controller?.getState(inputX, inputY, this.facingDirection) || "idle";
 
         //atualiza o facingDirection para ser usado no disparo.
         setFacingDirection(this, inputX, inputY); 
@@ -79,10 +79,19 @@ export class Player extends GameObject {
                 }
             }
             
-            if(box.hit?.tag === tags.NPC_quest && this.hud){
+            if(box.hit?.tag === tags.NPC_quest && this.hud &&
+                !this.hud.isDialogOpen && this.controller.isDialog()
+            ){
                 this.hud.showDialog({
                     speaker: box.hit?.name || "",
-                    text: "Sempre Alerta!"
+                    text: "Sempre Alerta!",
+                    buttons: {
+                        cancelar: ()=>{this.hud.hideDialog()},
+                        ok: ()=>{
+                            this.hud.showWarning("Missão aceita!", 3000);
+                            this.hud.hideDialog()
+                        }
+                    }
                 })
             }
         });

@@ -7,17 +7,29 @@ export class UIManager {
         this.playerPosEl = document.getElementById("ui-player-pos");
         this.playerLayerEl = document.getElementById("ui-player-layer");
         this.playerAnimEl = document.getElementById("ui-player-anim");
-        this.playerInventory = document.getElementById("ui-player-invent");
 
         this.inventoryConteiner = document.getElementById("iu-conteiner-inventory");
         this.inventorySlots = document.querySelectorAll("#ui-inventory .item-inventory");
 
         this.warningEl = document.getElementById("ui-warning");
 
+        this.isDialogOpen = false;
         this.dialogEl = document.getElementById("ui-dialog");
         this.dialogSpeakerEl = document.getElementById("ui-dialog-speaker");
         this.dialogTextEl = document.getElementById("ui-dialog-text");
         
+        this.dialogButtonsConteiner = document.getElementById("ui-conteiner-button-dialog");
+        this.buttonCancelar = document.getElementById("button-cancelar");
+        this.buttonOk = document.getElementById("button-ok");
+        /**
+        * @type {()=>void}
+        */
+        this.onClickCancelar = null;
+        /**
+        * @type {()=>void}
+        */
+        this.onClickOk = null;
+
         this.warningTimeoutId = null;
 
         this.inventorySlots.forEach((slot, index) => {
@@ -25,6 +37,14 @@ export class UIManager {
                 console.log("clicou no slot", index);
             });
         });
+
+        this.buttonCancelar.addEventListener("click", ()=>{
+            this.onClickCancelar?.();
+        })
+
+        this.buttonOk.addEventListener("click", ()=>{
+            this.onClickOk?.();
+        })
     }
 
     setPlayerInfo(player) {
@@ -44,7 +64,6 @@ export class UIManager {
         if(this.playerAnimEl){
             this.playerAnimEl.textContent = `${player.state}`;
         }
-        if(this.playerInventory) this.playerInventory.textContent = `${player.inventory?.slots?.length || 0}`
     }
 
     showWarning(message, durationMs = 2200) {
@@ -72,12 +91,26 @@ export class UIManager {
         this.warningEl.textContent = "";
     }
 
-    showDialog({ speaker = "Narrador", text = "" } = {}) {
+    showDialog({ speaker = "Narrador", text = "", buttons = {cancelar: ()=>{}, ok: ()=>{}} } = {}) {
         if (!this.dialogEl) return;
 
         if (this.dialogSpeakerEl) this.dialogSpeakerEl.textContent = speaker;
         if (this.dialogTextEl) this.dialogTextEl.textContent = text;
         this.dialogEl.classList.remove("is-hidden");
+        this.isDialogOpen = true;
+
+        if(buttons){
+            this.showButtonsDialog();
+            this.onClickCancelar = buttons.cancelar;
+            this.onClickOk = buttons.ok;
+        }
+    }
+
+    hideButtonsDialog(){
+        this.dialogButtonsConteiner.classList.add("is-hidden");
+    }
+    showButtonsDialog(){
+        this.dialogButtonsConteiner.classList.remove("is-hidden");
     }
 
     toggleInventory(){
@@ -89,6 +122,7 @@ export class UIManager {
         if (!this.dialogEl) return;
 
         this.dialogEl.classList.add("is-hidden");
+        this.isDialogOpen = false;
     }
 
     toggleDialog(dialogData) {
@@ -121,7 +155,6 @@ export class UIManager {
                 slotEl.classList.remove("empty");
 
                 img.src = itemData.item.icon;
-                console.log(itemData.item);
                 img.style.display = "block";
 
                 span.textContent = `x${itemData.quantity}`;
@@ -135,4 +168,11 @@ export class UIManager {
             }
         });
     }
+
+    // buttonCancelar(){
+    //     console.log("Clicou cancelar");
+    // }
+    // buttonOk(){
+    //     console.log("clicou ok");
+    // }
 }

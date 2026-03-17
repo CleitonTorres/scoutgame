@@ -3,6 +3,7 @@ import { GameObject } from "../engine/GameObject.js";
 import { NPCController } from "../engine/NPCController.js";
 import { sortLayer } from "../engine/SortLayer.js";
 import { layers } from "../settings/layers.js";
+import { tags } from "../settings/tags.js";
 import { drawLabel } from "../tools/DrawLabel.js";
 
 export class NPC extends GameObject {
@@ -56,6 +57,6 @@ export class NPC extends GameObject {
         if (!this.canvas) return;
         const ctx = this.canvas.getContext("2d");
         super.draw();
-        drawLabel(this, ctx, this.name); //desenha o rótulo do personagem.
+        drawLabel(this, ctx, `${this.name} ${this.tag === tags.NPC_quest ? '!' : ''}`); //desenha o rótulo do personagem.
     }
 }

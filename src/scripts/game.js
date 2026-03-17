@@ -13,6 +13,7 @@ import { PickupItem } from "./engine/Item/PickupItem.js";
 import { ItemData } from "./engine/Item/ItemData.js";
 import { tags } from "./settings/tags.js";
 import { shapes } from "./settings/shapes.js";
+import { sortLayer } from "./engine/SortLayer.js";
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -42,6 +43,30 @@ const pathAnimationsPlayers = {
         `${pathCharacters}${availablePlayers[characterSelected]}/idle/down/2.png`,
         `${pathCharacters}${availablePlayers[characterSelected]}/idle/down/3.png`,
     ], 
+    idleRight: [
+        `${pathCharacters}${availablePlayers[characterSelected]}/idle/right/0.png`,
+        `${pathCharacters}${availablePlayers[characterSelected]}/idle/right/1.png`,
+        `${pathCharacters}${availablePlayers[characterSelected]}/idle/right/2.png`,
+        `${pathCharacters}${availablePlayers[characterSelected]}/idle/right/3.png`,
+    ],
+    idleLeft: [
+        `${pathCharacters}${availablePlayers[characterSelected]}/idle/left/0.png`,
+        `${pathCharacters}${availablePlayers[characterSelected]}/idle/left/1.png`,
+        `${pathCharacters}${availablePlayers[characterSelected]}/idle/left/2.png`,
+        `${pathCharacters}${availablePlayers[characterSelected]}/idle/left/3.png`,
+    ],
+    idleUp: [
+        `${pathCharacters}${availablePlayers[characterSelected]}/idle/up/0.png`,
+        `${pathCharacters}${availablePlayers[characterSelected]}/idle/up/1.png`,
+        `${pathCharacters}${availablePlayers[characterSelected]}/idle/up/2.png`,
+        `${pathCharacters}${availablePlayers[characterSelected]}/idle/up/3.png`,
+    ],
+    idleDown: [
+        `${pathCharacters}${availablePlayers[characterSelected]}/idle/down/0.png`,
+        `${pathCharacters}${availablePlayers[characterSelected]}/idle/down/1.png`,
+        `${pathCharacters}${availablePlayers[characterSelected]}/idle/down/2.png`,
+        `${pathCharacters}${availablePlayers[characterSelected]}/idle/down/3.png`,
+    ],
     walkUp: [
         `${pathCharacters}${availablePlayers[characterSelected]}/walk/up/0.png`,
         `${pathCharacters}${availablePlayers[characterSelected]}/walk/up/1.png`,
@@ -180,57 +205,14 @@ for (const [key, tree] of Object.entries(avaliableTrees)) {
 //instancia o grid virtual para colisões.
 const grid = new SpatialHashGrid(2);
 
-//carregar objetos coletáveis.
-const itensAnimatios = {};
-const avaliableItens= {
-    maca: "apple_01"
-}
-for (const [key, item] of Object.entries(avaliableItens)) {
-    const paths = {
-        idle: [
-            `${patchObjects}forest-pack-sprites/${item}.png`,
-        ],
-    };
-
-    const randomFps = Math.random() * 3 + 1;
-    itensAnimatios[key] = await loadAnimations(paths, randomFps, false);
-}
-const item01 = new PickupItem({
-    itemData: new ItemData({
-        id: "apple",
-        name: "Maçã",
-        stackable: true,
-        maxStack: 10,
-        type: "food",
-        icon: itensAnimatios.maca.idle?.frames?.[0]?.src || "src/assets/objects/forest-pack-sprites/spider.png",
-        onUse(player){
-            player.hp += 5
-        }
-    }),
-    quantity: 2,
-    position: {x: 4, y: 9},
-    transform: {
-        width: 0.5,
-        height: 0.5
-    },
-    animation: itensAnimatios.maca,
-    canvas
-});
-const itens = [
-    item01
-]
-//---------------------------
-
-//esconde a mensagem de "carregando ..."
-ui.hideWarning();
-
 //estados das teclas.
 const inputState = {
     up:false,
     down:false,
     left:false,
     right:false,
-    shift:false
+    shift:false,
+    dialog: false,
 };
 
 //----------------------
@@ -268,6 +250,89 @@ const player = new Player({
     canvas,
     gridSize,
 });
+
+//depois de carregar o player, carregar os objetos coletáveis.
+const itensAnimatios = {};
+const avaliableItens= {
+    maca: "apple_01"
+}
+for (const [key, item] of Object.entries(avaliableItens)) {
+    const paths = {
+        idle: [
+            `${patchObjects}forest-pack-sprites/${item}.png`,
+        ],
+    };
+
+    const randomFps = Math.random() * 3 + 1;
+    itensAnimatios[key] = await loadAnimations(paths, randomFps, false);
+}
+const itens = [
+    new PickupItem({
+        itemData: new ItemData({
+            id: "apple",
+            name: "Maçã",
+            stackable: true,
+            maxStack: 10,
+            type: "food",
+            icon: itensAnimatios.maca.idle?.frames?.[0]?.src || "src/assets/objects/forest-pack-sprites/spider.png",
+            onUse(player){
+                player.hp += 5
+            }
+        }),
+        quantity: 2,
+        position: {x: 4, y: 9},
+        transform: {
+            width: 0.5,
+            height: 0.5
+        },
+        animation: itensAnimatios.maca,
+        canvas
+    }),
+    new PickupItem({
+        itemData: new ItemData({
+            id: "apple",
+            name: "Maçã",
+            stackable: true,
+            maxStack: 10,
+            type: "food",
+            icon: itensAnimatios.maca.idle?.frames?.[0]?.src || "src/assets/objects/forest-pack-sprites/spider.png",
+            onUse(player){
+                player.hp += 5
+            }
+        }),
+        quantity: 2,
+        position: {x: 7, y: 7},
+        transform: {
+            width: 0.5,
+            height: 0.5
+        },
+        sortLayer: layers.ground,
+        animation: itensAnimatios.maca,
+        canvas
+    }),
+    new PickupItem({
+        itemData: new ItemData({
+            id: "apple",
+            name: "Maçã",
+            stackable: true,
+            maxStack: 10,
+            type: "food",
+            icon: itensAnimatios.maca.idle?.frames?.[0]?.src || "src/assets/objects/forest-pack-sprites/spider.png",
+            onUse(player){
+                player.hp += 5
+            }
+        }),
+        quantity: 2,
+        position: {x: 13, y: 2},
+        transform: {
+            width: 0.5,
+            height: 0.5
+        },
+        animation: itensAnimatios.maca,
+        canvas
+    }),
+]
+//---------------------------
 
 //points para simulação de caminhada.
 const patrolPoints = [
@@ -564,6 +629,9 @@ const trees = [
 //objetos em cena.
 const worldObjects = [...npcs, ...walls, ...trees, player, ...itens];
 
+//esconde a mensagem de "carregando ..."
+ui.hideWarning();
+
 // Atualiza o estado das teclas pressionadas com base no evento de teclado
 function updateInputState(key, isPressed) {
     switch (key) {
@@ -591,6 +659,9 @@ function updateInputState(key, isPressed) {
         case 'Shift':
             inputState.shift = isPressed;
             break;
+        case 'e' :
+        case 'E' :
+            inputState.dialog = isPressed;
     }
 }
 
