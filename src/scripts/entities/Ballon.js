@@ -1,7 +1,15 @@
 import { GameObject } from "../engine/GameObject.js";
-import { getCollider } from "../engine/GetColliders.js";
 
 export class Ballon extends GameObject {
+    /**
+    * 
+    * @typedef {{
+    *   import("../engine/GameObject.js").GameObjectType & {
+    *   owner: GameObject,
+    *   maxLifetime: number
+    * }} BallonType
+    * @param {BallonType} options
+    */
     constructor(options = {}) {
         const direction = options.direction ?? { x: 0, y: 1 };
         const length = Math.hypot(direction.x, direction.y) || 1;

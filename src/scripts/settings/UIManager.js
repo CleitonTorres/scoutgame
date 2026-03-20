@@ -1,7 +1,9 @@
-import { Inventory } from "../engine/Inventory.js";
-
 export class UIManager {
-    constructor() {
+    /**
+     * 
+     * @param {import("../settings/EventBus.js")} eventBus 
+     */
+    constructor(eventBus) {
         this.playerNameEl = document.getElementById("ui-player-name");
         this.playerHpEl = document.getElementById("ui-player-hp");
         this.playerPosEl = document.getElementById("ui-player-pos");
@@ -12,6 +14,9 @@ export class UIManager {
         this.inventorySlots = document.querySelectorAll("#ui-inventory .item-inventory");
 
         this.warningEl = document.getElementById("ui-warning");
+
+        this.uiQuestsConteiner = document.getElementById("ui-hud-quests");
+        this.listQuests = document.getElementById("list-quests");
 
         this.isDialogOpen = false;
         this.dialogEl = document.getElementById("ui-dialog");
@@ -45,6 +50,23 @@ export class UIManager {
         this.buttonOk.addEventListener("click", ()=>{
             this.onClickOk?.();
         })
+
+        /**
+         * @type {import("./EventBus.js").EventBus}
+         */
+        this.eventBus = eventBus || null;
+        this.eventBus?.on({
+            event: "questAccept", 
+            callback: (data) => {
+                this.loadQuests(data.quests);
+            }
+        });
+        this.eventBus?.on({
+            event: "updateQuest", 
+            callback: (data) => {
+                this.loadQuests(data.quests);
+            }
+        });
     }
 
     setPlayerInfo(player) {
@@ -91,7 +113,16 @@ export class UIManager {
         this.warningEl.textContent = "";
     }
 
-    showDialog({ speaker = "Narrador", text = "", buttons = {cancelar: ()=>{}, ok: ()=>{}} } = {}) {
+    /**
+     * 
+     * @param {{
+     *  speaker: string, 
+     *  text: string, 
+     *  buttons: {cancelar: ()=>{}, ok: ()=>{}} 
+     * }} options 
+     * @returns 
+     */
+    showDialog({ speaker = "Narrador", text = "", buttons= undefined}) {
         if (!this.dialogEl) return;
 
         if (this.dialogSpeakerEl) this.dialogSpeakerEl.textContent = speaker;
@@ -99,7 +130,10 @@ export class UIManager {
         this.dialogEl.classList.remove("is-hidden");
         this.isDialogOpen = true;
 
-        if(buttons){
+        if(!buttons){
+            this.dialogButtonsConteiner.classList.add("is-hidden");
+        }else{
+            this.dialogButtonsConteiner.classList.remove("is-hidden");
             this.showButtonsDialog();
             this.onClickCancelar = buttons.cancelar;
             this.onClickOk = buttons.ok;
@@ -115,7 +149,11 @@ export class UIManager {
 
     toggleInventory(){
         if(!this.inventoryConteiner) return;
-        this.inventoryConteiner.classList.toggle("is-hidden")
+        this.inventoryConteiner.classList.toggle("is-hidden");
+    }
+    hideInventory(){
+        if(!this.inventoryConteiner) return;
+        this.inventoryConteiner.classList.add("is-hidden");
     }
 
     hideDialog() {
@@ -138,7 +176,7 @@ export class UIManager {
 
     /**
      * 
-     * @param {Inventory} inventory 
+     * @param {import("../engine/Inventory.js").Inventory} inventory 
      * @returns 
      */
     renderInventory(inventory) {
@@ -169,10 +207,35 @@ export class UIManager {
         });
     }
 
-    // buttonCancelar(){
-    //     console.log("Clicou cancelar");
-    // }
-    // buttonOk(){
-    //     console.log("clicou ok");
-    // }
+    /**
+     * 
+     * @param {import("../engine/Quest/QuestInstance.js").QuestInstance[]} quests 
+     */
+    loadQuests(quests){
+        if(!this.listQuests) return;
+
+        //limpa o conteiner antes de reescrever.
+        this.listQuests.querySelectorAll("li").forEach(li=> this.listQuests.removeChild(li));
+        console.log(quests);
+
+        quests.forEach((q)=>{
+            const newitem = document.createElement("li");
+            newitem.textContent = `nome: ${q.data.name} - Objetivo: ${q.data.description} - Cumprido: ${q.progress?.[0]?.current || 0}`;
+
+            this.listQuests.appendChild(newitem);
+        })
+    }
+
+    toggleQuestUI(){
+        if(!this.uiQuestsConteiner) return;
+        this.uiQuestsConteiner.classList.toggle("is-hidden")
+    }
+    showQuestUI(){
+        if(!this.uiQuestsConteiner) return;
+        this.uiQuestsConteiner.classList.remove("is-hidden")
+    }
+    hideQuestUI(){
+        if(!this.uiQuestsConteiner) return;
+        this.uiQuestsConteiner.classList.add("is-hidden")
+    }
 }

@@ -1,11 +1,9 @@
-import { Player } from "../entities/Player.js";
 import { getAnchor } from "../mathh/GetAnchor.js";
-import { GameObject } from "./GameObject.js";
 
 /**
  * Função que seta a layers do player pela profundidade (Y) entre ele e o colisor.
- * @param {Player} entityA 
- * @param {GameObject} entityB 
+ * @param {import("../entities/Player.js").Player} entityA 
+ * @param {import("./GameObject.js").GameObject} entityB 
  * @param {number} gridsize 
  */
 export function sortLayer(entityA, entityB, gridsize){

@@ -1,4 +1,3 @@
-import { Player } from "../../entities/Player.js";
 import { ItemEntity } from "./ItemEntity.js";
 
 /**
@@ -13,7 +12,7 @@ export class PickupItem extends ItemEntity {
 
     /**
      * 
-     * @param {Player} target 
+     * @param {import("../../entities/Player.js").Player} target
      * @returns {boolean}
      */
     tryCollect(target){

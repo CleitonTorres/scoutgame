@@ -90,8 +90,7 @@ h1 {
 p {
     font-size: clamp(1rem, 1.8vw, 1.12rem);
     color: var(--text-soft);
-    padding: clamp(16px, 2.6vw, 22px);
-    margin-bottom: 16px;
+    padding: clamp(16px, 2.6vw, 18px);
 }
 
 h2 {
@@ -144,6 +143,9 @@ footer p {
     box-shadow: none;
 }
 
+.notas-rodape{
+    position: relative
+}
 a {
     display: inline-flex;
     align-items: center;
@@ -364,14 +366,19 @@ canvas {
     background: #888;
     border-radius: 10px;
 }
+
+.ui-quest{
+
+} 
+
 .is-hidden {
     display: none;
 }
-
 .container {
     width: 100%;
     min-height: 100vh;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
 }

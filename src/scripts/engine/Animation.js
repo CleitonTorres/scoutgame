@@ -43,7 +43,8 @@ export const hasAnimation= (animation={})=> {
  *   fps: number,
  *   loop: boolean
  * }
- * @returns {{string:{frames: [], fps: number, loop: boolean}}} - retorna um objeto padronizado com as animações possiveis.
+ * @typedef {{[anim:string]:{frames: [], fps: number, loop: boolean}}} AnimationType
+ * @returns {AnimationType} - retorna um objeto padronizado com as animações possiveis.
  */
 export function normalizeAnimation(animation = {}) {
     if(!hasAnimation(animation)) return {};

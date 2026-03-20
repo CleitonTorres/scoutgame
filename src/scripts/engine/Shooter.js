@@ -3,6 +3,14 @@ import { getRadiusToSpaw } from "../mathh/GetRadiusToSpaw.js";
 import { layers } from "../settings/layers.js";
 import { tags } from "../settings/tags.js";
 
+/**
+ * 
+ * @param {import("../entities/Player.js").Player} player 
+ * @param {import("./Animation.js").AnimationType} ballonAnimation 
+ * @param {HTMLCanvasElement} canvas 
+ * @param {number} gridSize 
+ * @returns 
+ */
 export function shooter(player, ballonAnimation, canvas, gridSize){
     //pegar a posição para spawnar o balão pelo centro do player.
     const {x, y} = getRadiusToSpaw(player, 10, gridSize);
@@ -28,7 +36,7 @@ export function shooter(player, ballonAnimation, canvas, gridSize){
             }
         ],
         state: "move",
-        animation: ballonAnimation,
+        animation: {...ballonAnimation, hit: {...ballonAnimation.hit, loop: false}},
         owner: player,
         sortLayer: layers.player,
         canvas,

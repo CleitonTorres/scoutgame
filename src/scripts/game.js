@@ -3,7 +3,6 @@ import { Tree } from "./entities/Tree.js";
 import { Wall } from "./entities/Wall.js";
 import { layers } from "./settings/layers.js";
 import { UIManager } from "./settings/UIManager.js";
-import { loadAnimations } from "./engine/Animation.js";
 import { SpatialHashGrid } from "./engine/SpatialHashGrid.js";
 import { shooter } from "./engine/Shooter.js";
 import { CharacterController } from "./engine/CharacterController.js";
@@ -13,197 +12,30 @@ import { PickupItem } from "./engine/Item/PickupItem.js";
 import { ItemData } from "./engine/Item/ItemData.js";
 import { tags } from "./settings/tags.js";
 import { shapes } from "./settings/shapes.js";
-import { sortLayer } from "./engine/SortLayer.js";
+import { QuestData } from "./engine/Quest/QuestData.js";
+import { itemsTypes } from "./settings/itemsTypes.js";
+import { Game } from "./settings/Game.js";
+import { EventBus } from "./settings/EventBus.js";
+import { assetManager } from "./settings/AssetsManager.js";
+import { updateInputState } from "./settings/UpdateInputState.js";
+import { updateWorld } from "./engine/UpdateSpatialGrid.js";
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const gridSize = 64;
-const ui = new UIManager();
-
-let characterSelected = 'leo';
-
-//carregamento de imagens das animações do player.
-const pathCharacters = "./src/assets/characters/";
-const patchObjects = "./src/assets/objects/";
-
-const availablePlayers = {
-    lipe: "lipe",
-    maria: "maria",
-    leo: "leo",
-    helen: "helen-f",
-    marco: "amarco",
-    ru: "ru"
-};
-
-// manifesto com os caminhos dos sprites para animação do player.
-const pathAnimationsPlayers = {
-    idle: [
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/down/0.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/down/1.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/down/2.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/down/3.png`,
-    ], 
-    idleRight: [
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/right/0.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/right/1.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/right/2.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/right/3.png`,
-    ],
-    idleLeft: [
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/left/0.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/left/1.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/left/2.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/left/3.png`,
-    ],
-    idleUp: [
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/up/0.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/up/1.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/up/2.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/up/3.png`,
-    ],
-    idleDown: [
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/down/0.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/down/1.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/down/2.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/idle/down/3.png`,
-    ],
-    walkUp: [
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/up/0.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/up/1.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/up/2.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/up/3.png`,
-    ], 
-    walkDown: [
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/down/0.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/down/1.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/down/2.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/down/3.png`,
-    ], 
-    walkLeft: [
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/left/0.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/left/1.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/left/2.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/left/3.png`,
-    ], 
-    walkRight: [
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/right/0.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/right/1.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/right/2.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/right/3.png`,
-    ],
-    push:[
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/right/0.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/right/1.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/right/2.png`,
-        `${pathCharacters}${availablePlayers[characterSelected]}/walk/right/3.png`,
-    ]
-}
-
-//manifesto com os caminhos dos sprites do ballon.
-const pathBallonSprites = {
-    move:[
-        `${patchObjects}bexiga/move/0.png`,
-        `${patchObjects}bexiga/move/1.png`,
-        `${patchObjects}bexiga/move/2.png`,
-        `${patchObjects}bexiga/move/3.png`,
-    ],
-    hit:[
-        `${patchObjects}bexiga/hit/0.png`,
-        `${patchObjects}bexiga/hit/1.png`,
-        `${patchObjects}bexiga/hit/2.png`,
-        `${patchObjects}bexiga/hit/3.png`,
-        `${patchObjects}bexiga/hit/4.png`,
-    ],
-}
-
-//mostra a mensagem de "carregando..."
-ui.showWarning("Carregando jogo...", 0);
-
-//objeto contendo as animaçoes possiveis do player.
-const playerAnimations = await loadAnimations(pathAnimationsPlayers, 6, true);
-
-//carregamento de animações dos npcs.
-const availableNPCs = {
-    bp: "bp",
-    baloo: "baloo-f",
-    npc01: "npc01",
-    npc02: "npc02"
-}
-
-//carrega as animações de cada NPC disponível.
-const npcsAnimations = {};
-for (const [key, npc] of Object.entries(availableNPCs)) {
-
-    const paths = {
-        idle: [
-            `${pathCharacters}${npc}/idle/down/0.png`,
-            `${pathCharacters}${npc}/idle/down/1.png`,
-            `${pathCharacters}${npc}/idle/down/2.png`,
-            `${pathCharacters}${npc}/idle/down/3.png`,
-        ],
-        walkUp: [
-            `${pathCharacters}${npc}/walk/up/0.png`,
-            `${pathCharacters}${npc}/walk/up/1.png`,
-            `${pathCharacters}${npc}/walk/up/2.png`,
-            `${pathCharacters}${npc}/walk/up/3.png`,
-        ],
-        walkDown: [
-            `${pathCharacters}${npc}/walk/down/0.png`,
-            `${pathCharacters}${npc}/walk/down/1.png`,
-            `${pathCharacters}${npc}/walk/down/2.png`,
-            `${pathCharacters}${npc}/walk/down/3.png`,
-        ],
-        walkLeft: [
-            `${pathCharacters}${npc}/walk/left/0.png`,
-            `${pathCharacters}${npc}/walk/left/1.png`,
-            `${pathCharacters}${npc}/walk/left/2.png`,
-            `${pathCharacters}${npc}/walk/left/3.png`,
-        ],
-        walkRight: [
-            `${pathCharacters}${npc}/walk/right/0.png`,
-            `${pathCharacters}${npc}/walk/right/1.png`,
-            `${pathCharacters}${npc}/walk/right/2.png`,
-            `${pathCharacters}${npc}/walk/right/3.png`,
-        ]
-    };
-
-    npcsAnimations[key] = await loadAnimations(paths, 4, true);
-}
-//----------------------------------
-
-//carrega animações da bexiga d'água.
-const ballonAnimation = await loadAnimations(pathBallonSprites, 6, true);
-if (ballonAnimation.hit) {
-    ballonAnimation.hit.loop = false;
-}
-//-----------------------------
-
-//carrega animações das árvores.
-const treesAnimations = {}; //await loadAnimations(pathTreesSprites, 6, true);
-const avaliableTrees = {
-    tree01:'tree01',
-    tree07: 'tree07'
-};
-for (const [key, tree] of Object.entries(avaliableTrees)) {
-
-    const paths = {
-        move: [
-            `${patchObjects}arvores/${tree}/move/0.png`,
-            `${patchObjects}arvores/${tree}/move/1.png`,
-            `${patchObjects}arvores/${tree}/move/2.png`,
-            `${patchObjects}arvores/${tree}/move/3.png`,
-            `${patchObjects}arvores/${tree}/move/4.png`,
-            `${patchObjects}arvores/${tree}/move/5.png`,
-        ],
-    };
-
-    const randomFps = Math.random() * 3 + 1;
-    treesAnimations[key] = await loadAnimations(paths, randomFps, true);
-}
-//-----------------------------
 
 //instancia o grid virtual para colisões.
 const grid = new SpatialHashGrid(2);
+
+//sistema de listeners
+const eventBus = new EventBus
+
+//sistema de gerenciamento do UI/UX/HUD
+const ui = new UIManager(eventBus);
+
+//mostra a mensagem de "carregando..."
+ui.showWarning("Carregando jogo...", 0);
+await assetManager.loadAll();
 
 //estados das teclas.
 const inputState = {
@@ -215,7 +47,15 @@ const inputState = {
     dialog: false,
 };
 
-//----------------------
+//points para simulação de caminhada de NPC.
+const patrolPoints = [
+    { x: 2, y: 10 },
+    { x: 10, y: 5 },
+    { x: 10, y: 8 },
+    { x: 5, y: 8 }
+];
+
+//INSTANCIAS===============
 const player = new Player({
     name: "Cleitinho",
     tag: tags.PLAYER,
@@ -245,102 +85,10 @@ const player = new Player({
     position:{x: 1, y: 2},
     sortLayer: layers.player,
     state: "idle",
-    animation: playerAnimations,
-    hud: ui,
+    animation: assetManager.getAnimation("player.leo"),
     canvas,
     gridSize,
 });
-
-//depois de carregar o player, carregar os objetos coletáveis.
-const itensAnimatios = {};
-const avaliableItens= {
-    maca: "apple_01"
-}
-for (const [key, item] of Object.entries(avaliableItens)) {
-    const paths = {
-        idle: [
-            `${patchObjects}forest-pack-sprites/${item}.png`,
-        ],
-    };
-
-    const randomFps = Math.random() * 3 + 1;
-    itensAnimatios[key] = await loadAnimations(paths, randomFps, false);
-}
-const itens = [
-    new PickupItem({
-        itemData: new ItemData({
-            id: "apple",
-            name: "Maçã",
-            stackable: true,
-            maxStack: 10,
-            type: "food",
-            icon: itensAnimatios.maca.idle?.frames?.[0]?.src || "src/assets/objects/forest-pack-sprites/spider.png",
-            onUse(player){
-                player.hp += 5
-            }
-        }),
-        quantity: 2,
-        position: {x: 4, y: 9},
-        transform: {
-            width: 0.5,
-            height: 0.5
-        },
-        animation: itensAnimatios.maca,
-        canvas
-    }),
-    new PickupItem({
-        itemData: new ItemData({
-            id: "apple",
-            name: "Maçã",
-            stackable: true,
-            maxStack: 10,
-            type: "food",
-            icon: itensAnimatios.maca.idle?.frames?.[0]?.src || "src/assets/objects/forest-pack-sprites/spider.png",
-            onUse(player){
-                player.hp += 5
-            }
-        }),
-        quantity: 2,
-        position: {x: 7, y: 7},
-        transform: {
-            width: 0.5,
-            height: 0.5
-        },
-        sortLayer: layers.ground,
-        animation: itensAnimatios.maca,
-        canvas
-    }),
-    new PickupItem({
-        itemData: new ItemData({
-            id: "apple",
-            name: "Maçã",
-            stackable: true,
-            maxStack: 10,
-            type: "food",
-            icon: itensAnimatios.maca.idle?.frames?.[0]?.src || "src/assets/objects/forest-pack-sprites/spider.png",
-            onUse(player){
-                player.hp += 5
-            }
-        }),
-        quantity: 2,
-        position: {x: 13, y: 2},
-        transform: {
-            width: 0.5,
-            height: 0.5
-        },
-        animation: itensAnimatios.maca,
-        canvas
-    }),
-]
-//---------------------------
-
-//points para simulação de caminhada.
-const patrolPoints = [
-    { x: 2, y: 10 },
-    { x: 10, y: 5 },
-    { x: 10, y: 8 },
-    { x: 5, y: 8 }
-];
 
 const npcs = [
     new NPC({
@@ -368,9 +116,34 @@ const npcs = [
                 showBoxCollide: false
             }
         ],
+        quest: new QuestData({
+            id: "collect_apples",
+            name: "Coletar Maçãs",
+            description: "Colete 3 maçãs",
+            objectives: [
+                { type: "collect", itemId: "apple", amount: 3 }
+            ],
+            rewards: [
+                { type: "item", amount: 1, item: new ItemData({
+                    id: "axe",
+                    description: "uma machadinha para cortar lenha",
+                    maxStack: 1,
+                    name: "Machadinha",
+                    stackable: false,
+                    type: itemsTypes.TOOL,
+                    icon: "src/assets/objects/forest-pack-sprites/axe.png",
+                    onUse(){}
+                })}
+            ],
+            dialogs: {
+                start: "Pode coletar 3 maçãs pra mim?",
+                progress: "Ainda faltam maçãs...",
+                complete: "Obrigado pelas maçãs!"
+            }
+        }),
         sortLayer: layers.underFloor,
         state: "idle",
-        animation: npcsAnimations.baloo,
+        animation: assetManager.getAnimation("npc.baloo-f"),
         canvas,
         gridSize
     }),
@@ -402,7 +175,7 @@ const npcs = [
         ],
         sortLayer: layers.underFloor,
         state: "idle",
-        animation: npcsAnimations.bp,
+        animation: assetManager.getAnimation("npc.bp"),
         canvas,
         gridSize
     }),
@@ -528,7 +301,7 @@ const trees = [
             }
         ],
         state: "move",
-        animation: treesAnimations.tree01,
+        animation: assetManager.getAnimation("obj.tree01"),
         canvas: canvas,        
     }),
     new Tree({
@@ -565,7 +338,7 @@ const trees = [
             }
         ],
         state: "move",
-        animation: treesAnimations.tree07,
+        animation: assetManager.getAnimation("obj.tree07"),
         gridSize,       
         canvas: canvas,        
     }),
@@ -592,7 +365,7 @@ const trees = [
             }
         ],
         state: "move",
-        animation: treesAnimations.tree01,
+        animation: assetManager.getAnimation("obj.tree01"),
         showBoxCollide: false,
         gridSize,
         canvas: canvas,        
@@ -620,11 +393,79 @@ const trees = [
             }
         ],
         state: "move",
-        animation: treesAnimations.tree07,
+        animation: assetManager.getAnimation("obj.tree07"),
         gridSize,
         canvas: canvas,        
     }),
 ];
+
+const itens = [
+    new PickupItem({
+        itemData: new ItemData({
+            id: "apple",
+            name: "Maçã",
+            stackable: true,
+            maxStack: 10,
+            type: "food",
+            icon: assetManager.getAnimation("obj.apple_01").move?.frames?.[0]?.src || "src/assets/objects/forest-pack-sprites/spider.png",
+            onUse(player){
+                player.hp += 5
+            }
+        }),
+        quantity: 2,
+        position: {x: 4, y: 9},
+        transform: {
+            width: 0.5,
+            height: 0.5
+        },
+        animation: assetManager.getAnimation("obj.apple_01"),
+        canvas
+    }),
+    new PickupItem({
+        itemData: new ItemData({
+            id: "apple",
+            name: "Maçã",
+            stackable: true,
+            maxStack: 10,
+            type: "food",
+            icon: assetManager.getAnimation("obj.apple_01").move?.frames?.[0]?.src || "src/assets/objects/forest-pack-sprites/spider.png",
+            onUse(player){
+                player.hp += 5
+            }
+        }),
+        quantity: 2,
+        position: {x: 7, y: 7},
+        transform: {
+            width: 0.5,
+            height: 0.5
+        },
+        sortLayer: layers.ground,
+        animation: assetManager.getAnimation("obj.apple_01"),
+        canvas
+    }),
+    new PickupItem({
+        itemData: new ItemData({
+            id: "apple",
+            name: "Maçã",
+            stackable: true,
+            maxStack: 10,
+            type: "food",
+            icon: assetManager.getAnimation("obj.apple_01").move?.frames?.[0]?.src || "src/assets/objects/forest-pack-sprites/spider.png",
+            onUse(player){
+                player.hp += 5
+            }
+        }),
+        quantity: 2,
+        position: {x: 13, y: 2},
+        transform: {
+            width: 0.5,
+            height: 0.5
+        },
+        animation: assetManager.getAnimation("obj.apple_01"),
+        canvas
+    }),
+]
+//==========================
 
 //objetos em cena.
 const worldObjects = [...npcs, ...walls, ...trees, player, ...itens];
@@ -632,120 +473,56 @@ const worldObjects = [...npcs, ...walls, ...trees, player, ...itens];
 //esconde a mensagem de "carregando ..."
 ui.hideWarning();
 
-// Atualiza o estado das teclas pressionadas com base no evento de teclado
-function updateInputState(key, isPressed) {
-    switch (key) {
-        case 'ArrowUp':
-        case 'w':
-        case 'W':
-            inputState.up = isPressed;
-            break;
-        case 'ArrowDown':
-        case 's':
-        case 'S':
-            inputState.down = isPressed;
-            break;
-        case 'ArrowLeft':
-        case 'a':
-        case 'A':
-            inputState.left = isPressed;
-            break;
-        case 'ArrowRight':
-        case 'd':
-        case 'D':
-            inputState.right = isPressed;
-            break;
-        case 'ShiftLeft':
-        case 'Shift':
-            inputState.shift = isPressed;
-            break;
-        case 'e' :
-        case 'E' :
-            inputState.dialog = isPressed;
-    }
-}
-
-function update() {    
-    //atual dados dos objetos de cena que precisam ser atualizados.
-    const resolve = worldObjects.filter(Boolean);
-    for (let i = resolve.length - 1; i >= 0; i--) {
-        const obj = resolve[i];
-        if(!obj || !obj.tag) return;
-
-        if(["Wall", "Tree"].includes(obj.tag)) {
-            obj.update(grid);
-        }else if(["NPC", "Player", "Ballon"].includes(obj.tag)){
-            obj.update(grid);
-        }
-
-        if(obj.destroyed) worldObjects.splice(i, 1);
-    }
-    
-    //atualiza dados do UI.
-    ui.setPlayerInfo(player);
-}
-
-function draw() {
-    // Limpa o canvas antes de desenhar a próxima frame
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    //desenha cada elemento de acordo com sua layer (profundidade)
-    const renderQueue = [...worldObjects, player].filter(Boolean);
-    renderQueue.sort((a, b) => {
-        // 1) layer base (menor primeiro, maior desenha por último = fica na frente)
-        const layerDiff = (a.sortLayer ?? 0) - (b.sortLayer ?? 0);
-        if (layerDiff !== 0) return layerDiff;
-
-        // 2) desempate opcional por Y (bom para profundidade)
-        return (a.y ?? 0) - (b.y ?? 0);
-    });
-    for (const obj of renderQueue) obj.draw();
-}
-
-function updateWorld(objects) {
-    grid.clear();
-
-    for (const obj of objects) {
-        grid.insert(obj);
-    }
-
-}
+const game = new Game({
+    canvas,
+    ctx,
+    grid,
+    gridSize,
+    eventBus,
+    uiManager: ui,
+    worldObjects
+});
 
 function gameLoop() {
-    updateWorld(worldObjects);
-    update();
-    draw();
+    updateWorld(worldObjects, grid);
+    game.update();
+    game.draw();
     requestAnimationFrame(gameLoop);
 }
 
 document.addEventListener('keydown', (event) => {
     event.preventDefault();
-    updateInputState(event.key, true);
+    updateInputState(event.key, true, inputState);
 
     if (event.repeat) return;
 
     if (event.code === "Space") {
         event.preventDefault();
         
-        const isCollided = player.hitboxes?.find(hit=> hit.hits) ? true : false;
+        const isCollided = player.hitboxes?.find(hit=> hit.hit) ? true : false;
 
         if(!isCollided){
             //insere a instância no array de objetos globais para ser desenhado.
-            worldObjects.push(shooter(player, ballonAnimation, canvas, gridSize));
+            game.addObject(shooter(player, assetManager.getAnimation("obj.bexiga"), canvas, gridSize));
         }
     }
     
     //ao teclar h simula um aviso na tela.
     if (event.key === 'h' || event.key === 'H') {
-        ui.showWarning("Aviso: sistema de UI HTML ativo.");
+        game.uiManager.showWarning("Aviso: sistema de UI HTML ativo.");
     }
 
     if(["i", "I"].includes(event.key)){
-        player.hud.toggleInventory();
+        game.uiManager.toggleInventory();
     }
+
+    if(["q", "Q"].includes(event.key)){
+        game.uiManager.toggleQuestUI();
+    }
+
     //ao teclar j, simula um bação de diálogo na tela.
     if (event.key === 'j' || event.key === 'J') {
-        ui.toggleDialog({
+        game.uiManager.toggleDialog({
             speaker: "Guia",
             text: "Esta e uma base para seus futuros baloes de dialogo."
         });
@@ -753,14 +530,15 @@ document.addEventListener('keydown', (event) => {
 
     //oculta os UI se teclar esc.
     if (event.key === 'Escape') {
-        ui.hideDialog();
-        ui.hideWarning();
+        game.uiManager.hideDialog();
+        game.uiManager.hideWarning();
+        game.uiManager.hideQuestUI();
+        game.uiManager.hideInventory();
     }
 });
 
 document.addEventListener('keyup', (event) => {
-    updateInputState(event.key, false);
+    updateInputState(event.key, false, inputState);
 });
 
 gameLoop();
-

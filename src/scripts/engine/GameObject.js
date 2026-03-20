@@ -7,22 +7,7 @@ import { layers } from "../settings/layers.js";
 import { behaviors } from "../settings/behaviors.js";
 
 /**
- * GameObject
- * ----------
- * Classe base da engine Scout Game.
- * Responsável por:
- * - Renderização
- * - Movimento
- * - Colisão
- * - Animação
- * - Interação física
- * 
- * Outros objetos devem herdar dela.
- */
-export class GameObject {
-    /**
-    * 
-    * @param {{
+ * @typedef {{
     *  name: string,
     *  tag: tags,
     *  sortLayer: layers,
@@ -41,12 +26,35 @@ export class GameObject {
     *  },
     *  state: string,
     *  animator?: AnimationController,
-    *  animation?: {},
+    *  animation?: {
+    *   [anim: string]: {
+    *        frames: [];
+    *        fps: number;
+    *        loop: boolean;
+    *  }},
     *  hitboxes: HitBox[],
     *  collides: Collide[],
     *  gridSize: number,
     *  canvas: HTMLCanvasElement
-    * }} options 
+    * }} GameObjectType
+ */
+/**
+ * GameObject
+ * ----------
+ * Classe base da engine Scout Game.
+ * Responsável por:
+ * - Renderização
+ * - Movimento
+ * - Colisão
+ * - Animação
+ * - Interação física
+ * 
+ * Outros objetos devem herdar dela.
+ */
+export class GameObject {
+    /**
+    * 
+    * @param {GameObjectType} options 
     */
     constructor(options = {}) {
         const {
@@ -169,6 +177,8 @@ export class GameObject {
                 owner: this
             })
         );
+
+        this.id = 0;
     }
 
     isStatic() {
@@ -306,7 +316,7 @@ export class GameObject {
     update(inputX, inputY, collidables = []) {
         //maxStep: Imagina que this.speed é a velocidade máxima do seu personagem (por exemplo, 100 pixels por segundo). 
         // Como a função update é chamada 60 vezes por segundo, maxStep calcula quantos pixels o personagem pode 
-        // se mover em um único quadro (100 / 60). Isso garante que o movimento seja consistente, independentemente 
+        // se mover em um único quadro (1 / 60). Isso garante que o movimento seja consistente, independentemente 
         // da taxa de quadros.
         const maxStep = this.speed / 60;
         
@@ -367,8 +377,8 @@ export class GameObject {
         this.nextPosY = this.y; 
 
         // updateCollides é crucial. Ela verifica se o personagem colidirá com algum objeto (collidables)
-        // se ele se movesse para this.nextPosX (e this.nextPosY). Ela atualiza alguma propriedade interna
-        // dos objetos de colisão (this.hitboxes e this.collides) com informações atualizadas da possição do seu owner.
+        // se ele se movesse para this.nextPosX (e this.nextPosY). Ela atualiza posição dos hitboxes 
+        // e collides (this.hitboxes e this.collides) com informações atualizadas da possição do seu owner.
         this.updateCollides(collidables); // Atualiza os hits na posição nextPosX
         
         // this.resolveAxis é a que realmente lida com a colisão. Ela tenta mover o personagem para 

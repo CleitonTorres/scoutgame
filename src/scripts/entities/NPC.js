@@ -14,6 +14,7 @@ export class NPC extends GameObject {
             options?.patrolPoints || [],
             this.speed
         );
+        this.quest = options.quest || null;
         this.hp = 100; //vida do personagem.
         this.facingDirection = { x: 0, y: 1 };
     }
