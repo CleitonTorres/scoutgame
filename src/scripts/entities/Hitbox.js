@@ -31,9 +31,9 @@ export class HitBox{
         */
 
         /**
-         * @type {GameObject | PickupItem | null}
+         * @type {GameObject[] | PickupItem[]}
         */
-        this.hit = null;//GameObjects Colididos
+        this.hit = [];//GameObjects Colididos
         this.collision = this.owner?.collision || false;
     }
 

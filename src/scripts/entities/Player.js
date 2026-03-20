@@ -12,6 +12,7 @@ import { drawLabel } from "../tools/DrawLabel.js";
 /**
  * @typedef {import("../settings/Game.js").Game} Game
  * @typedef {import("../engine/Inventory.js").Inventory} Inventory
+ * @typedef {import("../engine/Item/PickupItem.js").PickupItem} PickupItem 
  */
 export class Player extends GameObject {
     /**
@@ -57,14 +58,16 @@ export class Player extends GameObject {
         super.update(inputX, inputY, collidables);
 
         // Busca automaticamente se algum hitbox detectou colisão
-        const collidedHitbox = [...this.hitboxes, ...this.collides].find(box => box.hit);
+        const collidedHitbox = [...this.hitboxes, ...this.collides].find(box => box.hit.length > 0);
 
         //sistema de coleta de itens.
         this.getCollides(game)
-
+        
         if(collidedHitbox){
-            // O sortLayer agora recebe o objeto colidido (box.hit)
-            sortLayer(this, collidedHitbox.hit, this.gridSize); 
+            collidedHitbox.hit.forEach(hit=>{
+                // O sortLayer agora recebe o objeto colidido (box.hit)
+                sortLayer(this, hit, this.gridSize);
+            })
         } else {
             this.sortLayer = layers.player;
         }
@@ -83,103 +86,105 @@ export class Player extends GameObject {
      */
     getCollides(game){
         this.hitboxes.forEach(box => {
-            if(box.hit?.tag === tags.ITEM){
-                /**
-                 * @type {import("../engine/Item/PickupItem.js").PickupItem | null}
-                 */
-                const collect = this.tryCollect(box.hit, game.uiManager)
-                
-                //se coletou informa ao questSystem.
-                if(collect){
-                    game.eventBus.emit({
-                        event: "itemCollected",
-                        payload: {
-                            playerId: this.id,
-                            itemId: box.hit.itemData.id,
-                            qtdItem: collect.quantity
-                        }
-                    });
-                }
-            }
-            
-            if(box.hit?.tag === tags.NPC_quest && game.uiManager && box.hit.quest &&
-                !game.uiManager.isDialogOpen && this.controller.isDialog()
-            ){  
-                /**
-                 * pega a quest que está no NPC.
-                 * @type {import("../engine/Quest/QuestData.js").QuestData}
-                 */
-                const questData = box.hit.quest;
-                const quest = game.questSystem.getQuest(questData.id);
-
-                // 🟡 QUEST AINDA NÃO ACEITA
-                if (!quest) {
-                    console.log("ainda n tem quest")
-                    game.uiManager.showDialog({
-                        speaker: box.hit.name,
-                        text: questData.dialogs.start,
-                        buttons: {
-                            cancelar: () => {
-                                game.uiManager.hideDialog();
-                            },
-                            ok: () => {
-                                game.questSystem.startQuest(questData);
-
-                                game.uiManager.showWarning("Missão aceita!", 2000);
-                                game.uiManager.hideDialog();
-                                game.uiManager.showQuestUI();
-
-                                //avisa aos ouvinter que aceitou a quest.
-                                game.eventBus.emit({
-                                    event: "questAccept",
-                                    payload: {
-                                        playerId: this.id,
-                                        itemId: questData.id,
-                                        quests: game.questSystem.quests,
-                                    }
-                                });
+            box.hit.forEach(hit=>{
+                if(hit.tag === tags.ITEM){
+                    /**
+                    * @type {PickupItem | null}
+                    */
+                    const collect = this.tryCollect(hit, game.uiManager)
+                    
+                    //se coletou informa ao questSystem.
+                    if(collect){
+                        game.eventBus.emit({
+                            event: "itemCollected",
+                            payload: {
+                                playerId: this.id,
+                                itemId: collect.itemData.id,
+                                qtdItem: collect.quantity
                             }
-                        }
-                    });
-
-                    return;
+                        });
+                    }
                 }
 
-                // 🟢 COMPLETA
-                if (quest.isCompleted()) {
-                    console.log("completa")
-                    game.questSystem.completeQuest(quest);
+                if(hit.tag === tags.NPC_quest && game.uiManager && hit.quest &&
+                    !game.uiManager.isDialogOpen && this.controller.isDialog()
+                ){  
+                    /**
+                     * pega a quest que está no NPC.
+                     * @type {import("../engine/Quest/QuestData.js").QuestData}
+                     */
+                    const questData = hit.quest;
+                    const quest = game.questSystem.getQuest(questData.id);
 
-                    game.uiManager.showDialog({
-                        speaker: box.hit.name,
-                        text: quest.data.dialogs.complete
-                    });
+                    // 🟡 QUEST AINDA NÃO ACEITA
+                    if (!quest) {
+                        console.log("ainda n tem quest")
+                        game.uiManager.showDialog({
+                            speaker: hit.name,
+                            text: questData.dialogs.start,
+                            buttons: {
+                                cancelar: () => {
+                                    game.uiManager.hideDialog();
+                                },
+                                ok: () => {
+                                    game.questSystem.startQuest(questData);
 
-                    return;
+                                    game.uiManager.showWarning("Missão aceita!", 2000);
+                                    game.uiManager.hideDialog();
+                                    game.uiManager.showQuestUI();
+
+                                    //avisa aos ouvinter que aceitou a quest.
+                                    game.eventBus.emit({
+                                        event: "questAccept",
+                                        payload: {
+                                            playerId: this.id,
+                                            itemId: questData.id,
+                                            quests: game.questSystem.quests,
+                                        }
+                                    });
+                                }
+                            }
+                        });
+
+                        return;
+                    }
+
+                    // 🟢 COMPLETA
+                    if (quest.isCompleted()) {
+                        console.log("completa")
+                        game.questSystem.completeQuest(quest);
+
+                        game.uiManager.showDialog({
+                            speaker: hit.name,
+                            text: quest.data.dialogs.complete
+                        });
+
+                        return;
+                    }
+
+                    // 🔵 EM PROGRESSO
+                    if (quest.status === typesProgQuest.IN_PROGRESS) {
+                        console.log("quest em andamento")
+                        game.uiManager.showDialog({
+                            speaker: hit.name,
+                            text: quest.data.dialogs.progress
+                        });
+
+                        return;
+                    }               
+
                 }
-
-                // 🔵 EM PROGRESSO
-                if (quest.status === typesProgQuest.IN_PROGRESS) {
-                    console.log("quest em andamento")
-                    game.uiManager.showDialog({
-                        speaker: box.hit.name,
-                        text: quest.data.dialogs.progress
-                    });
-
-                    return;
-                }               
-
-            }
+            })
         });
 
-        if(this.hitboxes.every(b=> b.hit?.tag !== tags.NPC_quest)){
+        if(this.hitboxes.every(box=> box.hit?.every(hit=> hit.tag !== tags.NPC_quest))){
             game.uiManager.hideDialog();
         }
     }
 
     /**
      * 
-     * @param {import("../engine/Item/PickupItem.js").PickupItem} item 
+     * @param {PickupItem} item 
      * @param {import("../settings/UIManager.js").UIManager} hud
      */
     tryCollect(item, hud){

@@ -207,7 +207,7 @@ export class GameObject {
 
     // Verifica se o jogador pode ocupar a posição de destino, considerando os objetos colidíveis
     canOccupy() {
-        const blocker = this.collides.find(box => box.hit);
+        const blocker = this.collides.find(box => box.hit.length > 0);
         return !blocker;
     }
 
@@ -277,28 +277,30 @@ export class GameObject {
     resolveAxis(nextX, nextY, deltaX, deltaY, collidables = []) {
         // Verifica se há um bloqueio na posição de destino
         // const blocker = getCollider(this, collidables, "collide");
-        const blocker = this.collides.find(collide=> collide.hit)?.hit;
+        const blockers = this.collides.find(collide=> collide.hit.length > 0)?.hit;
         
         // Se não houver bloqueio, move o jogador para a posição de destino
-        if (!blocker) {
+        if (!blockers) {
             this.x = nextX;
             this.y = nextY;
             return true;
         }
 
         // Se houver um bloqueio, tenta empurrar o objeto bloqueador para a posição de destino
-        if (this.state === "push" && blocker) {
-            const pushed = this.tryPush(blocker, deltaX, deltaY, collidables);
-            if (pushed) {
-                const stillBlocked = this.collides.find(collide => collide.hit);
+        if (this.state === "push" && blockers) {
+            blockers.forEach(hit=>{
+                const pushed = this.tryPush(hit, deltaX, deltaY, collidables);
+                if (pushed) {
+                    const stillBlocked = this.collides.find(collide=> collide.hit.length > 0)?.hit;
 
-                if (!stillBlocked) {
-                    this.x = nextX;
-                    this.y = nextY;
-                    return true;
+                    if (!stillBlocked) {
+                        this.x = nextX;
+                        this.y = nextY;
+                        return true;
+                    }
+
                 }
-
-            }
+            })
         }
 
         // bloqueado → cancela movimento

@@ -499,7 +499,7 @@ document.addEventListener('keydown', (event) => {
     if (event.code === "Space") {
         event.preventDefault();
         
-        const isCollided = player.hitboxes?.find(hit=> hit.hit) ? true : false;
+        const isCollided = player.hitboxes?.find(hit=> hit.hit.length > 0) ? true : false;
 
         if(!isCollided){
             //insere a instância no array de objetos globais para ser desenhado.

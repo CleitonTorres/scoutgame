@@ -8,7 +8,7 @@ import { isOverlapping } from "./IsOverlapping.js";
  * @param {GameObject} collidables - objetos que possuem um hitbox, circleBox, ou boxCollide.
  * @param {string} mode - mode de colisão a ser detectada.
  * @param {HitBox | Collide} entity - entidade que quer detectar colisões.
- * @returns {GameObject | null} - se colidir retorna o objeto se não retorna null
+ * @returns {GameObject[]} - se colidir retorna os objetos colididos se não retorna vazio.
  */
 export function getCollider(
     entity,
@@ -17,7 +17,9 @@ export function getCollider(
     mode = "collide", // "collide" | "hitbox"
 ) {
 
-    if (!entity || !entity.collision) return null;
+    if (!entity || !entity.collision) return [];
+
+    const hits = [];
 
     for (const obj of collidables) {
 
@@ -32,17 +34,16 @@ export function getCollider(
                 ? [...(obj.hitboxes || []), ...(obj.hitCicles || [])]
                 : (obj.collides || []);
 
-        if (!entity) continue;
-
         for (const otherBox of otherBoxes) {
             if (!otherBox) continue;
 
             if (isOverlapping(entity, otherBox)) {
-                return obj;
+                hits.push(obj);
+                break;
             }
         }
 
     }
 
-    return null;
+    return hits;
 }

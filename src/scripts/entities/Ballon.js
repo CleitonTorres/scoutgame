@@ -160,8 +160,8 @@ export class Ballon extends GameObject {
         this.nextPosY = nextY;
         this.updateCollides(collidables); // Força atualização antes de checar
 
-        const collided = this.hitboxes.find(box => box.hit);
-        if (collided && collided !== this.owner) {
+        const collided = this.hitboxes.find(box => box.hit.length > 0);
+        if (collided && collided.owner !== this.owner) {
             this.startHit();
             return;
         }

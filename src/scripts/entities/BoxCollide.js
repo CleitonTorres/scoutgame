@@ -21,7 +21,11 @@ export class Collide{
         this.ctx = this.owner?.canvas.getContext("2d") || null;
         this.sortLayer = this.owner?.sortLayer || 1;
         this.shape = shape || shapes.BOX;
-        this.hit = null;
+
+        /**
+         * @type {GameObject[] | import("../engine/Item/PickupItem.js").PickupItem[]}
+        */
+        this.hit = [];
         this.collision = this.owner?.collision || false;
     }
 
