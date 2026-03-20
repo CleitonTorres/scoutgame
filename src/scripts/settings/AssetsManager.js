@@ -82,8 +82,7 @@ class AssetManager {
                 item
             );
             
-            const randomFps = Math.random() * 3 + 1;
-            await this.loadAnimation(`obj.${item}`, paths, randomFps, true);
+            await this.loadAnimation(`obj.${item}`, paths, 6, true);
         }
 
         //TREES

@@ -366,11 +366,24 @@ canvas {
     background: #888;
     border-radius: 10px;
 }
-
-.ui-quest{
-
-} 
-
+#btnToggleQuestUI{
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    pointer-events: auto;
+    border: #84c3a4 2px solid;
+    border-radius: 10px;
+    padding: 3px;
+    background-color: transparent;
+    color: var(--text-main);
+}
+#btnToggleQuestUI:hover{
+    cursor: pointer;
+    background-color: #1d4f91;
+}
+#btnToggleQuestUI:active{
+    background-color: #102645;
+}
 .is-hidden {
     display: none;
 }

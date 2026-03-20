@@ -1,5 +1,5 @@
 import { objectivesQuest } from "../../settings/objectivesQuest.js";
-
+import { rewardTypes } from "../../settings/rewardTypes.js";
 /**
  * tipos usads na quest.
  * @typedef {import("../Item/ItemData").ItemData} ItemData 

@@ -23,9 +23,11 @@ export function getCollider(
 
     for (const obj of collidables) {
 
+        //condições onde não deve haver detecão de hit ou colisão.
         if (!obj || obj === entity || 
             obj.name === owner.name || 
-            obj.owner?.name === owner.name
+            obj.owner?.name === owner.name ||
+            !obj.visible
         ) continue;
 
         // pega caixas do outro objeto

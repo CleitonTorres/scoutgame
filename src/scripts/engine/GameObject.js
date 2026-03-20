@@ -11,6 +11,7 @@ import { behaviors } from "../settings/behaviors.js";
     *  name: string,
     *  tag: tags,
     *  sortLayer: layers,
+    *  visible: boolean,
     *  transform: {
     *    width: number,
     *    height: number,
@@ -61,6 +62,7 @@ export class GameObject {
             name = '',
             tag = tags.GAMEOBJECT,
             sortLayer = 0,
+            visible = true,
 
             transform = {},
             position = {},
@@ -102,6 +104,7 @@ export class GameObject {
         this.name = name;
         this.tag = tag;
         this.sortLayer = sortLayer;
+        this.visible = visible;
 
         // ------------------------
         // TRANSFORMAÇÃO

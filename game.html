@@ -88,9 +88,16 @@
                     </div>
                 </div>
 
-                <div id="ui-hud-quests" class="ui-panel ui-quest is-hidden">
-                    <p><strong>Quests:</strong></p>
-                    <ul id="list-quests"></ul>
+                <div id="ui-hud-quests" class="is-hidden" style="position: relative;">
+                    <div id="ui-hud-quests-in" class="ui-panel">
+                        <p><strong>Quests:</strong></p>
+                        <ul id="list-quests-in"></ul>
+                    </div>
+                    <div id="ui-hud-quests-complete" class="ui-panel is-hidden">
+                        <p><strong>Quests Completas:</strong></p>
+                        <ul id="list-quests-finish"></ul>
+                    </div>
+                    <button id="btnToggleQuestUI">Completas</button>
                 </div>
             </section>
             <canvas id="gameCanvas" width="1024" height="768"></canvas>

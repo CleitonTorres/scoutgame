@@ -1,3 +1,5 @@
+import { typesProgQuest } from "./typesProgressQuest.js";
+
 export class UIManager {
     /**
      * 
@@ -16,7 +18,11 @@ export class UIManager {
         this.warningEl = document.getElementById("ui-warning");
 
         this.uiQuestsConteiner = document.getElementById("ui-hud-quests");
-        this.listQuests = document.getElementById("list-quests");
+        this.listQuests = document.getElementById("list-quests-in");
+        this.listQuestsFinish = document.getElementById("list-quests-finish");
+        this.hudQuestInProg = document.getElementById("ui-hud-quests-in");
+        this.hudQuestComp = document.getElementById("ui-hud-quests-complete");
+        this.btnToggleQuestUI = document.getElementById("btnToggleQuestUI");
 
         this.isDialogOpen = false;
         this.dialogEl = document.getElementById("ui-dialog");
@@ -49,6 +55,10 @@ export class UIManager {
 
         this.buttonOk.addEventListener("click", ()=>{
             this.onClickOk?.();
+        })
+
+        this.btnToggleQuestUI.addEventListener("click",()=>{
+            this.toggleHUDQuests();
         })
 
         /**
@@ -208,7 +218,7 @@ export class UIManager {
     }
 
     /**
-     * 
+     * Mosta as quests na HUD do player.
      * @param {import("../engine/Quest/QuestInstance.js").QuestInstance[]} quests 
      */
     loadQuests(quests){
@@ -216,13 +226,17 @@ export class UIManager {
 
         //limpa o conteiner antes de reescrever.
         this.listQuests.querySelectorAll("li").forEach(li=> this.listQuests.removeChild(li));
-        console.log(quests);
 
         quests.forEach((q)=>{
             const newitem = document.createElement("li");
-            newitem.textContent = `nome: ${q.data.name} - Objetivo: ${q.data.description} - Cumprido: ${q.progress?.[0]?.current || 0}`;
+            const resolveProgresso = q.status === typesProgQuest.IN_PROGRESS ? "em andamento" : "Completa";
+            newitem.textContent = `nome: ${q.data.name} - Objetivo: ${q.data.description} - Obtido: ${q.progress?.[0]?.current || 0} - Status: ${resolveProgresso}`;
 
-            this.listQuests.appendChild(newitem);
+            if(q.status === typesProgQuest.COMPLETED){
+                this.listQuestsFinish.appendChild(newitem);
+            }else{
+                this.listQuests.appendChild(newitem);
+            }
         })
     }
 
@@ -237,5 +251,9 @@ export class UIManager {
     hideQuestUI(){
         if(!this.uiQuestsConteiner) return;
         this.uiQuestsConteiner.classList.add("is-hidden")
+    }
+    toggleHUDQuests(){
+        this.hudQuestComp.classList.toggle("is-hidden");
+        this.hudQuestInProg.classList.toggle("is-hidden");
     }
 }

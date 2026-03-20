@@ -64,7 +64,7 @@ export class QuestSystem {
                 this.player.inventory.addItem(r.item, r.amount);
             }
         });
-    }
+    } 
 
     /**
      * 
@@ -72,10 +72,9 @@ export class QuestSystem {
      * @param {import("../../settings/EventBus.js").Payload} payload 
      */
     updateProgress(type, payload) {
-        this.quests.forEach(q => {
-            //if (q.status !== typesProgQuest.IN_PROGRESS) return;
-
-            q.progress.forEach(p => {
+        this.quests.forEach(quest => {
+            //atualiza o progresso da quest.
+            quest.progress.forEach(p => {
                 if (p.type === type) {
                     if (type === objectivesQuest.COLLECT && payload.itemId === p.itemId) {
                         p.current += payload.qtdItem || 1;
@@ -85,7 +84,7 @@ export class QuestSystem {
                             event: "updateQuest",
                             payload: {
                                 playerId: this.player.id,
-                                itemId: q.data.id,
+                                itemId: quest.data.id,
                                 qtdItem: p.current,
                                 quests: this.quests,
                             }

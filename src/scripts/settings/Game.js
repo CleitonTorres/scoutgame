@@ -127,11 +127,43 @@ export class Game {
             // 2) desempate opcional por Y (bom para profundidade)
             return (a.y ?? 0) - (b.y ?? 0);
         });
-        for (const obj of renderQueue) obj.draw();
+        for (const obj of renderQueue) if(obj.visible) obj.draw();
     }
 
     getActivePlayer() {
         return this.worldObjects.get(this.activePlayerId);
+    }
+
+    /**
+     * Pegue um objeto no mundo pelo ID do GameObject.
+     * @param {number} id 
+     * @returns 
+     */
+    getWorldObject(id){
+        if(!id) return;
+
+        return this.worldObjects.get(id);
+    }
+
+    /**
+     * Pegue uma lista com todos os objetos do mundo.
+     */
+    getAllWorldObjects(){
+        const objs = Array.from(this.worldObjects.values());
+        return objs;
+    }
+
+    /**
+     * Alterar um objeto.
+     * @param {GameObject} newData
+     */
+    updateObject(newData){
+        const obj = this.getWorldObject(newData.id);
+        if(obj) {
+            this.worldObjects.set(newData.id, newData);
+            return true;
+        }
+        return false;
     }
 
     /**

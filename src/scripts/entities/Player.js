@@ -133,6 +133,16 @@ export class Player extends GameObject {
                                     game.uiManager.hideDialog();
                                     game.uiManager.showQuestUI();
 
+                                    const objects = game.getAllWorldObjects();
+                                    const apples = objects.filter(o=> o.name === "Maçã");
+
+                                    for(const apple of apples){
+                                        if(apple){
+                                            apple.visible = true;
+                                            game.updateObject(apple);
+                                        }
+                                    }
+
                                     //avisa aos ouvinter que aceitou a quest.
                                     game.eventBus.emit({
                                         event: "questAccept",
@@ -154,9 +164,26 @@ export class Player extends GameObject {
                         console.log("completa")
                         game.questSystem.completeQuest(quest);
 
+                        const reward = quest.data.rewards.map(rw=> {
+                            if(rw.item){
+                                `${rw.amount} ${rw.type} ${rw.item.name || ''}.`
+                            }else{
+                                return `${rw.amount} ${rw.type}.`;
+                            }
+                        })
                         game.uiManager.showDialog({
                             speaker: hit.name,
-                            text: quest.data.dialogs.complete
+                            text: `${quest.data.dialogs.complete} Você recebeu ${reward.join(", ")}`
+                        });
+
+                        // dispara evento para ouvintes.
+                        game.eventBus.emit({
+                            event: "updateQuest",
+                            payload: {
+                                playerId: this.id,
+                                itemId: quest.data.id,
+                                quests: game.questSystem.quests,
+                            }
                         });
 
                         return;

@@ -124,16 +124,20 @@ const npcs = [
                 { type: "collect", itemId: "apple", amount: 3 }
             ],
             rewards: [
-                { type: "item", amount: 1, item: new ItemData({
-                    id: "axe",
-                    description: "uma machadinha para cortar lenha",
-                    maxStack: 1,
-                    name: "Machadinha",
-                    stackable: false,
-                    type: itemsTypes.TOOL,
-                    icon: "src/assets/objects/forest-pack-sprites/axe.png",
-                    onUse(){}
-                })}
+                { 
+                    type: "item", 
+                    amount: 1, 
+                    item: new ItemData({
+                        id: "axe",
+                        description: "uma machadinha para cortar lenha",
+                        maxStack: 1,
+                        name: "Machadinha",
+                        stackable: false,
+                        type: itemsTypes.TOOL,
+                        icon: "src/assets/objects/forest-pack-sprites/axe.png",
+                        onUse(){}
+                    })
+                }
             ],
             dialogs: {
                 start: "Pode coletar 3 maçãs pra mim?",
@@ -401,6 +405,7 @@ const trees = [
 
 const itens = [
     new PickupItem({
+        visible: false,
         itemData: new ItemData({
             id: "apple",
             name: "Maçã",
@@ -422,6 +427,7 @@ const itens = [
         canvas
     }),
     new PickupItem({
+        visible: false,
         itemData: new ItemData({
             id: "apple",
             name: "Maçã",
@@ -444,6 +450,7 @@ const itens = [
         canvas
     }),
     new PickupItem({
+        visible: false,
         itemData: new ItemData({
             id: "apple",
             name: "Maçã",
