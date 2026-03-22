@@ -512,6 +512,12 @@ function gameLoop() {
             game.addObject(shooter(player, assetManager.getAnimation("obj.bexiga"), canvas, gridSize));
         }
     }
+    if(inputState.inventory){
+        game.uiManager.toggleInventory();
+    }
+    if(inputState.quest){
+        game.uiManager.toggleQuestUI();
+    }
 
     requestAnimationFrame(gameLoop);
 }
