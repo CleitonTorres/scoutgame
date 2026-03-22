@@ -182,6 +182,7 @@ canvas {
     background: var(--canvas-background-color);
     z-index: 1;
     pointer-events: none;
+    width: calc(100vw - 76px);
 }
 
 .game-shell {
@@ -191,7 +192,7 @@ canvas {
 }
 
 #ui-overlay {
-    position: absolute;
+    position: fixed;
     inset: 0;
     pointer-events: none;
     padding: 12px;

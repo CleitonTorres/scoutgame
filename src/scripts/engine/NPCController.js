@@ -34,7 +34,7 @@ export class NPCController {
         if (!this.points.length) return;
 
         //se colidir com o player muda para animação parado.
-        if(this.entity.hitboxes.some(box=> box.hit?.tag === "Player")){
+        if(this.entity.hitboxes.some(box=> box.hit.some(obj=> obj?.tag === "Player"))){
             this.inputX = 0;
             this.inputY = 0;
             return;

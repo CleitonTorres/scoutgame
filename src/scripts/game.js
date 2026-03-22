@@ -17,7 +17,7 @@ import { itemsTypes } from "./settings/itemsTypes.js";
 import { Game } from "./settings/Game.js";
 import { EventBus } from "./settings/EventBus.js";
 import { assetManager } from "./settings/AssetsManager.js";
-import { updateInputState } from "./settings/UpdateInputState.js";
+import { updateGamepadInput, updateInputState } from "./settings/UpdateInputState.js";
 import { updateWorld } from "./engine/UpdateSpatialGrid.js";
 
 const canvas = document.getElementById('gameCanvas');
@@ -39,12 +39,18 @@ await assetManager.loadAll();
 
 //estados das teclas.
 const inputState = {
+    kp: {},
+    gp: {},
     up:false,
     down:false,
     left:false,
     right:false,
     shift:false,
     dialog: false,
+    shootHeld: false,
+    shootPressed: false,
+    inventory: false,
+    quest: false
 };
 
 //points para simulação de caminhada de NPC.
@@ -85,7 +91,7 @@ const player = new Player({
     position:{x: 1, y: 2},
     sortLayer: layers.player,
     state: "idle",
-    animation: assetManager.getAnimation("player.leo"),
+    animation: assetManager.getAnimation("player.lipe"),
     canvas,
     gridSize,
 });
@@ -412,7 +418,7 @@ const itens = [
             stackable: true,
             maxStack: 10,
             type: "food",
-            icon: assetManager.getAnimation("obj.apple_01").move?.frames?.[0]?.src || "src/assets/objects/forest-pack-sprites/spider.png",
+            icon: "src/assets/objects/forest-pack-sprites/apple_01.png",
             onUse(player){
                 player.hp += 5
             }
@@ -423,7 +429,7 @@ const itens = [
             width: 0.5,
             height: 0.5
         },
-        animation: assetManager.getAnimation("obj.apple_01"),
+        sprite: "src/assets/objects/forest-pack-sprites/apple_01.png",
         canvas
     }),
     new PickupItem({
@@ -434,7 +440,7 @@ const itens = [
             stackable: true,
             maxStack: 10,
             type: "food",
-            icon: assetManager.getAnimation("obj.apple_01").move?.frames?.[0]?.src || "src/assets/objects/forest-pack-sprites/spider.png",
+            icon: "src/assets/objects/forest-pack-sprites/apple_01.png",
             onUse(player){
                 player.hp += 5
             }
@@ -446,7 +452,7 @@ const itens = [
             height: 0.5
         },
         sortLayer: layers.ground,
-        animation: assetManager.getAnimation("obj.apple_01"),
+        sprite: "src/assets/objects/forest-pack-sprites/apple_01.png",
         canvas
     }),
     new PickupItem({
@@ -457,7 +463,7 @@ const itens = [
             stackable: true,
             maxStack: 10,
             type: "food",
-            icon: assetManager.getAnimation("obj.apple_01").move?.frames?.[0]?.src || "src/assets/objects/forest-pack-sprites/spider.png",
+            icon: "src/assets/objects/forest-pack-sprites/apple_01.png",
             onUse(player){
                 player.hp += 5
             }
@@ -468,7 +474,7 @@ const itens = [
             width: 0.5,
             height: 0.5
         },
-        animation: assetManager.getAnimation("obj.apple_01"),
+        sprite: "src/assets/objects/forest-pack-sprites/apple_01.png",
         canvas
     }),
 ]
@@ -491,10 +497,42 @@ const game = new Game({
 });
 
 function gameLoop() {
+    updateInputs();
+
     updateWorld(worldObjects, grid);
     game.update();
     game.draw();
+
+    //dispara pelo gameped.
+    if(inputState.shootPressed){
+        const isCollided = player.hitboxes?.find(hit=> hit.hit.length > 0) ? true : false;
+
+        if(!isCollided){
+            //insere a instância no array de objetos globais para ser desenhado.
+            game.addObject(shooter(player, assetManager.getAnimation("obj.bexiga"), canvas, gridSize));
+        }
+    }
+
     requestAnimationFrame(gameLoop);
+}
+
+function updateInputs() {
+    updateGamepadInput(inputState);
+
+    const kp = inputState.kp;
+    const gp = inputState.gp;
+
+    inputState.up = kp.up || gp.up;
+    inputState.down = kp.down || gp.down;
+    inputState.left = kp.left || gp.left;
+    inputState.right = kp.right || gp.right;
+    inputState.shift= kp.shift || gp.shift;
+    inputState.dialog= kp.dialog || gp.dialog;
+    inputState.shoot= kp.shoot || gp.shoot;
+    inputState.shootHeld = kp.shootHeld || gp.shootHeld;
+    inputState.shootPressed = kp.shootPressed || gp.shootPressed;
+    inputState.inventory= kp.inventory || gp.inventory;
+    inputState.quest= kp.quest || gp.quest;
 }
 
 document.addEventListener('keydown', (event) => {
@@ -503,6 +541,7 @@ document.addEventListener('keydown', (event) => {
 
     if (event.repeat) return;
 
+    //dispara pelo teclado.
     if (event.code === "Space") {
         event.preventDefault();
         
@@ -525,14 +564,6 @@ document.addEventListener('keydown', (event) => {
 
     if(["q", "Q"].includes(event.key)){
         game.uiManager.toggleQuestUI();
-    }
-
-    //ao teclar j, simula um bação de diálogo na tela.
-    if (event.key === 'j' || event.key === 'J') {
-        game.uiManager.toggleDialog({
-            speaker: "Guia",
-            text: "Esta e uma base para seus futuros baloes de dialogo."
-        });
     }
 
     //oculta os UI se teclar esc.

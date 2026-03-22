@@ -27,6 +27,7 @@ import { behaviors } from "../settings/behaviors.js";
     *  },
     *  state: string,
     *  animator?: AnimationController,
+    *  sprite?: string,
     *  animation?: {
     *   [anim: string]: {
     *        frames: [];
@@ -70,6 +71,7 @@ export class GameObject {
 
             state= "idle",
             animator = null,
+            sprite = "",
             animation = {},
 
             hitboxes = [],
@@ -147,6 +149,7 @@ export class GameObject {
         // ------------------------
         // SISTEMA DE ANIMAÇÃO
         // ------------------------
+        this.sprite = sprite;
         this.state = state;
         if (animator instanceof AnimationController) {
             this.animator = animator;

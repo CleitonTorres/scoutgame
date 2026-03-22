@@ -113,22 +113,13 @@ export function normalizeAnimation(animation = {}) {
  * Retorna:
  * true  -> se conseguiu desenhar
  * false -> se não havia animação válida
- * @param - entity é o this da classe.
- * @param - contexto do canvas onde será desenha.
+ * @param {import("./GameObject.js").GameObject} entity - entity é o this da classe.
+ * @param {CanvasRenderingContext2D} ctx - contexto do canvas onde será desenha.
  * @returns {boolean} - se conseguiu desenhar retorna true, se não false.
  */
 export function drawAnimation(entity, ctx) {
     // Pega o clip da animação atual (ex: idle, walkDown...)
     const clip = entity.animation[entity.currentAnimation];
-
-    // console.log("clip", entity.tag, entity.animation, clip)
-
-    // Se não houver animação válida, não desenha
-    if (!clip || clip.frames.length === 0) return false;
-
-    // Seleciona o frame atual da animação
-    const frame = clip.frames[entity.animationFrame] || clip.frames[0];
-    if (!frame) return false;
 
     /**
     * Converte posição lógica (grid)
@@ -138,6 +129,24 @@ export function drawAnimation(entity, ctx) {
     const drawY = entity.y * entity.gridSize;
     const drawW = (entity.gridSize * (entity.width ?? 1)) * (entity.scale ?? 1);
     const drawH = (entity.gridSize * (entity.height ?? 1)) * (entity.scale ?? 1);
+
+    // Se não houver animação válida, verifica se tem um sprite para desenhar.
+    if (!clip || clip.frames.length === 0) {
+        if(entity.sprite){
+            const img = new Image();
+            img.src = entity.sprite;
+            ctx.drawImage(img, drawX, drawY, drawW, drawH);
+            return true;
+        }
+        
+        return false;
+    };
+
+    // Seleciona o frame atual da animação
+    const frame = clip.frames[entity.animationFrame] || clip.frames[0];
+    if (!frame) return false;
+
+    
 
     /**
     * Detecta se o frame é uma imagem direta

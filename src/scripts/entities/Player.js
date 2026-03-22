@@ -95,6 +95,8 @@ export class Player extends GameObject {
                     
                     //se coletou informa ao questSystem.
                     if(collect){
+                        // dispara o evento para os ouvintes relacionados a coleta de itens
+                        // em especial para cumprir quests.
                         game.eventBus.emit({
                             event: "itemCollected",
                             payload: {
@@ -160,17 +162,18 @@ export class Player extends GameObject {
                     }
 
                     // 🟢 COMPLETA
-                    if (quest.isCompleted()) {
-                        console.log("completa")
+                    if (quest.isCompleted() && quest.status !== typesProgQuest.COMPLETED) {
                         game.questSystem.completeQuest(quest);
 
                         const reward = quest.data.rewards.map(rw=> {
                             if(rw.item){
-                                `${rw.amount} ${rw.type} ${rw.item.name || ''}.`
+                                return `${rw.amount} ${rw.type} ${rw.item.name || ''}.`
                             }else{
                                 return `${rw.amount} ${rw.type}.`;
                             }
-                        })
+                        });
+                        const hasItem = quest.data.rewards.filter(rw=> rw.item);
+                        
                         game.uiManager.showDialog({
                             speaker: hit.name,
                             text: `${quest.data.dialogs.complete} Você recebeu ${reward.join(", ")}`
@@ -186,11 +189,24 @@ export class Player extends GameObject {
                             }
                         });
 
+                        //add listeners for eatch reward that conteins items.
+                        for(const rw of hasItem){
+                           game.eventBus.emit({
+                                event: "itemCollected",
+                                payload: {
+                                    playerId: this.id,
+                                    itemId: rw.item.id,
+                                    qtdItem: rw.amount,
+                                    inventory: this.inventory
+                                }
+                            });
+                        }
+
                         return;
                     }
 
                     // 🔵 EM PROGRESSO
-                    if (quest.status === typesProgQuest.IN_PROGRESS) {
+                    else if (quest.status === typesProgQuest.IN_PROGRESS) {
                         console.log("quest em andamento")
                         game.uiManager.showDialog({
                             speaker: hit.name,
@@ -198,7 +214,15 @@ export class Player extends GameObject {
                         });
 
                         return;
-                    }               
+                    } 
+                    
+                    // missão já completa.
+                    else {
+                        game.uiManager.showDialog({
+                            speaker: hit.name,
+                            text: `Você já concluiu esse missão!`
+                        });
+                    }
 
                 }
             })
@@ -210,7 +234,7 @@ export class Player extends GameObject {
     }
 
     /**
-     * 
+     * Auxiliary function for collecting items.
      * @param {PickupItem} item 
      * @param {import("../settings/UIManager.js").UIManager} hud
      */

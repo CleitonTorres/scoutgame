@@ -1,3 +1,4 @@
+import { Camera } from "../engine/Camera.js";
 import { QuestSystem } from "../engine/Quest/QuestSystem.js";
 import { EventBus } from "./EventBus.js";
 import { tags } from "./tags.js";
@@ -31,6 +32,16 @@ export class Game {
         uiManager,
         worldObjects
     }) {
+        /**
+         * World Camera.
+         */
+        this.mainCamera = new Camera({
+            x: 0, y: 0, 
+            width: 12, height: 12, zoom: 1, 
+            showViewport: false,
+            shape: "circle"
+        });        
+
         /**
          * @type {HTMLCanvasElement | null}
          */
@@ -97,6 +108,7 @@ export class Game {
     update() {    
         //atual dados dos objetos de cena que precisam ser atualizados.
         const resolve = Array.from(this.worldObjects.values());
+        
         for (let i = resolve.length - 1; i >= 0; i--) {
             const obj = resolve[i];
             if(!obj || !obj.tag) continue;
@@ -111,23 +123,24 @@ export class Game {
         if (activePlayer && this.uiManager) {
             this.uiManager.setPlayerInfo(activePlayer);
         }
+
+        if(this.mainCamera && !this.mainCamera.target && activePlayer){
+            this.mainCamera.follow(activePlayer)
+        }
+
+        //atualia a camera (viewport)
+        this.mainCamera?.update();       
     }
 
     draw() {
-        // Limpa o canvas antes de desenhar a próxima frame
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     
-        //desenha cada elemento de acordo com sua layer (profundidade)
-        const renderQueue = Array.from(this.worldObjects.values());
-        renderQueue.sort((a, b) => {
-            // 1) layer base (menor primeiro, maior desenha por último = fica na frente)
-            const layerDiff = (a.sortLayer ?? 0) - (b.sortLayer ?? 0);
-            if (layerDiff !== 0) return layerDiff;
-    
-            // 2) desempate opcional por Y (bom para profundidade)
-            return (a.y ?? 0) - (b.y ?? 0);
-        });
-        for (const obj of renderQueue) if(obj.visible) obj.draw();
+        this.renderCamera(
+            this.ctx, 
+            this.mainCamera
+        );
+
+        this.drawViewportMask(this.ctx, this.mainCamera);
     }
 
     getActivePlayer() {
@@ -184,5 +197,134 @@ export class Game {
     */
     removeObject(obj){
         this.worldObjects.delete(obj.id);
+    }
+
+    /**
+     * 
+     * @param {CanvasRenderingContext2D} ctx 
+     * @param {Camera} camera 
+     * @param {number} x - em pixel
+     * @param {number} y - em pixel
+     * @param {number} width - em pixel 
+     * @param {number} height - em pixel
+     */
+    renderCamera(ctx, camera) {
+        if(!this.mainCamera){
+            this.drawWorld(ctx);
+            return;
+        }
+
+        ctx.save();
+
+        // 1. define viewport na TELA
+        ctx.beginPath();
+        if(this.mainCamera.shape === "circle"){
+            const centerX = (camera.x * this.gridSize) + ((camera.width * this.gridSize) / 2);
+            const centerY = (camera.y * this.gridSize) + ((camera.height * this.gridSize) / 2);
+            const radius = Math.min((camera.width * this.gridSize), (camera.height * this.gridSize)) * 0.35;
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        }else{
+            ctx.rect(
+                camera.x * this.gridSize, 
+                camera.y * this.gridSize, 
+                (camera.width * this.gridSize), 
+                (camera.height * this.gridSize)
+            );
+        }
+        ctx.clip();
+
+        // 2. move origem pra posição do viewport
+        ctx.translate(
+            Math.floor(camera.x), 
+            Math.floor(camera.y)
+        );
+
+        // 3. aplica câmera (movimento no MUNDO)
+        ctx.scale(camera.zoom, camera.zoom);
+        const camX = Math.floor(-camera.x);
+        const camY = Math.floor(-camera.y);
+
+        ctx.translate(-camX, -camY);
+        
+        // 4. desenha mundo
+        ctx.imageSmoothingEnabled = false;
+        this.drawWorld(ctx);
+        
+        //draw the camera
+        if(this.mainCamera && this.mainCamera.showViewport){
+            this.mainCamera.draw(ctx, this.gridSize);
+        }
+
+        ctx.restore();
+    }
+
+    drawWorld(){
+        //desenha cada elemento de acordo com sua layer (profundidade)
+        const renderQueue = Array.from(this.worldObjects.values());
+        renderQueue.sort((a, b) => {
+            // 1) layer base (menor primeiro, maior desenha por último = fica na frente)
+            const layerDiff = (a.sortLayer ?? 0) - (b.sortLayer ?? 0);
+            if (layerDiff !== 0) return layerDiff;
+    
+            // 2) desempate opcional por Y (bom para profundidade)
+            return (a.y ?? 0) - (b.y ?? 0);
+        });
+        for (const obj of renderQueue) if(obj.visible) obj.draw();
+    }
+
+    /**
+     * 
+     * @param {CanvasRenderingContext2D} ctx 
+     * @param {Camera} camera 
+     */
+    drawViewportMask(ctx, camera) {
+        const viewX = camera.x * this.gridSize;
+        const viewY = camera.y * this.gridSize;
+        const viewW = camera.width * this.gridSize;
+        const viewH = camera.height * this.gridSize;
+
+        //configuração do gradiente de sombra.
+        const innerRadius = viewW * 0.2; // área visível
+        const outerRadius = viewW * 0.4; // onde escurece totalmente
+
+        ctx.save();
+
+        // 🎯 gradiente CENTRALIZADO NO VIEWPORT (tela)
+        const centerX = viewX + viewW / 2;
+        const centerY = viewY + viewH / 2;
+        const radius = Math.min(viewW, viewH) * 0.35;
+
+        const gradient = ctx.createRadialGradient(
+            centerX,
+            centerY,
+            innerRadius,
+            centerX,
+            centerY,
+            outerRadius
+        );
+
+        gradient.addColorStop(0, "rgba(0,0,0,0)");
+        gradient.addColorStop(1, "rgba(0,0,0,0.8)");
+
+        // creates a path with a "hole"
+        ctx.beginPath();
+
+        // total area (full screen)
+        ctx.rect(0, 0, this.canvas.width, this.canvas.height);
+
+        // "recorte" (viewport)
+        if(camera.shape === "circle"){
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        }else{
+            ctx.rect(viewX, viewY, viewW, viewH);
+        }
+
+        // dark color with transparency
+        ctx.fillStyle = gradient; //"rgba(0, 0, 0, 0.6)";
+        
+        // usa regra EVENODD → cria buraco
+        ctx.fill("evenodd");        
+
+        ctx.restore();
     }
 }

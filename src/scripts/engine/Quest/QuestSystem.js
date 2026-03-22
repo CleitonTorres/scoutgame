@@ -30,7 +30,6 @@ export class QuestSystem {
                 this.updateProgress(objectivesQuest.COLLECT, data);
             }
         });
-
     }
 
     /**

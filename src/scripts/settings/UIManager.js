@@ -77,6 +77,12 @@ export class UIManager {
                 this.loadQuests(data.quests);
             }
         });
+        this.eventBus.on({
+            event: "itemCollected",
+            callback: (data) => {
+                this.renderInventory(data.inventory);
+            }
+        });
     }
 
     setPlayerInfo(player) {
@@ -190,6 +196,7 @@ export class UIManager {
      * @returns 
      */
     renderInventory(inventory) {
+        if(!inventory) return;
         if (!this.inventorySlots) return;
 
         inventory.slots.forEach((itemData, index) => {

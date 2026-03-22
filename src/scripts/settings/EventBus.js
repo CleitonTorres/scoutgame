@@ -4,6 +4,7 @@
 *   itemId: string,
 *   qtdItem?: number,  
 *   quests?: import("../engine/Quest/QuestInstance").QuestInstance[], 
+*   inventory?: import("../engine/Inventory").Inventory,
 * }} Payload
 * @typedef {"itemCollected" | "defeatEnemy" | "questAccept" | "updateQuest"} EventType
 * @typedef {(payload: Payload)=>void} Callback
