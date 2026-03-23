@@ -1,3 +1,10 @@
+/**
+ * 
+ * @param {import("../engine/GameObject").GameObject} entity 
+ * @param {CanvasRenderingContext2D} ctx 
+ * @param {string} text 
+ * @returns 
+ */
 export function drawLabel(entity, ctx, text){
     if(!ctx || !entity) return;
 

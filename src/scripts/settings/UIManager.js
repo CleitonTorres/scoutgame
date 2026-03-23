@@ -265,6 +265,9 @@ export class UIManager {
     }
 
     hideAll(){
-        console.log("fecha tudo")
+        this.hideQuestUI();
+        this.hideDialog();
+        this.hideInventory();
+        this.hideWarning();
     }
 }

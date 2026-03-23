@@ -26,7 +26,7 @@ export class Ballon extends GameObject {
         this.reboundVX = 0;
         this.reboundVY = 0;
         this.reboundDamping = 0.86;
-        this.maxLifetime = options.maxLifetime ?? 180;
+        this.maxLifetime = options.maxLifetime ?? 100;
     }
 
     destroy() {
@@ -108,7 +108,13 @@ export class Ballon extends GameObject {
         this.reboundStopThreshold = 0.01;
     }
 
-    update(grid) {
+    /**
+     * 
+     * @param {import("../engine/SpatialHashGrid.js").SpatialHashGrid} grid 
+     * @param {{width: number, height: number}} worldTransform 
+     * @returns 
+     */
+    update(grid, _game, worldTransform) {
         // Se o objeto já foi destruído, não executa mais nada.
         if (this.destroyed) return;
 
@@ -171,13 +177,12 @@ export class Ballon extends GameObject {
         this.state = "move";
         
         // Não passa o collidables porque a colisão já foi tratada manualmente acima.
-        super.update(this.direction.x, this.direction.y, []);
+        super.update(this.direction.x, this.direction.y, [], worldTransform);
 
 
-        // Verifica se o objeto saiu da área visível do canvas.
-
-        const limitX = (this.canvas.width / this.gridSize) - this.width;
-        const limitY = (this.canvas.height / this.gridSize) - this.height;
+        // Verifica se o objeto saiu dos  limites do mundo.
+        const limitX = (worldTransform.width / this.gridSize) - this.width;
+        const limitY = (worldTransform.height / this.gridSize) - this.height;
 
         const toDestroy =
             this.x <= 0 ||

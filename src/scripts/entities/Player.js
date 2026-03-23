@@ -40,8 +40,9 @@ export class Player extends GameObject {
      * - Ataque
      * @param {SpatialHashGrid} grid
      * @param {Game} game
+     * @param {{width: number, height: number}} worldTransform
      */
-    update(grid, game) {        
+    update(grid, game, worldTransform) {        
         //se tiver um controller setado pega os valores dos inputs, se não retorna sempre o.
         const { inputX, inputY } = this.controller?.getMovement() || {x: 0, y: 0};
 
@@ -55,7 +56,7 @@ export class Player extends GameObject {
         const collidables = grid?.query(this.x, this.y);
 
         // Chama o movimento base (que já atualiza todos os hitboxes internamente)
-        super.update(inputX, inputY, collidables);
+        super.update(inputX, inputY, collidables, worldTransform);
 
         // Busca automaticamente se algum hitbox detectou colisão
         const collidedHitbox = [...this.hitboxes, ...this.collides].find(box => box.hit.length > 0);

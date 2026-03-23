@@ -504,6 +504,7 @@ function gameLoop() {
     inputManager.update();
 
     updateWorld(worldObjects, grid);
+
     game.update();
     game.draw();
 
@@ -511,7 +512,12 @@ function gameLoop() {
     if (inputManager.state.shootPressed) {
         const isCollided = player.hitboxes?.find(hit => hit.hit.length > 0);
         if (!isCollided) {
-            game.addObject(shooter(player, assetManager.getAnimation("obj.bexiga"), canvas, gridSize));
+            game.addObject(
+                shooter(player, assetManager.getAnimation("obj.bexiga"), 
+                canvas, 
+                gridSize,
+                game.worldTransform
+            ));
         }
     }
 
@@ -534,49 +540,5 @@ function gameLoop() {
 
     requestAnimationFrame(gameLoop);
 }
-
-// document.addEventListener('keydown', (event) => {
-//     event.preventDefault();
-//     updateInputState(event.key, true, inputState);   
-
-//     //dispara pelo teclado.
-//     if (event.code === "Space") {
-//         event.preventDefault();
-        
-//         const isCollided = player.hitboxes?.find(hit=> hit.hit.length > 0) ? true : false;
-
-//         if(!isCollided){
-//             //insere a instância no array de objetos globais para ser desenhado.
-//             game.addObject(shooter(player, assetManager.getAnimation("obj.bexiga"), canvas, gridSize));
-//         }
-//     }
-    
-//     //ao teclar h simula um aviso na tela.
-//     if (event.key === 'h' || event.key === 'H') {
-//         game.uiManager.showWarning("Aviso: sistema de UI HTML ativo.");
-//     }
-
-//     if(["i", "I"].includes(event.key)){
-//         game.uiManager.toggleInventory();
-//     }
-
-//     if(["q", "Q"].includes(event.key)){
-//         game.uiManager.toggleQuestUI();
-//     }
-
-//     //oculta os UI se teclar esc.
-//     if (event.key === 'Escape') {
-//         game.uiManager.hideDialog();
-//         game.uiManager.hideWarning();
-//         game.uiManager.hideQuestUI();
-//         game.uiManager.hideInventory();
-//     }
-
-//     if (event.repeat) return;
-// });
-
-// document.addEventListener('keyup', (event) => {
-//     updateInputState(event.key, false, inputState);
-// });
 
 gameLoop();

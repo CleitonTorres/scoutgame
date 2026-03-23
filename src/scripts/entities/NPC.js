@@ -27,7 +27,7 @@ export class NPC extends GameObject {
      * - Inventário
      * - Ataque
      */
-    update(grid) {        
+    update(grid, _game, worldTransform) {        
         this.controller.update();
         const { inputX, inputY } = this.controller.getMovement();
 
@@ -40,7 +40,7 @@ export class NPC extends GameObject {
         const collidables = grid.query(this.x, this.y);
                 
         // Chama o movimento base (que já atualiza todos os hitboxes internamente)
-        super.update(inputX, inputY, collidables);
+        super.update(inputX, inputY, collidables, worldTransform);
 
         // Busca automaticamente se algum hitbox detectou colisão
         const collidedHitbox = [...this.hitboxes, ...this.collides].find(box => box.hit.length > 0);

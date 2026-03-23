@@ -23,7 +23,7 @@ export class InputManager {
         // Buffer interno para o estado anterior do gamepad (para detectar cliques únicos)
         this._prevGamepadButtons = new Array(16).fill(false);
 
-        // Configurações
+        // Configurações de sensibilidade do controle analógico gamepad.
         this.deadzone = 0.15;
 
         // Inicializa os listeners de teclado
@@ -108,6 +108,8 @@ export class InputManager {
         for (let i = 0; i < gamepad.buttons.length; i++) {
             this._prevGamepadButtons[i] = gamepad.buttons[i].pressed;
         }
+
+        this.scrollControl(gamepad)
     }
 
     /**
@@ -127,5 +129,25 @@ export class InputManager {
      */
     _applyDeadzone(value) {
         return Math.abs(value) < this.deadzone ? 0 : value;
+    }
+
+    /**
+     * 
+     * @param {Gamepad} gamepad 
+     */
+    scrollControl(gamepad){
+        if (gamepad) {
+            const ry = this._applyDeadzone(gamepad.axes[3]); // vertical (direito)
+            const rx = this._applyDeadzone(gamepad.axes[2]); // horizontal (direito)
+
+            const scrollSpeed = 20;
+
+            if (ry !== 0) {
+                window.scrollBy(0, ry * scrollSpeed);
+            }
+            if(rx){
+                window.scrollBy(rx * scrollSpeed, 0);
+            }
+        }
     }
 }

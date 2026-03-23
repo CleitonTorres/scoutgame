@@ -36,8 +36,18 @@ export class ItemEntity extends GameObject {
         this.quantity = quantity;
     }
 
+    /**
+     * 
+     * @param {import("../engine/SpatialHashGrid.js").SpatialHashGrid} grid 
+     * @param {{width: number, height: number}} worldTransform 
+     * @returns 
+     */
+    update(_grid, _game, worldTransform){
+        super.update(0, 0, [], worldTransform)
+    }
+
     draw(){
         drawLabel(this, this.canvas.getContext("2d"), this.name)
-        super.draw()
+        super.draw(mainCamera)
     }
 }

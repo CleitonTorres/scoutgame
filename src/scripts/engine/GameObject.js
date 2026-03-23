@@ -199,15 +199,16 @@ export class GameObject {
      * Garante que o objeto não saia dos limites do canvas
      * @param {*} nextX - posição X de destino 
      * @param {*} nextY - posição Y de destino.
+     * @param {{width: number, height: number}} worldTransform
      * @returns {} posX e posY garantidos que ele não vai sair da ela.
      */
-    clampToCanvas(nextX, nextY) {
-        const limitCanvasX = this.canvas.width / (this.width * this.gridSize) - 1;
-        const limitCanvasY = this.canvas.height / (this.height * this.gridSize) - 1;
+    clampToCanvas(nextX, nextY, worldTransform) {
+        const limitCanvasX = worldTransform.width / this.gridSize;
+        const limitCanvasY = worldTransform.height / this.gridSize;
 
         return {
-            x: nextX, // Math.max(0, Math.min(limitCanvasX, nextX)),
-            y: nextY, //Math.max(0, Math.min(limitCanvasY, nextY)),
+            x: Math.max(0, Math.min(nextX, limitCanvasX)),
+            y: Math.max(0, Math.min(nextY, limitCanvasY)),
         };
     }
 
@@ -320,8 +321,9 @@ export class GameObject {
     * @param {number} inputX 
     * @param {number} inputY 
     * @param {GameObject[] | null} collidables 
+    * @param {{width: number, height: number}} worldTransform
     */
-    update(inputX, inputY, collidables = []) {
+    update(inputX, inputY, collidables = [], worldTransform) {
         //maxStep: Imagina que this.speed é a velocidade máxima do seu personagem (por exemplo, 100 pixels por segundo). 
         // Como a função update é chamada 60 vezes por segundo, maxStep calcula quantos pixels o personagem pode 
         // se mover em um único quadro (1 / 60). Isso garante que o movimento seja consistente, independentemente 
@@ -379,7 +381,7 @@ export class GameObject {
         // A função this.clampToCanvas limita a posição do personagem dentro dos limites da tela do jogo.
         // Isso evita que o personagem saia da tela.
         // Eixo X
-        this.nextPosX = this.clampToCanvas(this.x + this.vx, this.y).x;
+        this.nextPosX = this.clampToCanvas(this.x + this.vx, this.y, worldTransform).x;
 
         //  Para o eixo X, a posição Y é mantida a mesma. Estamos testando apenas o movimento horizontal.
         this.nextPosY = this.y; 
@@ -409,7 +411,7 @@ export class GameObject {
         // Depois de resolver o movimento horizontal, o código faz exatamente a mesma coisa para o
         // movimento vertical.
         // Eixo Y
-        this.nextPosY = this.clampToCanvas(this.x, this.y + this.vy).y;
+        this.nextPosY = this.clampToCanvas(this.x, this.y + this.vy, worldTransform).y;
         this.nextPosX = this.x; // Mantém X atualizado
         this.updateCollides(collidables); // Atualiza os hits na posição nextPosY
         const movedY = this.resolveAxis(this.x, this.nextPosY, 0, this.vy, collidables);

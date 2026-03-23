@@ -21,6 +21,7 @@ export class Game {
         * uiManager: UIManager,
         * eventBus: EventBus,
         * worldObjects: GameObject[],
+        * worldTransform: {width: number, height: number} - largura e altura do mundo.
      * }} option 
      */
     constructor({
@@ -30,8 +31,14 @@ export class Game {
         grid,
         eventBus,
         uiManager,
-        worldObjects
+        worldObjects,
+        worldTransform
     }) {
+        /**
+         * grid do mundo.
+         */
+        this.worldTransform = worldTransform || {width: 5000, height: 5000},
+
         /**
          * World Camera.
          */
@@ -39,7 +46,7 @@ export class Game {
             x: 0, y: 0, 
             width: 12, height: 12, zoom: 1, 
             showViewport: false,
-            shape: "circle"
+            shape: "circle", fogWar: false
         });        
 
         /**
@@ -77,6 +84,9 @@ export class Game {
         this.worldObjects = new Map();
         this.registerWorldObjects(worldObjects);
 
+        /**
+         * Listeners de eventos.
+         */
         this.eventBus = eventBus;
 
         /**
@@ -113,7 +123,7 @@ export class Game {
             const obj = resolve[i];
             if(!obj || !obj.tag) continue;
     
-            obj.update?.(this.grid, this);
+            obj.update?.(this.grid, this, this.worldTransform);
     
             if(obj.destroyed) this.removeObject(obj);
         }
@@ -146,7 +156,7 @@ export class Game {
             }
         );
 
-        this.drawViewportMask(this.ctx, this.mainCamera);
+        if(this.mainCamera.fogWar) this.drawViewportMask(this.ctx, this.mainCamera);
     }
 
     getActivePlayer() {

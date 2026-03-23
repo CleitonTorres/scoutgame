@@ -9,7 +9,14 @@ export class Tree extends GameObject {
         super({...options});
     }    
 
-    update(){
+    /**
+     * 
+     * @param {import("../engine/SpatialHashGrid.js").SpatialHashGrid} _grid 
+     * @param {import("../settings/Game.js").Game} _game
+     * @param {{width: number, height: number}} worldTransform 
+     * @returns 
+     */
+    update(_grid, _game, worldTransform){ 
         if(this.animation){
             //verifica se precisa mudar de animação (idle, walkUp, walkDown...)
             this.state = "move";
@@ -18,6 +25,7 @@ export class Tree extends GameObject {
             this.animator?.setState(this.state);
             this.animator?.update(1 / 60);
         }
+        super.update(0, 0, [], worldTransform);
     }
 
     draw() {

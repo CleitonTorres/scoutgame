@@ -11,10 +11,18 @@ export class Camera {
      *  height: number,
      *  zoom: number,
      *  showViewport: boolean,
-     *  shape: "circle" | "box"
+     *  shape: "circle" | "box",
+     *  fogWar: boolean
      * }} options 
      */
-    constructor({x = 0, y = 0, width, height, zoom = 1, showViewport, shape = "circle"}) {
+    constructor({
+        x = 0, y = 0, 
+        width, height, 
+        zoom = 1, 
+        showViewport = false, 
+        shape = "circle",
+        fogWar = false,
+    }) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -23,6 +31,7 @@ export class Camera {
         this.showViewport = showViewport || false;
         this.target = null; // quem a câmera segue
         this.shape = shape;
+        this.fogWar = fogWar;
     }
 
     follow(target) {
@@ -38,8 +47,24 @@ export class Camera {
             const targetX = x - (this.width / 2);
             const targetY = y - (this.height / 2);
 
-            this.x += (targetX - this.x) * 0.1;
-            this.y += (targetY - this.y) * 0.1;
+            //Interpolação suave (lerp)
+            let nextX = this.x += (targetX - this.x) * 0.1;
+            let nextY = this.y += (targetY - this.y) * 0.1;
+
+            // 🎯 APLICAR TRAVA DO MUNDO (CLAMP)
+            // Se o jogo tiver limites definidos (ex: 5000x5000 pixels)
+            if (this.worldTransform && this.gridSize) {
+                const worldWidthInTiles = this.worldTransform.width / this.gridSize;
+                const worldHeightInTiles = this.worldTransform.height / this.gridSize;
+
+                // A câmera não pode ir para X < 0
+                // E não pode ir além de (LarguraDoMundo - LarguraDaCamera)
+                nextX = Math.max(0, Math.min(nextX, worldWidthInTiles - this.width));
+                nextY = Math.max(0, Math.min(nextY, worldHeightInTiles - this.height));
+            }
+
+            this.x = nextX;
+            this.y = nextY;
         }
     }
 

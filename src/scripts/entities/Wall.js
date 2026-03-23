@@ -46,14 +46,21 @@ export class Wall extends GameObject {
         super({...options});
     }
 
-    // Parede não precisa atualizar movimento
-    update() {        
+    /**
+     * Parede não precisa atualizar movimento
+     * @param {import("../engine/SpatialHashGrid.js").SpatialHashGrid} _grid 
+     * @param {import("../settings/Game.js").Game} _game
+     * @param {{width: number, height: number}} worldTransform 
+     * @returns 
+     */
+    update(_grid, _game, worldTransform) {        
         if(this.animation){
             //verifica se precisa mudar de animação (idle, walkUp, walkDown...)
             this.state = "move";
              
             //update do gameObject
-            super.update(0, 0, [])
+            super.update(0, 0, [], worldTransform)
         }
+        
     }
 }
