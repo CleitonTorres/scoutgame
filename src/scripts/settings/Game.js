@@ -129,7 +129,7 @@ export class Game {
         }
 
         //atualia a camera (viewport)
-        this.mainCamera?.update();       
+        this.mainCamera?.update(this.gridSize);   
     }
 
     draw() {
@@ -137,7 +137,13 @@ export class Game {
     
         this.renderCamera(
             this.ctx, 
-            this.mainCamera
+            this.mainCamera,
+            {
+                x: 0, 
+                y: 0,
+                width: this.canvas.width,
+                height: this.canvas.height
+            }
         );
 
         this.drawViewportMask(this.ctx, this.mainCamera);
@@ -203,12 +209,9 @@ export class Game {
      * 
      * @param {CanvasRenderingContext2D} ctx 
      * @param {Camera} camera 
-     * @param {number} x - em pixel
-     * @param {number} y - em pixel
-     * @param {number} width - em pixel 
-     * @param {number} height - em pixel
+     * @param {{x: number, y: number, width: number, height: number}} viewport
      */
-    renderCamera(ctx, camera) {
+    renderCamera(ctx, camera, viewport) {
         if(!this.mainCamera){
             this.drawWorld(ctx);
             return;
@@ -218,39 +221,42 @@ export class Game {
 
         // 1. define viewport na TELA
         ctx.beginPath();
-        if(this.mainCamera.shape === "circle"){
-            const centerX = (camera.x * this.gridSize) + ((camera.width * this.gridSize) / 2);
-            const centerY = (camera.y * this.gridSize) + ((camera.height * this.gridSize) / 2);
-            const radius = Math.min((camera.width * this.gridSize), (camera.height * this.gridSize)) * 0.35;
-            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-        }else{
-            ctx.rect(
-                camera.x * this.gridSize, 
-                camera.y * this.gridSize, 
-                (camera.width * this.gridSize), 
-                (camera.height * this.gridSize)
-            );
-        }
+        ctx.rect(
+            viewport.x, 
+            viewport.y, 
+            viewport.width, 
+            viewport.height
+        );
         ctx.clip();
 
-        // 2. move origem pra posição do viewport
+        // 2. Centraliza o mundo na tela
+        // Movemos a origem para o centro do viewport (tela)
         ctx.translate(
-            Math.floor(camera.x), 
-            Math.floor(camera.y)
+            viewport.x + viewport.width / 2,
+            viewport.y + viewport.height / 2
         );
 
-        // 3. aplica câmera (movimento no MUNDO)
+        // 3. Aplica o zoom.
         ctx.scale(camera.zoom, camera.zoom);
-        const camX = Math.floor(-camera.x);
-        const camY = Math.floor(-camera.y);
 
-        ctx.translate(-camX, -camY);
-        
-        // 4. desenha mundo
+        // 4. Aplica a posição da Câmera
+        // Subtraímos a posição da câmera (em pixels) para mover o mundo no sentido oposto
+        // Como a câmera está em tiles, multiplicamos pelo gridSize
+        const camX = camera.x * this.gridSize; //Math.floor(camera.x * this.gridSize)
+        const camY = camera.y * this.gridSize;
+
+        // Para que o centro da câmera (camera.x + width/2) fique no centro da tela:
+        // Precisamos compensar o fato de que camera.x é o canto superior esquerdo.
+        const offsetX = (camera.width / 2) * this.gridSize;
+        const offsetY = (camera.height / 2) * this.gridSize;
+
+        ctx.translate(-(camX + offsetX), -(camY + offsetY));       
+
+        // 5. Desenha o mundo
         ctx.imageSmoothingEnabled = false;
         this.drawWorld(ctx);
         
-        //draw the camera
+        // 6. Desenha o debug da câmera (se ativo)
         if(this.mainCamera && this.mainCamera.showViewport){
             this.mainCamera.draw(ctx, this.gridSize);
         }
@@ -278,51 +284,47 @@ export class Game {
      * @param {Camera} camera 
      */
     drawViewportMask(ctx, camera) {
-        const viewX = camera.x * this.gridSize;
-        const viewY = camera.y * this.gridSize;
-        const viewW = camera.width * this.gridSize;
-        const viewH = camera.height * this.gridSize;
+        // A máscara deve ser desenhada em coordenadas de TELA (0 a canvas.width)
+        // O "buraco" deve estar no centro da tela, onde o player está centralizado.        
+        const screenCenterX = this.canvas.width / 2;
+        const screenCenterY = this.canvas.height / 2;
+        
+        // O tamanho do buraco depende do tamanho da câmera (em tiles) convertido para pixels
+        const viewW = camera.width * this.gridSize * camera.zoom;
+        const viewH = camera.height * this.gridSize * camera.zoom;
+        const radius = Math.min(viewW, viewH) * 0.35;
 
-        //configuração do gradiente de sombra.
-        const innerRadius = viewW * 0.2; // área visível
-        const outerRadius = viewW * 0.4; // onde escurece totalmente
+        // Configuração do gradiente de sombra
+        const innerRadius = radius * 0.8;
+        const outerRadius = radius * 1.2;
 
         ctx.save();
 
-        // 🎯 gradiente CENTRALIZADO NO VIEWPORT (tela)
-        const centerX = viewX + viewW / 2;
-        const centerY = viewY + viewH / 2;
-        const radius = Math.min(viewW, viewH) * 0.35;
-
         const gradient = ctx.createRadialGradient(
-            centerX,
-            centerY,
-            innerRadius,
-            centerX,
-            centerY,
-            outerRadius
+            screenCenterX, screenCenterY, innerRadius,
+            screenCenterX, screenCenterY, outerRadius
         );
 
         gradient.addColorStop(0, "rgba(0,0,0,0)");
         gradient.addColorStop(1, "rgba(0,0,0,0.8)");
 
-        // creates a path with a "hole"
         ctx.beginPath();
-
-        // total area (full screen)
+        // Área total (tela cheia)
         ctx.rect(0, 0, this.canvas.width, this.canvas.height);
 
-        // "recorte" (viewport)
+        // Recorte (viewport) centralizado na tela
         if(camera.shape === "circle"){
-            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.arc(screenCenterX, screenCenterY, radius, 0, Math.PI * 2);
         }else{
-            ctx.rect(viewX, viewY, viewW, viewH);
+            ctx.rect(
+                screenCenterX - viewW / 2, 
+                screenCenterY - viewH / 2, 
+                viewW, 
+                viewH
+            );
         }
 
-        // dark color with transparency
-        ctx.fillStyle = gradient; //"rgba(0, 0, 0, 0.6)";
-        
-        // usa regra EVENODD → cria buraco
+        ctx.fillStyle = gradient;
         ctx.fill("evenodd");        
 
         ctx.restore();

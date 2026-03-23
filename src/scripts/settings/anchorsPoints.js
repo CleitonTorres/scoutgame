@@ -1,0 +1,15 @@
+export const anchorsPoints = Object.freeze({
+    middle: "middle",
+    topleft: "topLeft",
+    topcenter: "topCenter",
+    topright: "topRight",
+    middleleft: "middleLeft",
+    middle: "middle",
+    middleright: "middleRight",
+    bottomleft: "bottomLeft",
+    bottomcenter: "bottomCenter",
+    bottomright: "bottomRight",
+    bottonleft: "bottomLeft",
+    bottoncenter: "bottomCenter",
+    bottonright: "bottomRight",
+})

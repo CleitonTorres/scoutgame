@@ -17,12 +17,15 @@ import { itemsTypes } from "./settings/itemsTypes.js";
 import { Game } from "./settings/Game.js";
 import { EventBus } from "./settings/EventBus.js";
 import { assetManager } from "./settings/AssetsManager.js";
-import { updateGamepadInput, updateInputState } from "./settings/UpdateInputState.js";
 import { updateWorld } from "./engine/UpdateSpatialGrid.js";
+import { InputManager } from "./settings/InputManager.js";
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const gridSize = 64;
+
+//gerenciador de entradas
+const inputManager = new InputManager();
 
 //instancia o grid virtual para colisões.
 const grid = new SpatialHashGrid(2);
@@ -38,20 +41,20 @@ ui.showWarning("Carregando jogo...", 0);
 await assetManager.loadAll();
 
 //estados das teclas.
-const inputState = {
-    kp: {},
-    gp: {},
-    up:false,
-    down:false,
-    left:false,
-    right:false,
-    shift:false,
-    dialog: false,
-    shootHeld: false,
-    shootPressed: false,
-    inventory: false,
-    quest: false
-};
+// const inputState = {
+//     kp: {},
+//     gp: {},
+//     up:false,
+//     down:false,
+//     left:false,
+//     right:false,
+//     shift:false,
+//     dialog: false,
+//     shootHeld: false,
+//     shootPressed: false,
+//     inventory: false,
+//     quest: false
+// };
 
 //points para simulação de caminhada de NPC.
 const patrolPoints = [
@@ -86,7 +89,7 @@ const player = new Player({
             showBoxCollide:false
         }
     ],
-    controller: new CharacterController(inputState),
+    controller: new CharacterController(inputManager.state),
     inventory: new Inventory(20),
     position:{x: 1, y: 2},
     sortLayer: layers.player,
@@ -497,92 +500,83 @@ const game = new Game({
 });
 
 function gameLoop() {
-    updateInputs();
+    // 1. Atualiza o Gamepad (ele vai somar o estado dele ao que o teclado já marcou)
+    inputManager.update();
 
     updateWorld(worldObjects, grid);
     game.update();
     game.draw();
 
-    //dispara pelo gameped.
-    if(inputState.shootPressed){
-        const isCollided = player.hitboxes?.find(hit=> hit.hit.length > 0) ? true : false;
-
-        if(!isCollided){
-            //insere a instância no array de objetos globais para ser desenhado.
+    // 2. Lógica de Atirar (Espaço ou Gatilho do Controle)
+    if (inputManager.state.shootPressed) {
+        const isCollided = player.hitboxes?.find(hit => hit.hit.length > 0);
+        if (!isCollided) {
             game.addObject(shooter(player, assetManager.getAnimation("obj.bexiga"), canvas, gridSize));
         }
     }
-    if(inputState.inventory){
-        game.uiManager.toggleInventory();
+
+    // 3. Lógica de UI (Inventário, Quests, etc.)
+    if (inputManager.state.inventory) {
+        ui.toggleInventory();
     }
-    if(inputState.quest){
-        game.uiManager.toggleQuestUI();
+    if (inputManager.state.quest) {
+        ui.toggleQuestUI();
     }
+
+    // 4. Teclas Especiais (como o ESC)
+    // Você pode adicionar 'escape' na sua classe InputManager se quiser centralizar tudo
+    if (inputManager.state.escape) {
+        ui.hideAll(); // Função hipotética para fechar tudo
+    }
+
+    // 3. Limpa os cliques únicos para o próximo frame
+    inputManager.clearPresses(inputManager.state);
 
     requestAnimationFrame(gameLoop);
 }
 
-function updateInputs() {
-    updateGamepadInput(inputState);
+// document.addEventListener('keydown', (event) => {
+//     event.preventDefault();
+//     updateInputState(event.key, true, inputState);   
 
-    const kp = inputState.kp;
-    const gp = inputState.gp;
-
-    inputState.up = kp.up || gp.up;
-    inputState.down = kp.down || gp.down;
-    inputState.left = kp.left || gp.left;
-    inputState.right = kp.right || gp.right;
-    inputState.shift= kp.shift || gp.shift;
-    inputState.dialog= kp.dialog || gp.dialog;
-    inputState.shoot= kp.shoot || gp.shoot;
-    inputState.shootHeld = kp.shootHeld || gp.shootHeld;
-    inputState.shootPressed = kp.shootPressed || gp.shootPressed;
-    inputState.inventory= kp.inventory || gp.inventory;
-    inputState.quest= kp.quest || gp.quest;
-}
-
-document.addEventListener('keydown', (event) => {
-    event.preventDefault();
-    updateInputState(event.key, true, inputState);
-
-    if (event.repeat) return;
-
-    //dispara pelo teclado.
-    if (event.code === "Space") {
-        event.preventDefault();
+//     //dispara pelo teclado.
+//     if (event.code === "Space") {
+//         event.preventDefault();
         
-        const isCollided = player.hitboxes?.find(hit=> hit.hit.length > 0) ? true : false;
+//         const isCollided = player.hitboxes?.find(hit=> hit.hit.length > 0) ? true : false;
 
-        if(!isCollided){
-            //insere a instância no array de objetos globais para ser desenhado.
-            game.addObject(shooter(player, assetManager.getAnimation("obj.bexiga"), canvas, gridSize));
-        }
-    }
+//         if(!isCollided){
+//             //insere a instância no array de objetos globais para ser desenhado.
+//             game.addObject(shooter(player, assetManager.getAnimation("obj.bexiga"), canvas, gridSize));
+//         }
+//     }
     
-    //ao teclar h simula um aviso na tela.
-    if (event.key === 'h' || event.key === 'H') {
-        game.uiManager.showWarning("Aviso: sistema de UI HTML ativo.");
-    }
+//     //ao teclar h simula um aviso na tela.
+//     if (event.key === 'h' || event.key === 'H') {
+//         game.uiManager.showWarning("Aviso: sistema de UI HTML ativo.");
+//     }
 
-    if(["i", "I"].includes(event.key)){
-        game.uiManager.toggleInventory();
-    }
+//     if(["i", "I"].includes(event.key)){
+//         game.uiManager.toggleInventory();
+//     }
 
-    if(["q", "Q"].includes(event.key)){
-        game.uiManager.toggleQuestUI();
-    }
+//     if(["q", "Q"].includes(event.key)){
+//         game.uiManager.toggleQuestUI();
+//     }
 
-    //oculta os UI se teclar esc.
-    if (event.key === 'Escape') {
-        game.uiManager.hideDialog();
-        game.uiManager.hideWarning();
-        game.uiManager.hideQuestUI();
-        game.uiManager.hideInventory();
-    }
-});
+//     //oculta os UI se teclar esc.
+//     if (event.key === 'Escape') {
+//         game.uiManager.hideDialog();
+//         game.uiManager.hideWarning();
+//         game.uiManager.hideQuestUI();
+//         game.uiManager.hideInventory();
+//     }
 
-document.addEventListener('keyup', (event) => {
-    updateInputState(event.key, false, inputState);
-});
+//     if (event.repeat) return;
+// });
+
+// document.addEventListener('keyup', (event) => {
+//     updateInputState(event.key, false, inputState);
+// });
 
 gameLoop();

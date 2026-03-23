@@ -1,10 +1,11 @@
 import { GameObject } from "../engine/GameObject.js";
+import { anchorsPoints } from "../settings/anchorsPoints.js";
 
 /**
  * Pega um ponto de ancoragem de um gameObjeto.
  * @param {GameObject} entity - objeto o qual quer-se pegar o centro.
  * @param {number} gridSize - medida do tile.
- * @param {string} anchor - âncora desejada:
+ * @param {anchorsPoints} anchor - âncora desejada:
  * topLeft, topCenter, topRight,
  * middleLeft, middle, middleRight,
  * bottomLeft, bottomCenter, bottomRight.
@@ -22,19 +23,19 @@ export function getAnchor(entity, anchor = "middle"){
 
     const normalizedAnchor = String(anchor).trim().toLowerCase();
     const anchorAlias = {
-        center: "middle",
-        topleft: "topLeft",
-        topcenter: "topCenter",
-        topright: "topRight",
-        middleleft: "middleLeft",
-        middle: "middle",
-        middleright: "middleRight",
-        bottomleft: "bottomLeft",
-        bottomcenter: "bottomCenter",
-        bottomright: "bottomRight",
-        bottonleft: "bottomLeft",
-        bottoncenter: "bottomCenter",
-        bottonright: "bottomRight",
+        center: anchorsPoints.middle,
+        topleft: anchorsPoints.topLeft,
+        topcenter: anchorsPoints.topCenter,
+        topright: anchorsPoints.topRight,
+        middleleft: anchorsPoints.middleLeft,
+        middle: anchorsPoints.middle,
+        middleright: anchorsPoints.middleRight,
+        bottomleft: anchorsPoints.bottomLeft,
+        bottomcenter: anchorsPoints.bottomCenter,
+        bottomright: anchorsPoints.bottomRight,
+        bottonleft: anchorsPoints.bottomLeft,
+        bottoncenter: anchorsPoints.bottomCenter,
+        bottonright: anchorsPoints.bottomRight,
     };
     const resolved = anchorAlias[normalizedAnchor] ?? "middle";
 

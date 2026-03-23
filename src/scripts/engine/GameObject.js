@@ -206,8 +206,8 @@ export class GameObject {
         const limitCanvasY = this.canvas.height / (this.height * this.gridSize) - 1;
 
         return {
-            x: Math.max(0, Math.min(limitCanvasX, nextX)),
-            y: Math.max(0, Math.min(limitCanvasY, nextY)),
+            x: nextX, // Math.max(0, Math.min(limitCanvasX, nextX)),
+            y: nextY, //Math.max(0, Math.min(limitCanvasY, nextY)),
         };
     }
 

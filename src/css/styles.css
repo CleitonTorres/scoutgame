@@ -32,7 +32,7 @@ body {
         radial-gradient(circle at 12% 12%, rgba(43, 127, 216, 0.42), transparent 45%),
         radial-gradient(circle at 88% 82%, rgba(127, 29, 50, 0.38), transparent 44%),
         linear-gradient(140deg, var(--blue-900), #08152a 58%, #130914 100%);
-    padding: clamp(16px, 3vw, 36px);
+    padding: 10px;
     display: grid;
     place-items: center;
 }
@@ -182,7 +182,6 @@ canvas {
     background: var(--canvas-background-color);
     z-index: 1;
     pointer-events: none;
-    width: calc(100vw - 76px);
 }
 
 .game-shell {

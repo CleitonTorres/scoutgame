@@ -263,4 +263,8 @@ export class UIManager {
         this.hudQuestComp.classList.toggle("is-hidden");
         this.hudQuestInProg.classList.toggle("is-hidden");
     }
+
+    hideAll(){
+        console.log("fecha tudo")
+    }
 }
