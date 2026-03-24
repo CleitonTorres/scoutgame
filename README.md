@@ -1,0 +1,1 @@
+Página do jogo: https://cleitontorres.github.io/scoutgame/

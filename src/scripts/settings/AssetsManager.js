@@ -1,107 +1,106 @@
 import { loadAnimations } from "../engine/Animation.js";
 
+/**
+ * Classe AssetManager (Estática)
+ * Gerencia o carregamento e armazenamento de todos os recursos do jogo.
+ */
 class AssetManager {
-    static instance; //não permite ter mais de uma no game.
+    // Propriedades privadas e estáticas para armazenar os assets
+    static #animations = new Map();
+    static #images = new Map();
+    static #audio = new Map();
 
-    constructor() {
-        this.animations = new Map();
-        this.images = new Map();
-        this.audio = new Map();
-    }
+    // Construtor vazio (não deve ser instanciado)
+    constructor() {}
 
     /**
-     * 
-     * @param {string} key - identidade do asset (nome do asset). 
-     * @param {string} paths - caminho onde o asset está localizado. 
-     * @param {number} fps - velocidade da animação.
-     * @param {boolean} loop - se vai rodar em loop ou não. 
-     * @returns 
+     * Carrega uma animação e a armazena no cache.
      */
-    async loadAnimation(key, paths, fps = 6, loop = true) {
+    static async loadAnimation(key, paths, fps = 6, loop = true) {
+        // Assume que loadAnimations é uma função global ou importada
         const animation = await loadAnimations(paths, fps, loop);
-        
-        this.animations.set(key, animation);
-
-        return animation;
+        if(animation) {
+            AssetManager.#animations.set(key, animation);
+            return true;
+        }
+        else return false;
     }
 
     /**
-     * Retorana o objeto de animação.
-     * @param {string} key "player.name" ou "item.name" ou "tree.name" ... 
-     * @returns {{
-     *  [anim:string]: {frames: [], fps: number, loop: boolean }
-     * }}
+     * Retorna uma animação do cache.
      */
-    getAnimation(key) { 
-        if (!this.animations.has(key)) {
+    static getAnimation(key) {
+        if (!AssetManager.#animations.has(key)) {
             console.warn(`Animation not found: ${key}`);
             return {};
         }
-        return this.animations.get(key);
+        return AssetManager.#animations.get(key);
     }
 
-    async loadAll() {
-        // PLAYER
-        const avaliablePlayers = [
-            "leo",
-            "lipe"
-        ]
-        for(const player of avaliablePlayers){
-            const playerPaths = createPlayerManifest(
-                "./src/assets/characters/",
-                player
-            );
+    /**
+     * Carrega uma imagem simples e a armazena no cache.
+     */
+    static async loadImage(key, path) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.src = path;
+            img.onload = () => {
+                AssetManager.#images.set(key, img);
+                resolve(img);
+            };
+            img.onerror = () => reject(`Erro ao carregar imagem: ${path}`);
+        });
+    }
 
-            await this.loadAnimation(
-                `player.${player}`,
-                playerPaths,
-                6,
-                true
-            );
+    /**
+     * Retorna uma imagem do cache.
+     */
+    static getImage(key) {
+        return AssetManager.#images.get(key);
+    }
+
+    /**
+     * Carrega todos os assets iniciais do jogo.
+     */
+    static async loadAll() {
+        console.log("Iniciando carregamento de assets...");
+        let isLoaded = false;
+
+        // PLAYER
+        const avaliablePlayers = ["leo", "lipe"];
+        for(const player of avaliablePlayers){
+            const playerPaths = createPlayerManifest("./src/assets/characters/", player);
+            isLoaded = await AssetManager.loadAnimation(`player.${player}`, playerPaths, 6, true);
         }
 
         // NPCs
         const npcs = ["baloo-f", "bp"];
         for (const npc of npcs) {
-            const paths = createNPCManifest(
-                "./src/assets/characters/", 
-                npc
-            );
-
-            await this.loadAnimation(`npc.${npc}`, paths, 4, true);
+            const paths = createNPCManifest("./src/assets/characters/", npc);
+            isLoaded = await AssetManager.loadAnimation(`npc.${npc}`, paths, 4, true);
         }
 
         // ITEMS
-        const avaliableItems = [
-            "apple_01",
-            "bexiga"
-        ]
+        const avaliableItems = ["apple_01", "bexiga"];
         for (const item of avaliableItems) {
-            const paths = creatObjectManifest(
-                "./src/assets/objects/", 
-                item
-            );
-            
-            await this.loadAnimation(`obj.${item}`, paths, 6, true);
+            const paths = creatObjectManifest("./src/assets/objects/", item);
+            isLoaded = await AssetManager.loadAnimation(`obj.${item}`, paths, 6, true);
         }
 
-        //TREES
-        const trees = [
-            'tree01',
-            'tree07'
-        ];
+        // TREES
+        const trees = ['tree01', 'tree07'];
         for (const tree of trees) {
-            const paths = createTreesManifest(
-                "./src/assets/objects/", 
-                tree
-            );
-            
+            const paths = createTreesManifest("./src/assets/objects/", tree);
             const randomFps = Math.random() * 3 + 1;
-            await this.loadAnimation(`obj.${tree}`, paths, randomFps, true);
+            isLoaded = await AssetManager.loadAnimation(`obj.${tree}`, paths, randomFps, true);
         }
+
+        console.log("Todos os assets foram carregados com sucesso!");
+        return isLoaded;
     }
 }
-export const assetManager = new AssetManager();
+
+export default AssetManager;
 
 
 export function createPlayerManifest(basePath, character) {

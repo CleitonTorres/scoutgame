@@ -48,6 +48,6 @@ export class ItemEntity extends GameObject {
 
     draw(){
         drawLabel(this, this.canvas.getContext("2d"), this.name)
-        super.draw(mainCamera)
+        super.draw()
     }
 }

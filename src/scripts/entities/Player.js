@@ -188,7 +188,7 @@ export class Player extends GameObject {
                                 itemId: quest.data.id,
                                 quests: game.questSystem.quests,
                             }
-                        });
+                        }); 
 
                         //add listeners for eatch reward that conteins items.
                         for(const rw of hasItem){

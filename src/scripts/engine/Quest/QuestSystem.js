@@ -76,7 +76,7 @@ export class QuestSystem {
             quest.progress.forEach(p => {
                 if (p.type === type) {
                     if (type === objectivesQuest.COLLECT && payload.itemId === p.itemId) {
-                        p.current += payload.qtdItem || 1;
+                        p.current = (p.current + payload.qtdItem) >= p.amount ? p.amount : p.current + (payload.qtdItem || 1);
 
                         // dispara evento para ouvintes.
                         this.eventBus.emit({
