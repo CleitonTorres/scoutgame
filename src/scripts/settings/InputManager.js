@@ -34,7 +34,10 @@ export class InputManager {
      * Configura os event listeners do navegador para o teclado.
      */
     _initKeyboardListeners() {
-        window.addEventListener('keydown', (e) => this._handleKey(e.key, true));
+        window.addEventListener('keydown', (e) => {
+            e.preventDefault();
+            this._handleKey(e.key, true)
+        });
         window.addEventListener('keyup', (e) => this._handleKey(e.key, false));
     }
 

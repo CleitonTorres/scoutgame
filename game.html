@@ -21,6 +21,12 @@
                     <p><strong>Layer:</strong> <span id="ui-player-layer">0</span></p>
                     <p><strong>Anim.:</strong> <span id="ui-player-anim">0</span></p>
                 </div>
+                <div id="debug-panel">
+                    <p><input type="checkbox" id="toggle-fog"> Ligar Fog</p>
+                    <p><input type="checkbox" id="toggle-hitbox"> Mostrar Hitboxes</p>
+                    <p><input type="checkbox" id="toggle-collider"> Mostrar HitColliders</p>
+                    <p><input type="checkbox" id="toggle-camera"> Mostrar Camera</p>
+                </div>
 
                 <div id="ui-warning" class="ui-panel ui-warning is-hidden" role="alert"></div>
 
@@ -100,7 +106,7 @@
                     <button id="btnToggleQuestUI">Completas</button>
                 </div>
             </section>
-            <canvas id="gameCanvas" width="1024" height="768"></canvas>
+            <canvas id="gameCanvas" width="960" height="768"></canvas>
         </div>
         <span class="notas-rodape">i= Abre inventário q= Abre Quests e= Interage com NPCs com "!"</span>
     </main>

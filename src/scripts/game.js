@@ -91,7 +91,7 @@ const player = new Player({
     ],
     controller: new CharacterController(inputManager.state),
     inventory: new Inventory(20),
-    position:{x: 1, y: 2},
+    position:{x: 0, y: 0},
     sortLayer: layers.player,
     state: "idle",
     animation: assetManager.getAnimation("player.lipe"),

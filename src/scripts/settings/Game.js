@@ -9,6 +9,7 @@ import { tags } from "./tags.js";
  * @typedef {import ("../engine/Quest/QuestSystem").QuestSystem} QuestSystem
  * @typedef {import("../engine/GameObject").GameObject} GameObject
  * @typedef {import("../engine/SpatialHashGrid").SpatialHashGrid} SpatialHashGrid
+ * @typedef {{x: number, y: number, width: number, height: number}} Viewport
  */
 export class Game {
     /**
@@ -44,7 +45,7 @@ export class Game {
          */
         this.mainCamera = new Camera({
             x: 0, y: 0, 
-            width: 12, height: 12, zoom: 1, 
+            width: 15, height: 12, zoom: 1, 
             showViewport: false,
             shape: "circle", fogWar: false
         });        
@@ -95,6 +96,28 @@ export class Game {
         this.questSystem = new QuestSystem({
             player: this.worldObjects.get(this.activePlayerId), 
             eventBus: this.eventBus
+        });
+
+        // Listener para controles de Debug vindos do UIManager
+        this.eventBus?.on({
+            event: "toggleDebug",
+            callback: (data) => {
+                if (data.type === "camera") {
+                    this.mainCamera.showViewport = data.value;
+                }
+                // Você pode adicionar outros aqui, como: fog, hitbox etc
+                if (data.type === "fog") this.mainCamera.fogWar = data.value;
+
+                if(data.type === "hitbox"){
+                    const objs = this.getAllWorldObjects()
+                    objs.forEach(o=> o.hitboxes.forEach(h=> h.showHitbox = data.value))
+                }
+
+                if(data.type === "collider"){
+                    const objs = this.getAllWorldObjects()
+                    objs.forEach(o=> o.collides.forEach(c=> c.showBoxCollide= data.value))
+                }
+            }
         });
     }
 
@@ -219,17 +242,22 @@ export class Game {
      * 
      * @param {CanvasRenderingContext2D} ctx 
      * @param {Camera} camera 
-     * @param {{x: number, y: number, width: number, height: number}} viewport
+     * @param {Viewport} viewport
      */
     renderCamera(ctx, camera, viewport) {
+        //if there is no camera set up, draw the static world (without following anyone).
         if(!this.mainCamera){
             this.drawWorld(ctx);
             return;
         }
 
+        // Save() is like taking a "snapshot" of the current brush settings (color, position, etc.).
+        // We do this so we can mess everything up in there and then revert to normal with restore().
         ctx.save();
 
-        // 1. define viewport na TELA
+        // 1. STEP 1: THE FRAME (CLIP)
+        // Here we tell the computer: "only draw inside this rectangle." 
+        // This prevents the game from drawing things outside the viewport sets.
         ctx.beginPath();
         ctx.rect(
             viewport.x, 
@@ -237,6 +265,7 @@ export class Game {
             viewport.width, 
             viewport.height
         );
+        // Anything drawn after this point will only appear inside this rectangle.
         ctx.clip();
 
         // 2. Centraliza o mundo na tela
@@ -252,8 +281,8 @@ export class Game {
         // 4. Aplica a posição da Câmera
         // Subtraímos a posição da câmera (em pixels) para mover o mundo no sentido oposto
         // Como a câmera está em tiles, multiplicamos pelo gridSize
-        const camX = camera.x * this.gridSize; //Math.floor(camera.x * this.gridSize)
-        const camY = camera.y * this.gridSize;
+        const camX = Math.floor(camera.x * this.gridSize);
+        const camY = Math.floor(camera.y * this.gridSize);
 
         // Para que o centro da câmera (camera.x + width/2) fique no centro da tela:
         // Precisamos compensar o fato de que camera.x é o canto superior esquerdo.
@@ -264,7 +293,7 @@ export class Game {
 
         // 5. Desenha o mundo
         ctx.imageSmoothingEnabled = false;
-        this.drawWorld(ctx);
+        this.drawWorld(ctx, camera);
         
         // 6. Desenha o debug da câmera (se ativo)
         if(this.mainCamera && this.mainCamera.showViewport){
@@ -274,8 +303,22 @@ export class Game {
         ctx.restore();
     }
 
-    drawWorld(){
-        //desenha cada elemento de acordo com sua layer (profundidade)
+    /**
+     * Desenha o mundo de forma otimizada (Culling).
+     * @param {CanvasRenderingContext2D} ctx 
+     * @param {Camera} camera 
+     */
+    drawWorld(ctx, camera){
+        // 1. Usando a camera, definimos a área visível (Viewport) em TILES
+        // Adicionamos uma pequena margem (buffer) de 1 ou 2 tiles para evitar que 
+        // objetos grandes "pisquem" ao entrar na tela.
+        const buffer = 2;
+        const viewLeft = camera.x - buffer;
+        const viewRight = camera.x + camera.width + buffer;
+        const viewTop = camera.y - buffer;
+        const viewBottom = camera.y + camera.height + buffer;
+
+        // 2. Pegamos todos os objetos e ordenamos por profundidade (Layer e Y)
         const renderQueue = Array.from(this.worldObjects.values());
         renderQueue.sort((a, b) => {
             // 1) layer base (menor primeiro, maior desenha por último = fica na frente)
@@ -285,7 +328,26 @@ export class Game {
             // 2) desempate opcional por Y (bom para profundidade)
             return (a.y ?? 0) - (b.y ?? 0);
         });
-        for (const obj of renderQueue) if(obj.visible) obj.draw();
+
+        // 3. O CORAÇÃO DO CULLING:
+        // Só desenhamos se o objeto estiver visível E dentro da área da câmera.
+        let drawCount = 0; // Contador para debug (opcional)
+
+        for (const obj of renderQueue) {
+            if (!obj.visible) continue;
+
+            // Verificamos se a posição do objeto (x, y) está dentro do retângulo da câmera
+            const isInsideX = obj.x >= viewLeft && obj.x <= viewRight;
+            const isInsideY = obj.y >= viewTop && obj.y <= viewBottom;
+
+            if (isInsideX && isInsideY) {
+                obj.draw();
+                drawCount++;
+            }
+        }
+
+        // Dica: Se quiser ver a mágica acontecendo, descomente a linha abaixo:
+        //console.log(`Objetos no mundo: ${renderQueue.length} | Desenhados: ${drawCount}`);
     }
 
     /**

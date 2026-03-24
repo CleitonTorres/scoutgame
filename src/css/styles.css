@@ -209,7 +209,9 @@ canvas {
     color: #f8fbff;
     box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
 }
-
+#debug-panel{
+    pointer-events: auto;
+}
 #ui-hud {
     width: fit-content;
     min-width: 150px;

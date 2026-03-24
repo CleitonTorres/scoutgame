@@ -24,6 +24,12 @@ export class UIManager {
         this.hudQuestComp = document.getElementById("ui-hud-quests-complete");
         this.btnToggleQuestUI = document.getElementById("btnToggleQuestUI");
 
+        // --- ELEMENTOS DE DEBUG ---
+        this.toggleFogEl = document.getElementById("toggle-fog");
+        this.toggleHitboxEl = document.getElementById("toggle-hitbox");
+        this.toggleCameraEl = document.getElementById("toggle-camera");
+        this.toggleCollidersEl = document.getElementById("toggle-collider");
+
         this.isDialogOpen = false;
         this.dialogEl = document.getElementById("ui-dialog");
         this.dialogSpeakerEl = document.getElementById("ui-dialog-speaker");
@@ -32,17 +38,25 @@ export class UIManager {
         this.dialogButtonsConteiner = document.getElementById("ui-conteiner-button-dialog");
         this.buttonCancelar = document.getElementById("button-cancelar");
         this.buttonOk = document.getElementById("button-ok");
-        /**
-        * @type {()=>void}
-        */
-        this.onClickCancelar = null;
-        /**
-        * @type {()=>void}
-        */
-        this.onClickOk = null;
 
+        this.onClickCancelar = null;
+        this.onClickOk = null;
         this.warningTimeoutId = null;
 
+        this._initListeners();
+
+        /**
+         * Porque usar o eventBus, o UIManager não precisa conhecer os detalhes internos da Camera ou do Game. 
+         * Ele apenas "grita" para o sistema: "Ei, alguém quer ligar o Fog!", e o componente 
+         * responsável (o Game) escuta e executa a ação. Isso deixa seu código muito mais limpo e 
+         * fácil de expandir!
+         * @type {import("./EventBus.js").EventBus}
+         */
+        this.eventBus = eventBus || null;
+        this._initEventBusListeners();
+    }
+
+    _initListeners() {
         this.inventorySlots.forEach((slot, index) => {
             slot.addEventListener("click", () => {
                 console.log("clicou no slot", index);
@@ -51,33 +65,61 @@ export class UIManager {
 
         this.buttonCancelar.addEventListener("click", ()=>{
             this.onClickCancelar?.();
-        })
+        });
 
         this.buttonOk.addEventListener("click", ()=>{
             this.onClickOk?.();
-        })
+        });
 
         this.btnToggleQuestUI.addEventListener("click",()=>{
             this.toggleHUDQuests();
-        })
+        });
 
-        /**
-         * @type {import("./EventBus.js").EventBus}
-         */
-        this.eventBus = eventBus || null;
+        // --- LISTENERS DE DEBUG ---
+        // Quando o checkbox mudar, avisamos o jogo via EventBus
+        this.toggleFogEl?.addEventListener("change", (e) => {
+            this.eventBus?.emit({
+                event: "toggleDebug", 
+                payload: { type: "fog", value: e.target.checked }
+            });
+        });
+
+        this.toggleHitboxEl?.addEventListener("change", (e) => {
+            this.eventBus?.emit({
+                event: "toggleDebug", 
+                payload: { type: "hitbox", value: e.target.checked }
+            });
+        });
+
+        this.toggleCameraEl?.addEventListener("change", (e) => {
+            this.eventBus?.emit({
+                event: "toggleDebug", payload: { type: "camera", value: e.target.checked }
+            });
+        });
+
+        this.toggleCollidersEl?.addEventListener("change", (e) => {
+            this.eventBus?.emit({
+                event: "toggleDebug", payload: { type: "collider", value: e.target.checked }
+            });
+        });
+    }
+
+    _initEventBusListeners() {
         this.eventBus?.on({
             event: "questAccept", 
             callback: (data) => {
                 this.loadQuests(data.quests);
             }
         });
+
         this.eventBus?.on({
             event: "updateQuest", 
             callback: (data) => {
                 this.loadQuests(data.quests);
             }
         });
-        this.eventBus.on({
+
+        this.eventBus?.on({
             event: "itemCollected",
             callback: (data) => {
                 this.renderInventory(data.inventory);
@@ -114,7 +156,6 @@ export class UIManager {
             clearTimeout(this.warningTimeoutId);
         }
 
-        //se durationMs for 0 não oculta o aviso.
         if (durationMs > 0) {
             this.warningTimeoutId = setTimeout(() => {
                 this.hideWarning();
@@ -129,15 +170,6 @@ export class UIManager {
         this.warningEl.textContent = "";
     }
 
-    /**
-     * 
-     * @param {{
-     *  speaker: string, 
-     *  text: string, 
-     *  buttons: {cancelar: ()=>{}, ok: ()=>{}} 
-     * }} options 
-     * @returns 
-     */
     showDialog({ speaker = "Narrador", text = "", buttons= undefined}) {
         if (!this.dialogEl) return;
 
@@ -190,11 +222,6 @@ export class UIManager {
         this.hideDialog();
     }
 
-    /**
-     * 
-     * @param {import("../engine/Inventory.js").Inventory} inventory 
-     * @returns 
-     */
     renderInventory(inventory) {
         if(!inventory) return;
         if (!this.inventorySlots) return;
@@ -208,30 +235,21 @@ export class UIManager {
 
             if (itemData) {
                 slotEl.classList.remove("empty");
-
                 img.src = itemData.item.icon;
                 img.style.display = "block";
-
                 span.textContent = `x${itemData.quantity}`;
             } else {
                 slotEl.classList.add("empty");
-
                 img.src = "";
                 img.style.display = "none";
-
                 span.textContent = "";
             }
         });
     }
 
-    /**
-     * Mosta as quests na HUD do player.
-     * @param {import("../engine/Quest/QuestInstance.js").QuestInstance[]} quests 
-     */
     loadQuests(quests){
         if(!this.listQuests) return;
 
-        //limpa o conteiner antes de reescrever.
         this.listQuests.querySelectorAll("li").forEach(li=> this.listQuests.removeChild(li));
 
         quests.forEach((q)=>{
@@ -244,20 +262,20 @@ export class UIManager {
             }else{
                 this.listQuests.appendChild(newitem);
             }
-        })
+        });
     }
 
     toggleQuestUI(){
         if(!this.uiQuestsConteiner) return;
-        this.uiQuestsConteiner.classList.toggle("is-hidden")
+        this.uiQuestsConteiner.classList.toggle("is-hidden");
     }
     showQuestUI(){
         if(!this.uiQuestsConteiner) return;
-        this.uiQuestsConteiner.classList.remove("is-hidden")
+        this.uiQuestsConteiner.classList.remove("is-hidden");
     }
     hideQuestUI(){
         if(!this.uiQuestsConteiner) return;
-        this.uiQuestsConteiner.classList.add("is-hidden")
+        this.uiQuestsConteiner.classList.add("is-hidden");
     }
     toggleHUDQuests(){
         this.hudQuestComp.classList.toggle("is-hidden");

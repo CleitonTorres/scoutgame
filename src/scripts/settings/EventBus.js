@@ -1,12 +1,14 @@
 /**
 * @typedef {{ 
+*   type: "fog" | "hitbox" | "camera" | "collider",
+*   value: boolean, 
 *   playerID: number,
 *   itemId: string,
 *   qtdItem?: number,  
 *   quests?: import("../engine/Quest/QuestInstance").QuestInstance[], 
 *   inventory?: import("../engine/Inventory").Inventory,
-* }} Payload
-* @typedef {"itemCollected" | "defeatEnemy" | "questAccept" | "updateQuest"} EventType
+* }} Payload 
+* @typedef {"itemCollected" | "defeatEnemy" | "questAccept" | "updateQuest" | "toggleDebug"} EventType
 * @typedef {(payload: Payload)=>void} Callback
 */
 export class EventBus {
