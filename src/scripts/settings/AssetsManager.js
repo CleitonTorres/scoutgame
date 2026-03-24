@@ -28,6 +28,7 @@ class AssetManager {
 
     /**
      * Retorna uma animação do cache.
+     * @returns {{[anim:string]:{frames: HTMLImageElement[], fps: number, loop: true}}}
      */
     static getAnimation(key) {
         if (!AssetManager.#animations.has(key)) {
@@ -39,6 +40,7 @@ class AssetManager {
 
     /**
      * Carrega uma imagem simples e a armazena no cache.
+     * @returns {Promise<boolean>}
      */
     static async loadImage(key, path) {
         return new Promise((resolve, reject) => {
@@ -46,9 +48,12 @@ class AssetManager {
             img.src = path;
             img.onload = () => {
                 AssetManager.#images.set(key, img);
-                resolve(img);
+                resolve(true);
             };
-            img.onerror = () => reject(`Erro ao carregar imagem: ${path}`);
+            img.onerror = () => {
+                console.log(`Erro ao carregar imagem: ${path}`)
+                reject(false)
+            };
         });
     }
 
@@ -93,6 +98,18 @@ class AssetManager {
             const paths = createTreesManifest("./src/assets/objects/", tree);
             const randomFps = Math.random() * 3 + 1;
             isLoaded = await AssetManager.loadAnimation(`obj.${tree}`, paths, randomFps, true);
+        }
+
+        // SPRITES (IMAGENS ESTÁTICAS)
+        const spritesUrl = [
+            {key: "apple_01", path: "./src/assets/objects/forest-pack-sprites/apple_01.png"},
+            {key: "axe", path: "./src/assets/objects/forest-pack-sprites/axe.png"},
+            {key: "medievalStructure_21", path: "./src/assets/objects/kenney_medieval/sprites/builds/medievalStructure_21.png"},
+            {key: "medievalEnvironment_18", path: "./src/assets/objects/kenney_medieval/sprites/nature/medievalEnvironment_18.png"},
+            {key: "medievalStructure_09", path: "./src/assets/objects/kenney_medieval/sprites/builds/medievalStructure_09.png"}
+        ]
+        for (const sprite of spritesUrl){
+            isLoaded = await AssetManager.loadImage(`img.${sprite.key}`, sprite.path)
         }
 
         console.log("Todos os assets foram carregados com sucesso!");

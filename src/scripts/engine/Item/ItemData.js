@@ -17,7 +17,7 @@ export class ItemData {
      * stackable: boolean,
      * maxStack: number,
      * type: itemsTypes,
-     * icon: string,
+     * icon: HTMLImageElement,
      * onUse: (player: Player)=>void
      * }} options
      */

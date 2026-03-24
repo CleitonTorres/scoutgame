@@ -222,6 +222,11 @@ export class UIManager {
         this.hideDialog();
     }
 
+    /**
+     * 
+     * @param {import("../engine/Inventory.js").Inventory} inventory 
+     * @returns 
+     */
     renderInventory(inventory) {
         if(!inventory) return;
         if (!this.inventorySlots) return;
@@ -235,7 +240,7 @@ export class UIManager {
 
             if (itemData) {
                 slotEl.classList.remove("empty");
-                img.src = itemData.item.icon;
+                img.src = itemData.item?.icon?.src ?? "";
                 img.style.display = "block";
                 span.textContent = `x${itemData.quantity}`;
             } else {

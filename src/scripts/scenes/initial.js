@@ -38,7 +38,8 @@ export class InitialScene {
             ...this._createNPCs(),
             ...this._createWalls(),
             ...this._createTrees(),
-            ...this._createItems()
+            ...this._createItems(),
+            ...this._creatBuilds(),
         ];
     }
 
@@ -59,9 +60,13 @@ export class InitialScene {
                     rewards: [{ 
                         type: "item", amount: 1, 
                         item: new ItemData({
-                            id: "axe", name: "Machadinha", type: itemsTypes.TOOL, stackable: false, maxStack: 1,
+                            id: "axe", 
+                            name: "Machadinha", 
+                            type: itemsTypes.TOOL, 
+                            stackable: false, 
+                            maxStack: 1,
                             description: "uma machadinha para cortar lenha",
-                            icon: "src/assets/objects/forest-pack-sprites/axe.png"
+                            icon: AssetManager.getImage("img.axe")
                         })
                     }],
                     dialogs: { start: "Pode coletar 3 maçãs pra mim?", progress: "Ainda faltam maçãs...", complete: "Obrigado pelas maçãs!" }
@@ -94,56 +99,39 @@ export class InitialScene {
             tag: tags.WALL, 
             sortLayer: layers.ground, 
             physical: { behavior: 'static', collision: true, mass: Infinity }, 
-            transform: { height: 0.5 }, 
+            transform: { height: 1, scale: 2 }, 
             gridSize: this.gridSize, 
-            canvas: this.canvas 
+            canvas: this.canvas,
+            hitboxes: [{ 
+                offSetHitbox: { x: 0, y: 0 }, 
+                anchorHitBox: { x: 0, y: 0 }, 
+                showHitbox: false 
+            }],
+            collides: [{ 
+                offSetBoxCollide: { x: 20, y: 50 }, 
+                anchorBoxCollide: { x: 0, y: 25 }, 
+                showBoxCollide: false 
+            }],
         };
 
         return [
             new Wall({ 
                 ...wallConfig, 
-                name: 'Wall1', 
-                position: { x: 4, y: 4 },
-                hitboxes: [{ 
-                    offSetHitbox: { x: 0, y: 0 }, 
-                    anchorHitBox: { x: 0, y: 0 }, 
-                    showHitbox: true 
-                }], 
-                collides: [{ 
-                    offSetBoxCollide: { x: 0, y: 0 }, 
-                    anchorBoxCollide: { x: 0, y: 0 }, 
-                    showBoxCollide: true 
-                }],
+                name: 'Wall1',
+                sprite: AssetManager.getImage("img.medievalEnvironment_18"),
+                position: { x: 3, y: 4 },
             }),
             new Wall({ 
                 ...wallConfig, 
                 name: 'Wall2', 
-                position: { x: 5, y: 5 }, 
-                hitboxes: [{ 
-                    offSetHitbox: { x: 0, y: 0 }, 
-                    anchorHitBox: { x: 0, y: 0 }, 
-                    showHitbox: true 
-                }], 
-                collides: [{ 
-                    offSetBoxCollide: { x: 0, y: 0 }, 
-                    anchorBoxCollide: { x: 0, y: 0 }, 
-                    showBoxCollide: true 
-                }],
+                sprite: AssetManager.getImage("img.medievalEnvironment_18"),
+                position: { x: 5, y: 5 },
             }),
             new Wall({ 
                 ...wallConfig, 
                 name: 'Wall3', 
-                position: { x: 6, y: 4 }, 
-                hitboxes: [{ 
-                    offSetHitbox: { x: 0, y: 0 }, 
-                    anchorHitBox: { x: 0, y: 0 }, 
-                    showHitbox: true 
-                }], 
-                collides: [{ 
-                    offSetBoxCollide: { x: 0, y: 0 }, 
-                    anchorBoxCollide: { x: 0, y: 0 }, 
-                    showBoxCollide: true 
-                }],
+                sprite: AssetManager.getImage("img.medievalEnvironment_18"),
+                position: { x: 6, y: 5 },
             })
         ];
     }
@@ -200,24 +188,45 @@ export class InitialScene {
                 gridSize: this.gridSize, 
                 canvas: this.canvas 
             }),
+            new Tree({ 
+                name: 'Tree3', 
+                tag: tags.TREE, 
+                sortLayer: layers.underFloor, 
+                position: { x: 16, y: 10 }, 
+                physical: { collision: true }, 
+                hitboxes: [{ 
+                    offSetHitbox: { x: 20, y: 10 }, 
+                    anchorHitBox: { x: 0, y: 0 }, 
+                    showHitbox: false 
+                }], 
+                collides: [{ 
+                    offSetBoxCollide: { x: 25, y: 25 }, 
+                    anchorBoxCollide: { x: 0, y: 25 }, 
+                    showBoxCollide: false 
+                }], 
+                state: "move", 
+                animation: {...AssetManager.getAnimation("obj.tree01"), move: {...AssetManager.getAnimation("obj.tree01").move, fps: 0.5}}, 
+                canvas: this.canvas 
+            }),
         ];
     }
 
     _createItems() {
         const appleConfig = { 
             visible: false, 
+            sortLayer: layers.ground,
             itemData: new ItemData({ 
                 id: "apple", 
                 name: "Maçã", 
                 stackable: true, 
                 maxStack: 10, 
                 type: "food", 
-                icon: "src/assets/objects/forest-pack-sprites/apple_01.png", 
+                icon: AssetManager.getImage("img.apple_01"), 
                 onUse(player){ player.hp += 5 } 
             }),
             quantity: 2, 
             transform: { width: 0.5, height: 0.5 }, 
-            sprite: "src/assets/objects/forest-pack-sprites/apple_01.png", 
+            sprite: AssetManager.getImage("img.apple_01"), 
             canvas: this.canvas,
         };
         return [
@@ -227,12 +236,55 @@ export class InitialScene {
             }),
             new PickupItem({ 
                 ...appleConfig, 
-                position: { x: 7, y: 7 }, 
-                sortLayer: layers.ground 
+                position: { x: 7, y: 7 } 
             }),
             new PickupItem({ 
                 ...appleConfig, 
                 position: { x: 13, y: 2 } 
+            })
+        ];
+    }
+
+    _creatBuilds(){
+        const BuildConfig = { 
+            tag: tags.BUILD, 
+            sortLayer: layers.ground, 
+            physical: { behavior: 'static', collision: true, mass: Infinity }, 
+            transform: { height: 3, width: 3, scale: 1 }, 
+            gridSize: this.gridSize, 
+            canvas: this.canvas,
+            hitboxes: [
+                { 
+                    offSetHitbox: { x: 10, y: 30 }, 
+                    anchorHitBox: { x: 0, y: 25 }, 
+                    showHitbox: false 
+                },
+                {
+                    shape: shapes.CIRCLE,
+                    offSetHitbox: { x: 30, y: 30 }, 
+                    anchorHitBox: { x: 6, y: -72 }, 
+                    showHitbox: false 
+                }
+            ],
+            collides: [{ 
+                offSetBoxCollide: { x: 10, y: 35 }, 
+                anchorBoxCollide: { x: 0, y: 30 }, 
+                showBoxCollide: false 
+            }],
+        };
+
+        return [
+            new Wall({ 
+                ...BuildConfig, 
+                name: 'Home01',
+                sprite: AssetManager.getImage("img.medievalStructure_21"),
+                position: { x: 14, y: 5 },
+            }),
+            new Wall({
+                ...BuildConfig, 
+                name: 'Home01',
+                sprite: AssetManager.getImage("img.medievalStructure_09"),
+                position: { x: 18, y: 5 },
             })
         ];
     }

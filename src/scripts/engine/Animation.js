@@ -132,10 +132,8 @@ export function drawAnimation(entity, ctx) {
 
     // Se não houver animação válida, verifica se tem um sprite para desenhar.
     if (!clip || clip.frames.length === 0) {
-        if(entity.sprite){
-            const img = new Image();
-            img.src = entity.sprite;
-            ctx.drawImage(img, drawX, drawY, drawW, drawH);
+        if(entity.sprite && entity.sprite instanceof HTMLImageElement){
+            ctx.drawImage(entity.sprite, drawX, drawY, drawW, drawH);
             return true;
         }
         
@@ -144,9 +142,7 @@ export function drawAnimation(entity, ctx) {
 
     // Seleciona o frame atual da animação
     const frame = clip.frames[entity.animationFrame] || clip.frames[0];
-    if (!frame) return false;
-
-    
+    if (!frame) return false;    
 
     /**
     * Detecta se o frame é uma imagem direta

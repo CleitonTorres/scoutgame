@@ -27,7 +27,7 @@ import { behaviors } from "../settings/behaviors.js";
     *  },
     *  state: string,
     *  animator?: AnimationController,
-    *  sprite?: string,
+    *  sprite?: HTMLImageElement,
     *  animation?: {
     *   [anim: string]: {
     *        frames: [];

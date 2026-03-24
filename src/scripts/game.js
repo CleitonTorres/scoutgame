@@ -22,7 +22,7 @@ const ui = new UIManager(eventBus);
 
 //mostra a mensagem de "carregando..."
 ui.showWarning("Carregando jogo...", 0);
-const isLoaded = await AssetManager.loadAll();
+await AssetManager.loadAll();
 
 const canvas = Canvas.getCanvas();
 const ctx = Canvas.getContext();
@@ -103,7 +103,7 @@ function gameLoop() {
         const isCollided = player.hitboxes?.find(hit => hit.hit.length > 0);
         if (!isCollided) {
             game.addObject(
-                shooter(player, assetManager.getAnimation("obj.bexiga"), 
+                shooter(player, AssetManager.getAnimation("obj.bexiga"), 
                 canvas, 
                 gridSize,
                 game.worldTransform
