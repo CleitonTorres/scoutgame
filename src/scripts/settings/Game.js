@@ -1,5 +1,7 @@
 import { Camera } from "../engine/Camera.js";
 import { QuestSystem } from "../engine/Quest/QuestSystem.js";
+import { getAnchor } from "../mathh/GetAnchor.js";
+import Canvas from "./Canvas.js";
 import { EventBus } from "./EventBus.js";
 import { tags } from "./tags.js";
 
@@ -33,13 +35,7 @@ export class Game {
         eventBus,
         uiManager,
         worldObjects,
-        worldTransform
     }) {
-        /**
-         * grid do mundo.
-         */
-        this.worldTransform = worldTransform || {width: 5000, height: 5000},
-
         /**
          * World Camera.
          */
@@ -146,7 +142,7 @@ export class Game {
             const obj = resolve[i];
             if(!obj || !obj.tag) continue;
     
-            obj.update?.(this.grid, this, this.worldTransform);
+            obj.update?.(this.grid, this, Canvas.getWorldTransform());
     
             if(obj.destroyed) this.removeObject(obj);
         }
@@ -308,11 +304,11 @@ export class Game {
      * @param {CanvasRenderingContext2D} ctx 
      * @param {Camera} camera 
      */
-    drawWorld(ctx, camera){
-        // 1. Usando a camera, definimos a área visível (Viewport) em TILES
+    drawWorld(ctx, camera) {
+        // 1. Definimos a área visível (Viewport) em TILES
         // Adicionamos uma pequena margem (buffer) de 1 ou 2 tiles para evitar que 
         // objetos grandes "pisquem" ao entrar na tela.
-        const buffer = 2;
+        const buffer = 3;
         const viewLeft = camera.x - buffer;
         const viewRight = camera.x + camera.width + buffer;
         const viewTop = camera.y - buffer;
@@ -320,13 +316,20 @@ export class Game {
 
         // 2. Pegamos todos os objetos e ordenamos por profundidade (Layer e Y)
         const renderQueue = Array.from(this.worldObjects.values());
+        
         renderQueue.sort((a, b) => {
-            // 1) layer base (menor primeiro, maior desenha por último = fica na frente)
+            // 1. Primeiro critério: A camada fixa (sortLayer)
+            // Ex: Chão (0) sempre desenha antes de Árvore (10)
             const layerDiff = (a.sortLayer ?? 0) - (b.sortLayer ?? 0);
             if (layerDiff !== 0) return layerDiff;
-    
-            // 2) desempate opcional por Y (bom para profundidade)
-            return (a.y ?? 0) - (b.y ?? 0);
+
+            // 2. Segundo critério (O SEGREDO): A base do objeto (Y + Altura)
+            // Se dois objetos estão na mesma camada (ex: Player e Árvore),
+            // quem estiver com o "pé" mais para baixo (maior Y) desenha por último (fica na frente).
+            const bottomA = (a.y ?? 0) + ((a.height * a.scale) ?? 0);
+            const bottomB = (b.y ?? 0) + ((b.height * a.scale) ?? 0);
+            
+            return bottomA - bottomB;
         });
 
         // 3. O CORAÇÃO DO CULLING:
@@ -341,13 +344,13 @@ export class Game {
             const isInsideY = obj.y >= viewTop && obj.y <= viewBottom;
 
             if (isInsideX && isInsideY) {
-                obj.draw();
+                obj.draw(ctx);
                 drawCount++;
             }
         }
 
         // Dica: Se quiser ver a mágica acontecendo, descomente a linha abaixo:
-        //console.log(`Objetos no mundo: ${renderQueue.length} | Desenhados: ${drawCount}`);
+        // console.log(`Objetos no mundo: ${renderQueue.length} | Desenhados: ${drawCount}`);
     }
 
     /**

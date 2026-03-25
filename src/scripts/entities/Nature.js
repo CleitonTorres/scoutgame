@@ -1,14 +1,11 @@
 import { GameObject } from "../engine/GameObject.js";
-import Canvas from "../settings/Canvas.js";
-import { FloatingLabel } from "../tools/DrawLabel.js";
 
 /**
  * Classe de objetos staticos especialmente árvores e plantas.
 */
-export class Tree extends GameObject {
+export class Nature extends GameObject {
     constructor(options = {}) {        
         super({...options});
-         this.floatingLabel = new FloatingLabel({text: `${this.x}-${this.y}`});
     }    
 
     /**
@@ -28,13 +25,12 @@ export class Tree extends GameObject {
             this.animator?.update(1 / 60);
         }
         super.update(0, 0, [], worldTransform);
-        //this.floatingLabel.update();
     }
 
     draw() {
         if(this.animation){
             super.draw();
-            //this.floatingLabel.draw(Canvas.getContext(), this);
+            // drawLabel(this, this.canvas.getContext("2d"), this.x); //desenha o rótulo do personagem.
         }else{
             const ctx = this.canvas.getContext('2d');
             const size = this.gridSize;

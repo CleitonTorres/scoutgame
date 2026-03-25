@@ -93,7 +93,7 @@ class AssetManager {
         }
 
         // TREES
-        const trees = ['tree01', 'tree07'];
+        const trees = ['tree01', 'tree02', 'tree07'];
         for (const tree of trees) {
             const paths = createTreesManifest("./src/assets/objects/", tree);
             const randomFps = Math.random() * 3 + 1;
@@ -104,9 +104,13 @@ class AssetManager {
         const spritesUrl = [
             {key: "apple_01", path: "./src/assets/objects/forest-pack-sprites/apple_01.png"},
             {key: "axe", path: "./src/assets/objects/forest-pack-sprites/axe.png"},
-            {key: "medievalStructure_21", path: "./src/assets/objects/kenney_medieval/sprites/builds/medievalStructure_21.png"},
-            {key: "medievalEnvironment_18", path: "./src/assets/objects/kenney_medieval/sprites/nature/medievalEnvironment_18.png"},
-            {key: "medievalStructure_09", path: "./src/assets/objects/kenney_medieval/sprites/builds/medievalStructure_09.png"}
+            {key: "nature0", path: "./src/assets/objects/overworld/nature0.png"},
+            {key: "nature1", path: "./src/assets/objects/overworld/nature1.png"},
+            {key: "nature2", path: "./src/assets/objects/overworld/nature2.png"},
+            {key: "nature3", path: "./src/assets/objects/overworld/nature3.png"},
+            {key: "nature4", path: "./src/assets/objects/overworld/nature4.png"},
+            {key: "home0", path: "./src/assets/objects/overworld/home0.png"},
+            {key: "home1", path: "./src/assets/objects/overworld/home1.png"},
         ]
         for (const sprite of spritesUrl){
             isLoaded = await AssetManager.loadImage(`img.${sprite.key}`, sprite.path)

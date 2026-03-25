@@ -59,10 +59,11 @@ const player = new Player({
             showBoxCollide:false
         }
     ],
+    showShadow: true,
     controller: new CharacterController(inputManager.state),
     inventory: new Inventory(20),
     position:{x: 14, y: 8},
-    sortLayer: layers.player,
+    sortLayer: layers.underFloor,
     state: "idle",
     animation: AssetManager.getAnimation("player.lipe"),
     canvas,

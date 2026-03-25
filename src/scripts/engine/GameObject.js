@@ -5,6 +5,7 @@ import { Collide } from "../entities/BoxCollide.js";
 import { tags } from "../settings/tags.js";
 import { layers } from "../settings/layers.js";
 import { behaviors } from "../settings/behaviors.js";
+import { Shadow } from "./Shadow.js";
 
 /**
  * @typedef {{
@@ -73,6 +74,7 @@ export class GameObject {
             animator = null,
             sprite = "",
             animation = {},
+            showShadow= false,
 
             hitboxes = [],
             collides = [],
@@ -164,6 +166,9 @@ export class GameObject {
         // Mantem estado inicial sincronizado com o controlador.
         this.animator.setState(state);
         this.animator.update(0);
+
+        this.showShadow = showShadow;
+        this.shadow = new Shadow();
 
         // ------------------------
         // HITBOX INICIAL
@@ -443,6 +448,8 @@ export class GameObject {
     draw() {
         const ctx = this.canvas.getContext('2d');
 
+        if(this.showShadow) this.shadow.draw(ctx, this);
+        
         //se não foi fornecido uma animação, desenha um retangulo azul.
         const drawn = drawAnimation(this, ctx);
         if (!drawn) {
@@ -468,7 +475,6 @@ export class GameObject {
                 box.draw()
             });
         }
-
     }
     
     /**

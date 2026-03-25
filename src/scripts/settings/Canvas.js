@@ -2,6 +2,7 @@ class Canvas {
     static #instance = null;
     static #canvas = null;
     static #ctx = null;
+    static #worldTransform = {width: 5000, height: 5000}
 
     constructor() {}
 
@@ -41,6 +42,10 @@ class Canvas {
 
     static getGridsize(){
         return 64;
+    }
+
+    static getWorldTransform(){
+        return Canvas.#worldTransform;
     }
 }
 

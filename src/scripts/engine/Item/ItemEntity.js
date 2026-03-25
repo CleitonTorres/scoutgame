@@ -1,6 +1,7 @@
+import Canvas from "../../settings/Canvas.js";
 import { layers } from "../../settings/layers.js";
 import { tags } from "../../settings/tags.js";
-import { drawLabel } from "../../tools/DrawLabel.js";
+import { FloatingLabel } from "../../tools/DrawLabel.js";
 import { GameObject } from "../GameObject.js";
 
 /**
@@ -34,6 +35,7 @@ export class ItemEntity extends GameObject {
 
         this.itemData = itemData;
         this.quantity = quantity;
+        this.floatingLabel = new FloatingLabel({text: this.name});
     }
 
     /**
@@ -43,11 +45,12 @@ export class ItemEntity extends GameObject {
      * @returns 
      */
     update(_grid, _game, worldTransform){
-        super.update(0, 0, [], worldTransform)
+        super.update(0, 0, [], worldTransform);
+        this.floatingLabel.update();
     }
 
     draw(){
-        drawLabel(this, this.canvas.getContext("2d"), this.name)
-        super.draw()
+        super.draw();
+        this.floatingLabel.draw(Canvas.getContext(), this);
     }
 }

@@ -7,7 +7,8 @@ import { layers } from "../settings/layers.js";
 import { tags } from "../settings/tags.js";
 import { typesProgQuest } from "../settings/typesProgressQuest.js";
 import { UIManager } from "../settings/UIManager.js";
-import { drawLabel } from "../tools/DrawLabel.js";
+import { FloatingLabel } from "../tools/DrawLabel.js";
+import Canvas from "../settings/Canvas.js";
 
 /**
  * @typedef {import("../settings/Game.js").Game} Game
@@ -29,6 +30,7 @@ export class Player extends GameObject {
         this.hp = 100; //vida do personagem.
         this.facingDirection = { x: 0, y: 1 };
         this.gold = 0;
+        this.floatingLabel = new FloatingLabel({text: this.name});
     }
 
     /**
@@ -58,27 +60,16 @@ export class Player extends GameObject {
         // Chama o movimento base (que já atualiza todos os hitboxes internamente)
         super.update(inputX, inputY, collidables, worldTransform);
 
-        // Busca automaticamente se algum hitbox detectou colisão
-        const collidedHitbox = [...this.hitboxes, ...this.collides].find(box => box.hit.length > 0);
-
         //sistema de coleta de itens.
         this.getCollides(game)
-        
-        if(collidedHitbox){
-            collidedHitbox.hit.forEach(hit=>{
-                // O sortLayer agora recebe o objeto colidido (box.hit)
-                sortLayer(this, hit, this.gridSize);
-            })
-        } else {
-            this.sortLayer = layers.player;
-        }
+
+        this.floatingLabel.update();
     }
 
     draw(){
-        if (!this.canvas) return;
-        const ctx = this.canvas.getContext("2d");
+        const ctx = Canvas.getContext();
         super.draw();
-        drawLabel(this, ctx, this.name); //desenha o rótulo do personagem.
+        this.floatingLabel.draw(ctx, this)
     }
 
     /**
