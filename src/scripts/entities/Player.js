@@ -1,9 +1,7 @@
 import { CharacterController } from "../engine/CharacterController.js";
 import { setFacingDirection } from "../engine/FacingDirectio.js";
 import { GameObject } from "../engine/GameObject.js";
-import { sortLayer } from "../engine/SortLayer.js";
 import { SpatialHashGrid } from "../engine/SpatialHashGrid.js";
-import { layers } from "../settings/layers.js";
 import { tags } from "../settings/tags.js";
 import { typesProgQuest } from "../settings/typesProgressQuest.js";
 import { UIManager } from "../settings/UIManager.js";

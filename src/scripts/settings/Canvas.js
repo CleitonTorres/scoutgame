@@ -1,7 +1,19 @@
 class Canvas {
+    /**
+     * @type {Canvas}
+     */
     static #instance = null;
+    /**
+     * @type {HTMLCanvasElement | null}
+     */
     static #canvas = null;
+    /**
+     * @type {CanvasRenderingContext2D | null}
+     */
     static #ctx = null;
+    /**
+     * @type {{width: number, height: number}}
+     */
     static #worldTransform = {width: 5000, height: 5000}
 
     constructor() {}

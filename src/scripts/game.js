@@ -10,7 +10,6 @@ import { Game } from "./settings/Game.js";
 import { EventBus } from "./settings/EventBus.js";
 import { updateWorld } from "./engine/UpdateSpatialGrid.js";
 import { InputManager } from "./settings/InputManager.js";
-import Canvas from "./settings/Canvas.js";
 import AssetManager from "./settings/AssetsManager.js";
 import { InitialScene } from "./scenes/initial.js";
 
@@ -24,15 +23,11 @@ const ui = new UIManager(eventBus);
 ui.showWarning("Carregando jogo...", 0);
 await AssetManager.loadAll();
 
-const canvas = Canvas.getCanvas();
-const ctx = Canvas.getContext();
-const gridSize = Canvas.getGridsize();
-
 //gerenciador de entradas
 const inputManager = new InputManager();
 
 //instancia o grid virtual para colisões.
-const grid = new SpatialHashGrid(2);
+const spatialGrid = new SpatialHashGrid(2);
 
 //INSTANCIAS===============
 const player = new Player({
@@ -66,8 +61,6 @@ const player = new Player({
     sortLayer: layers.underFloor,
     state: "idle",
     animation: AssetManager.getAnimation("player.lipe"),
-    canvas,
-    gridSize,
 });
 
 //==========================
@@ -81,53 +74,18 @@ const worldObjects = [...objects, player];
 ui.hideWarning();
 
 const game = new Game({
-    canvas,
-    ctx,
-    grid,
-    gridSize,
+    spatialGrid,
     eventBus,
     uiManager: ui,
+    inputManager,
     worldObjects
 });
 
 function gameLoop() {
-    // 1. Atualiza o Gamepad (ele vai somar o estado dele ao que o teclado já marcou)
-    inputManager.update();
-
-    updateWorld(worldObjects, grid);
+    updateWorld(worldObjects, spatialGrid);
 
     game.update();
     game.draw();
-
-    // 2. Lógica de Atirar (Espaço ou Gatilho do Controle)
-    if (inputManager.state.shootPressed) {
-        const isCollided = player.hitboxes?.find(hit => hit.hit.length > 0);
-        if (!isCollided) {
-            game.addObject(
-                shooter(player, AssetManager.getAnimation("obj.bexiga"), 
-                canvas, 
-                gridSize,
-                game.worldTransform
-            ));
-        }
-    }
-
-    // 3. Lógica de UI (Inventário, Quests, etc.)
-    if (inputManager.state.inventory) {
-        ui.toggleInventory();
-    }
-    if (inputManager.state.quest) {
-        ui.toggleQuestUI();
-    }
-
-    // 4. Teclas Especiais (como o ESC)
-    // Você pode adicionar 'escape' na sua classe InputManager se quiser centralizar tudo
-    if (inputManager.state.escape) {
-        ui.hideAll(); // Função hipotética para fechar tudo
-    }
-
-    // 3. Limpa os cliques únicos para o próximo frame
-    inputManager.clearPresses(inputManager.state);
 
     requestAnimationFrame(gameLoop);
 }

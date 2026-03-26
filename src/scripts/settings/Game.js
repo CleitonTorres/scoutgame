@@ -1,8 +1,10 @@
 import { Camera } from "../engine/Camera.js";
 import { QuestSystem } from "../engine/Quest/QuestSystem.js";
-import { getAnchor } from "../mathh/GetAnchor.js";
+import { shooter } from "../engine/Shooter.js";
+import AssetManager from "./AssetsManager.js";
 import Canvas from "./Canvas.js";
 import { EventBus } from "./EventBus.js";
+import { InputManager } from "./InputManager.js";
 import { tags } from "./tags.js";
 
 /**
@@ -17,23 +19,19 @@ export class Game {
     /**
      * Objeto Game
      * @param {{
-        * canvas: HTMLCanvasElement,
-        * ctx: CanvasRenderingContext2D,
-        * gridSize: number,
         * grid: SpatialHashGrid,
         * uiManager: UIManager,
+        * inputManager: InputManager,
         * eventBus: EventBus,
         * worldObjects: GameObject[],
         * worldTransform: {width: number, height: number} - largura e altura do mundo.
      * }} option 
      */
     constructor({
-        canvas,
-        ctx,
-        gridSize,
-        grid,
+        spatialGrid,
         eventBus,
         uiManager,
+        inputManager,
         worldObjects,
     }) {
         /**
@@ -47,30 +45,16 @@ export class Game {
         });        
 
         /**
-         * @type {HTMLCanvasElement | null}
-         */
-        this.canvas = canvas || null;
-
-        /**
-         * @type {CanvasRenderingContext2D | null}
-         */
-        this.ctx = ctx || null;
-
-        /**
-         * @type {number}
-         */
-        this.gridSize = gridSize || 64;
-
-        /**
          * Grid virtual para colisões.
          * @type {SpatialHashGrid}
          */
-        this.grid = grid || null;
+        this.spatialGrid = spatialGrid || null;
 
         /**
          * @type {UIManager | null}
          */
         this.uiManager = uiManager || null;
+        this.inputManager = inputManager || null;
 
         this._nextObjId = 1; // incremental
         this.activePlayerId = null;
@@ -134,17 +118,52 @@ export class Game {
         })
     }
 
-    update() {    
-        //atual dados dos objetos de cena que precisam ser atualizados.
-        const resolve = Array.from(this.worldObjects.values());
+    update() {  
+        // 1. Atualiza os inputs (Teclado + Gamepad)
+        this.inputManager?.update();
+
+        // 2. Se houver um diálogo aberto, o input é desviado para a UI
+        if (this.uiManager?.isDialogOpen) {
+            this._handleDialogInput();
+        } else{
+            //atual dados dos objetos de cena que precisam ser atualizados.
+            const resolve = Array.from(this.worldObjects.values());
         
-        for (let i = resolve.length - 1; i >= 0; i--) {
-            const obj = resolve[i];
-            if(!obj || !obj.tag) continue;
-    
-            obj.update?.(this.grid, this, Canvas.getWorldTransform());
-    
-            if(obj.destroyed) this.removeObject(obj);
+            for (let i = resolve.length - 1; i >= 0; i--) {
+                const obj = resolve[i];
+                if(!obj || !obj.tag) continue;
+        
+                obj.update?.(this.spatialGrid, this, Canvas.getWorldTransform());
+                
+                if(obj.destroyed) this.removeObject(obj);
+            }
+
+            // 2. Lógica de Atirar (Espaço ou Gatilho do Controle)
+            if (this.inputManager.state.shootPressed) {
+                const isCollided = this.getActivePlayer()?.hitboxes?.find(hit => hit.hit.length > 0);
+                if (!isCollided) {
+                    this.addObject(
+                        shooter(this.getActivePlayer(), AssetManager.getAnimation("obj.bexiga"), 
+                        Canvas.getCanvas(), 
+                        Canvas.getGridsize(),
+                        Canvas.getWorldTransform()
+                    ));
+                }
+            }
+
+            // 3. Lógica de UI (Inventário, Quests, etc.)
+            if (this.inputManager.state.inventory) {
+                this.uiManager.toggleInventory();
+            }
+            if (this.inputManager.state.quest) {
+                this.uiManager.toggleQuestUI();
+            }
+
+            // 4. Teclas Especiais (como o ESC)
+            // Você pode adicionar 'escape' na sua classe InputManager se quiser centralizar tudo
+            if (this.inputManager.state.escape) {
+                this.uiManager.hideAll(); // Função hipotética para fechar tudo
+            }
         }
         
         //atualiza dados do UI.
@@ -158,24 +177,47 @@ export class Game {
         }
 
         //atualia a camera (viewport)
-        this.mainCamera?.update(this.gridSize);   
+        this.mainCamera?.update(Canvas.getGridsize());  
+        
+        // Limpa os cliques únicos para o próximo frame
+        this.inputManager.clearPresses(this.inputManager.state);
     }
 
     draw() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        Canvas.getContext().clearRect(0, 0, Canvas.getCanvas().width, Canvas.getCanvas().height);
     
         this.renderCamera(
-            this.ctx, 
+            Canvas.getContext(), 
             this.mainCamera,
             {
                 x: 0, 
                 y: 0,
-                width: this.canvas.width,
-                height: this.canvas.height
+                width: Canvas.getCanvas().width,
+                height: Canvas.getCanvas().height
             }
         );
 
-        if(this.mainCamera.fogWar) this.drawViewportMask(this.ctx, this.mainCamera);
+        if(this.mainCamera.fogWar) this.drawViewportMask(Canvas.getContext(), this.mainCamera);
+    }
+
+    /**
+     * Gerencia a navegação e confirmação de diálogos via Gamepad/Teclado.
+     */
+    _handleDialogInput() {
+        if (!this.inputManager || !this.uiManager) return;
+
+        // Navegação entre botões (Esquerda/Direita)
+        if (this.inputManager.state.leftPressed) {
+            this.uiManager.navigateDialog(-1);
+        }
+        if (this.inputManager.state.rightPressed) {
+            this.uiManager.navigateDialog(1);
+        }
+
+        // Confirmação (Botão de Diálogo/Ação)
+        if (this.inputManager.state.dialog) {
+            this.uiManager.confirmSelection();
+        }
     }
 
     getActivePlayer() {
@@ -277,13 +319,13 @@ export class Game {
         // 4. Aplica a posição da Câmera
         // Subtraímos a posição da câmera (em pixels) para mover o mundo no sentido oposto
         // Como a câmera está em tiles, multiplicamos pelo gridSize
-        const camX = Math.floor(camera.x * this.gridSize);
-        const camY = Math.floor(camera.y * this.gridSize);
+        const camX = Math.floor(camera.x * Canvas.getGridsize());
+        const camY = Math.floor(camera.y * Canvas.getGridsize());
 
         // Para que o centro da câmera (camera.x + width/2) fique no centro da tela:
         // Precisamos compensar o fato de que camera.x é o canto superior esquerdo.
-        const offsetX = (camera.width / 2) * this.gridSize;
-        const offsetY = (camera.height / 2) * this.gridSize;
+        const offsetX = (camera.width / 2) * Canvas.getGridsize();
+        const offsetY = (camera.height / 2) * Canvas.getGridsize();
 
         ctx.translate(-(camX + offsetX), -(camY + offsetY));       
 
@@ -293,7 +335,7 @@ export class Game {
         
         // 6. Desenha o debug da câmera (se ativo)
         if(this.mainCamera && this.mainCamera.showViewport){
-            this.mainCamera.draw(ctx, this.gridSize);
+            this.mainCamera.draw(ctx, Canvas.getGridsize());
         }
 
         ctx.restore();
@@ -361,12 +403,12 @@ export class Game {
     drawViewportMask(ctx, camera) {
         // A máscara deve ser desenhada em coordenadas de TELA (0 a canvas.width)
         // O "buraco" deve estar no centro da tela, onde o player está centralizado.        
-        const screenCenterX = this.canvas.width / 2;
-        const screenCenterY = this.canvas.height / 2;
+        const screenCenterX = Canvas.getCanvas().width / 2;
+        const screenCenterY = Canvas.getCanvas().height / 2;
         
         // O tamanho do buraco depende do tamanho da câmera (em tiles) convertido para pixels
-        const viewW = camera.width * this.gridSize * camera.zoom;
-        const viewH = camera.height * this.gridSize * camera.zoom;
+        const viewW = camera.width * Canvas.getGridsize() * camera.zoom;
+        const viewH = camera.height * Canvas.getGridsize() * camera.zoom;
         const radius = Math.min(viewW, viewH) * 0.35;
 
         // Configuração do gradiente de sombra
@@ -385,7 +427,7 @@ export class Game {
 
         ctx.beginPath();
         // Área total (tela cheia)
-        ctx.rect(0, 0, this.canvas.width, this.canvas.height);
+        ctx.rect(0, 0, Canvas.getCanvas().width, Canvas.getCanvas().height);
 
         // Recorte (viewport) centralizado na tela
         if(camera.shape === "circle"){

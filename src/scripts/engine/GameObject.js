@@ -6,6 +6,7 @@ import { tags } from "../settings/tags.js";
 import { layers } from "../settings/layers.js";
 import { behaviors } from "../settings/behaviors.js";
 import { Shadow } from "./Shadow.js";
+import Canvas from "../settings/Canvas.js";
 
 /**
  * @typedef {{
@@ -37,8 +38,6 @@ import { Shadow } from "./Shadow.js";
     *  }},
     *  hitboxes: HitBox[],
     *  collides: Collide[],
-    *  gridSize: number,
-    *  canvas: HTMLCanvasElement
     * }} GameObjectType
  */
 /**
@@ -78,9 +77,6 @@ export class GameObject {
 
             hitboxes = [],
             collides = [],
-
-            gridSize = 64,
-            canvas
         } = options;
 
         const {
@@ -137,8 +133,8 @@ export class GameObject {
         // ------------------------
         // DEBUG E CONFIGURAÇÕES
         // ------------------------
-        this.gridSize = gridSize;
-        this.canvas = canvas;
+        this.gridSize = Canvas.getGridsize(),
+        this.canvas = Canvas.getCanvas(),
 
         // ------------------------
         // VELOCIDADE SUAVIZADA
@@ -436,16 +432,16 @@ export class GameObject {
         // O this.state seria uma variável que indica o estado atual do personagem (por exemplo, se ele 
         // está se movendo, this.state pode ser "walking").
         this.animator?.setState(this.state);
-
-        // Esta linha avança a animação em um pequeno passo de tempo (1/60 de segundo, que é o tempo de 
-        // um quadro). Isso faz com que a animação "se mova" junto com o personagem.
-        this.animator?.update(1 / 60);
     }
 
     // Desenha animação se existir.
     // Caso contrário, desenha um retângulo azul padrão.
     // Útil para debug quando sprite ainda não foi definido.
     draw() {
+        // Esta linha avança a animação em um pequeno passo de tempo (1/60 de segundo, que é o tempo de 
+        // um quadro). Isso faz com que a animação "se mova" junto com o personagem.
+        this.animator?.update(1 / 60);
+
         const ctx = this.canvas.getContext('2d');
 
         if(this.showShadow) this.shadow.draw(ctx, this);

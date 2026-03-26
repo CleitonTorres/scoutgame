@@ -33,7 +33,7 @@ export class Collide{
     * retorna valores em tiles.
     * @returns 
     */
-    getHit(){
+    getHit(predict = true){
         const scaledWidth = this.owner.width * this.owner.scale;
         const scaledHeight = this.owner.height * this.owner.scale;
 
@@ -43,9 +43,14 @@ export class Collide{
         const offSetX = this.offSetBoxCollide.x / this.owner.gridSize;
         const offSetY = this.offSetBoxCollide.y / this.owner.gridSize;
         
+        // O SEGREDO: Se estivermos parados (input=0), usamos a posição atual (x, y)
+        // Se estivermos tentando mover, usamos a próxima posição (nextPos)
+        const posX = predict ? this.owner.nextPosX : this.owner.x;
+        const posY = predict ? this.owner.nextPosY : this.owner.y;
+
         return {
-            x: this.owner.nextPosX + anchorTileX + offSetX,
-            y: this.owner.nextPosY + anchorTileY + offSetY,
+            x: posX + anchorTileX + offSetX,
+            y: posY + anchorTileY + offSetY,
             width: scaledWidth - (offSetX * 2),
             height: scaledHeight - (offSetY * 2)
         };
@@ -57,7 +62,7 @@ export class Collide{
     
     // Desenha o hitbox do jogador, se a opção estiver ativada
     draw() {
-        const boxCollide = this.getHit();
+        const boxCollide = this.getHit(true);
 
         if (this.showBoxCollide && this.ctx) {
             this.ctx.strokeStyle = 'blue';

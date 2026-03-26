@@ -17,10 +17,7 @@ import { Nature } from "../entities/Nature.js";
  * Responsável por criar e retornar os objetos da cena inicial.
  */
 export class InitialScene {
-    constructor() {
-        this.canvas = Canvas.getCanvas();
-        this.gridSize = Canvas.getGridsize();
-        
+    constructor() {        
         // Pontos para simulação de caminhada de NPC.
         this.patrolPoints = [
             { x: 2, y: 10 },
@@ -30,6 +27,11 @@ export class InitialScene {
         ];
 
         this.objects = [];
+
+        // Pegamos o tamanho total do mundo (ex: 5000x5000)
+        this.world = Canvas.getWorldTransform();
+        this.cols = Math.floor(this.world.width / Canvas.getGridsize());
+        this.rows = Math.floor(this.world.height / Canvas.getGridsize());
     }
 
     /**
@@ -81,8 +83,6 @@ export class InitialScene {
                 sortLayer: layers.underFloor,
                 state: "idle",
                 animation: AssetManager.getAnimation("npc.baloo-f"),
-                canvas: this.canvas,
-                gridSize: this.gridSize
             }),
             new NPC({
                 name: "BP",
@@ -96,8 +96,6 @@ export class InitialScene {
                 state: "idle",
                 showShadow: true,
                 animation: AssetManager.getAnimation("npc.bp"),
-                canvas: this.canvas,
-                gridSize: this.gridSize
             })
         ];
     }
@@ -108,8 +106,6 @@ export class InitialScene {
             sortLayer: layers.underFloor, 
             physical: { behavior: 'static', collision: true, mass: Infinity }, 
             transform: { width: 2, height: 2, scale: 1 }, 
-            gridSize: this.gridSize, 
-            canvas: this.canvas,
             hitboxes: [{ 
                 offSetHitbox: { x: 0, y: 0 }, 
                 anchorHitBox: { x: 0, y: 0 }, 
@@ -121,6 +117,46 @@ export class InitialScene {
                 showBoxCollide: false 
             }],
         };
+        const wallConfig2 =  { 
+            tag: tags.WALL, 
+            sortLayer: layers.underFloor, 
+            physical: { behavior: 'static', collision: true, mass: Infinity }, 
+            transform: { width: 1, height: 1, scale: 1 }, 
+            hitboxes: [{ 
+                offSetHitbox: { x: 0, y: 0 }, 
+                anchorHitBox: { x: 0, y: 0 }, 
+                showHitbox: false 
+            }],
+            collides: [{ 
+                offSetBoxCollide: { x: 4, y: 25 }, 
+                anchorBoxCollide: { x: 0, y: 15 }, 
+                showBoxCollide: false 
+            }],
+        };     
+
+        const objs = [];
+        const spawnChance = 0.02; // 15% de chance de nascer algo em cada tile
+
+        for (let y = 0; y < this.rows; y++) {
+            for (let x = 0; x < this.cols; x++) {
+                // Sorteio: se o número for menor que a chance, criamos o objeto
+                if (Math.random() < spawnChance) {                   
+                    // Adicionamos um pequeno "jitter" (deslocamento aleatório) 
+                    // para não ficar tudo perfeitamente alinhado no grid
+                    const offsetX = (Math.random() - 0.5) * 0.8;
+                    const offsetY = (Math.random() - 0.5) * 0.8;
+
+                    if(this.objects.some(o=> o.position.x === x && o.position.y === y )) continue;
+
+                    objs.push(new Wall({ 
+                        ...wallConfig2, 
+                        name: `Wall_${x}_${y}`,
+                        sprite: AssetManager.getImage(`img.nature0`),
+                        position: { x: x + offsetX, y: y + offsetY },
+                    }));
+                }
+            }
+        }
 
         return [
             new Wall({ 
@@ -140,7 +176,8 @@ export class InitialScene {
                 name: 'Wall3', 
                 sprite: AssetManager.getImage("img.nature0"),
                 position: { x: 6, y: 5 },
-            })
+            }),
+            ...objs
         ];
     }
 
@@ -151,7 +188,6 @@ export class InitialScene {
             physical: { collision: true }, 
             showShadow: true, 
             state: "move", 
-            canvas: this.canvas,
             hitboxes: [{ 
                 offSetHitbox: { x: 20, y: 10 }, 
                 anchorHitBox: { x: 0, y: 0 }, 
@@ -163,16 +199,12 @@ export class InitialScene {
                 showBoxCollide: false 
             }],
         }
-        // Pegamos o tamanho total do mundo (ex: 5000x5000)
-        const world = Canvas.getWorldTransform();
-        const cols = Math.floor(world.width / this.gridSize);
-        const rows = Math.floor(world.height / this.gridSize);
 
         const objs = [];
         const spawnChance = 0.02; // 1% de chance de nascer algo em cada tile
 
-        for (let y = 0; y < rows; y++) {
-            for (let x = 0; x < cols; x++) {
+        for (let y = 0; y < this.rows; y++) {
+            for (let x = 0; x < this.cols; x++) {
                 // Sorteio: se o número for menor que a chance, criamos o objeto
                 if (Math.random() < spawnChance) {
                     // Escolhemos uma imagem aleatória entre as disponíveis (ex: nature1 até nature4)
@@ -216,7 +248,6 @@ export class InitialScene {
                 }], 
                 state: "move", 
                 animation: AssetManager.getAnimation("obj.tree01"), 
-                canvas: this.canvas 
             }),
             new Tree({ 
                 name: 'Tree2', 
@@ -246,8 +277,6 @@ export class InitialScene {
                 }], 
                 state: "move", 
                 animation: AssetManager.getAnimation("obj.tree07"), 
-                gridSize: this.gridSize, 
-                canvas: this.canvas 
             }),
             new Tree({ 
                 name: 'Tree3', 
@@ -268,7 +297,6 @@ export class InitialScene {
                 }], 
                 state: "move", 
                 animation: {...AssetManager.getAnimation("obj.tree01"), move: {...AssetManager.getAnimation("obj.tree01").move, fps: 0.5}}, 
-                canvas: this.canvas 
             }),
             new Tree({ 
                 name: 'Tree2', 
@@ -298,8 +326,6 @@ export class InitialScene {
                 }], 
                 state: "move", 
                 animation: AssetManager.getAnimation("obj.tree07"), 
-                gridSize: this.gridSize, 
-                canvas: this.canvas 
             }),
             ...objs
         ];
@@ -308,7 +334,7 @@ export class InitialScene {
     _createItems() {
         const appleConfig = { 
             visible: false, 
-            sortLayer: layers.ground,
+            sortLayer: layers.underFloor,
             itemData: new ItemData({ 
                 id: "apple", 
                 name: "Maçã", 
@@ -321,7 +347,6 @@ export class InitialScene {
             quantity: 2, 
             transform: { width: 0.5, height: 0.5 }, 
             sprite: AssetManager.getImage("img.apple_01"), 
-            canvas: this.canvas,
         };
         return [
             new PickupItem({ 
@@ -345,8 +370,6 @@ export class InitialScene {
             sortLayer: layers.underFloor, 
             physical: { behavior: 'static', collision: true, mass: Infinity }, 
             transform: { height: 3, width: 3, scale: 1 }, 
-            gridSize: this.gridSize, 
-            canvas: this.canvas,
             hitboxes: [
                 { 
                     offSetHitbox: { x: 10, y: 15 }, 
@@ -389,20 +412,13 @@ export class InitialScene {
             sortLayer: layers.ground, 
             transform: { width: 0.5, height: 0.5 },
             physical: { behavior: 'static', collision: false, mass: Infinity }, 
-            gridSize: this.gridSize, 
-            canvas: this.canvas,
         };
-
-        // Pegamos o tamanho total do mundo (ex: 5000x5000)
-        const world = Canvas.getWorldTransform();
-        const cols = Math.floor(world.width / this.gridSize);
-        const rows = Math.floor(world.height / this.gridSize);
 
         const objs = [];
         const spawnChance = 0.15; // 15% de chance de nascer algo em cada tile
 
-        for (let y = 0; y < rows; y++) {
-            for (let x = 0; x < cols; x++) {
+        for (let y = 0; y < this.rows; y++) {
+            for (let x = 0; x < this.cols; x++) {
                 // Sorteio: se o número for menor que a chance, criamos o objeto
                 if (Math.random() < spawnChance) {
                     // Escolhemos uma imagem aleatória entre as disponíveis (ex: nature1 até nature4)

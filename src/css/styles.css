@@ -275,6 +275,14 @@ canvas {
     line-height: 1.35;
     color: #f8fbff;
 }
+/* Estilo para o botão selecionado no diálogo */
+.is-selected {
+    border: 2px solid yellow !important;
+    background-color: rgba(255, 255, 0, 0.2) !important;
+    transform: scale(1.1); /* Dá um leve destaque */
+    transition: transform 0.1s ease;
+}
+
 .ui-conteiner-button-dialog{
     display: flex;
     flex-direction: row;

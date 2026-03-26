@@ -39,6 +39,10 @@ export class UIManager {
         this.buttonCancelar = document.getElementById("button-cancelar");
         this.buttonOk = document.getElementById("button-ok");
 
+        // --- SELEÇÃO DE DIÁLOGO ---
+        this.selectedButtonIndex = 0; // 0: Cancelar, 1: Ok
+        this.hasButtons = false;
+
         this.onClickCancelar = null;
         this.onClickOk = null;
         this.warningTimeoutId = null;
@@ -180,11 +184,65 @@ export class UIManager {
 
         if(!buttons){
             this.dialogButtonsConteiner.classList.add("is-hidden");
+            this.hasButtons = false;
         }else{
             this.dialogButtonsConteiner.classList.remove("is-hidden");
             this.showButtonsDialog();
             this.onClickCancelar = buttons.cancelar;
             this.onClickOk = buttons.ok;
+            this.hasButtons = true;
+
+            // Reseta a seleção para o botão "Ok" (índice 1) por padrão
+            this.selectedButtonIndex = 1;
+            this._updateButtonVisuals();
+        }
+    }
+
+    /**
+     * Navega entre os botões do diálogo (Esquerda/Direita).
+     * @param {number} direction -1 para esquerda, 1 para direita.
+     */
+    navigateDialog(direction) {
+        if (!this.isDialogOpen || !this.hasButtons) return;
+
+        // Alterna entre 0 e 1
+        this.selectedButtonIndex = (this.selectedButtonIndex === 0) ? 1 : 0;
+        this._updateButtonVisuals();
+    }
+
+    /**
+     * Para o GAMEPAD - Executa a ação do botão selecionado.
+     */
+    confirmSelection() {
+        if (!this.isDialogOpen) return;
+
+        if (this.hasButtons) {
+            if (this.selectedButtonIndex === 0) {
+                this.onClickCancelar?.();
+            } else {
+                this.onClickOk?.();
+            }
+        } else {
+            // Se não houver botões, apenas fecha o diálogo (comportamento padrão)
+            this.hideDialog();
+        }
+    }
+
+     /**
+     * Atualiza a aparência visual dos botões para mostrar qual está selecionado.
+     */
+    _updateButtonVisuals() {
+        if (!this.buttonCancelar || !this.buttonOk) return;
+
+        // Remove a classe de foco de ambos
+        this.buttonCancelar.classList.remove("is-selected");
+        this.buttonOk.classList.remove("is-selected");
+
+        // Adiciona no selecionado
+        if (this.selectedButtonIndex === 0) {
+            this.buttonCancelar.classList.add("is-selected");
+        } else {
+            this.buttonOk.classList.add("is-selected");
         }
     }
 

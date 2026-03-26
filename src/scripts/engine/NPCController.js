@@ -28,16 +28,37 @@ export class NPCController {
         // estado atual
         this.inputX = 0;
         this.inputY = 0;
+
+        this.changeDirTimer = 0;
     }
 
     update() {
         if (!this.points.length) return;
 
         //se colidir com o player muda para animação parado.
-        if(this.entity.hitboxes.some(box=> box.hit.some(obj=> ["Player"].includes(obj?.tag)))){
+        // if(this.entity.hitboxes.some(box=> box.hit.some(obj=> ["Player"].includes(obj?.tag)))){
+        //     this.inputX = 0;
+        //     this.inputY = 0;
+        //     return;
+        // }
+        const isColliding = this.entity.collides.some(box => box.hit?.length > 0);
+
+        if (isColliding) {
+            // 1. Para o movimento atual
             this.inputX = 0;
             this.inputY = 0;
+
+            // 2. Lógica de Patrulhamento: Mudar de direção após colidir
+            // Exemplo: Se bater, vira para o lado oposto ou sorteia uma nova direção
+            this.changeDirection(); 
             return;
+        }
+
+        // 2. Opcional: Mudar de direção aleatoriamente de tempos em tempos
+        this.changeDirTimer++;
+        if (this.changeDirTimer > 200) { // A cada ~3 segundos
+            this.changeDirection();
+            this.changeDirTimer = 0;
         }
 
         const target = this.points[this.currentPoint];
@@ -89,6 +110,28 @@ export class NPCController {
         }
 
         return this.inputX < 0 ? "walkLeft" : "walkRight";
+    }
+
+    /**
+     * Lógica de Patrulhamento: Escolhe uma nova direção aleatória
+     */
+    changeDirection() {
+        const directions = [
+            { x: 1, y: 0 },  // Direita
+            { x: -1, y: 0 }, // Esquerda
+            { x: 0, y: 1 },  // Baixo
+            { x: 0, y: -1 }  // Cima
+        ];
+
+        // Sorteia uma direção diferente da atual
+        const newDir = directions[Math.floor(Math.random() * directions.length)];
+        
+        this.inputX = newDir.x;
+        this.inputY = newDir.y;
+        
+        // Pequeno truque: afasta o NPC um pouquinho da colisão para não travar
+        this.x -= this.inputX * 0.1;
+        this.y -= this.inputY * 0.1;
     }
 
 }
