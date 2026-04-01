@@ -11,6 +11,10 @@ import { shapes } from "../settings/shapes.js";
 import { PickupItem } from "../engine/Item/PickupItem.js";
 import AssetManager from "../settings/AssetsManager.js";
 import { Nature } from "../entities/Nature.js";
+import { Player } from "../entities/Player.js";
+import { behaviors } from "../settings/behaviors.js";
+import { CharacterController } from "../engine/CharacterController.js";
+import { Inventory } from "../engine/Inventory.js";
 
 /**
  * Classe InitialScene
@@ -23,7 +27,8 @@ export class InitialScene {
             { x: 2, y: 10 },
             { x: 10, y: 5 },
             { x: 10, y: 8 },
-            { x: 5, y: 8 }
+            { x: 13, y: 10 },
+            { x: 5, y: 8 },
         ];
 
         this.objects = [];
@@ -40,17 +45,60 @@ export class InitialScene {
      */
     getObjects() {        
         this.objects = [
-            ...this._createNPCs(),
             ...this._createWalls(),
             ...this._createTrees(),
             ...this._createItems(),
             ...this._creatBuilds(),
             ...this._createNature(),
+            ...this._createPlayer(),
+            ...this._createNPCs(),
         ];
 
         return this.objects;
     }
 
+    _createPlayer() {
+        const player = {
+            name: "Cleitinho",
+            tag: tags.PLAYER,
+            physical:{
+                behavior: behaviors.DYNAMIC,
+                collision: true,
+                mass: 10,
+                smooth: 6,
+                speed: 3
+            },
+            hitboxes: [
+                {
+                    offSetHitbox: {x:10, y:-5},
+                    anchorHitBox: {x:0, y:0},
+                    showHitbox:false
+                }
+            ],
+            collides:[
+                {
+                    offSetBoxCollide: {x: 15, y: 20},
+                    anchorBoxCollide: {x: 0, y: 20},
+                    showBoxCollide:false
+                }
+            ],
+            showShadow: true,
+            controller: new CharacterController(),
+            inventory: new Inventory(20),
+            position:{x: 14, y: 8},
+            sortLayer: layers.underFloor,
+            state: "idle",
+            animation: AssetManager.getAnimation("player.lipe"),
+        };
+        if(this.objects.some(o=> o.position.x === player.position.x && o.position.y === player.position.y )){
+            console.warn("Player spawn colliding with another object! Adjusting position...");
+            player.position.x += 1; // Move o player 1 tile para a direita
+        };
+
+        return [
+            new Player(player)
+        ];
+    }
     _createNPCs() {
         return [
             new NPC({
@@ -91,7 +139,11 @@ export class InitialScene {
                 patrolPoints: this.patrolPoints,
                 position: { x: 2, y: 10 },
                 hitboxes: [{ offSetHitbox: { x: 10, y: 10 }, anchorHitBox: { x: 0, y: 0 }, showHitbox: false }],
-                collides: [{ offSetBoxCollide: { x: 15, y: 20 }, anchorBoxCollide: { x: 0, y: 20 }, showBoxCollide: false }],
+                collides: [{ 
+                    offSetBoxCollide: { x: 15, y: 20 }, 
+                    anchorBoxCollide: { x: 0, y: 20 }, 
+                    showBoxCollide: false 
+                }],
                 sortLayer: layers.underFloor,
                 state: "idle",
                 showShadow: true,

@@ -24,7 +24,6 @@ export class Player extends GameObject {
     constructor(options= {}) {        
         super({...options});
         this.inventory = options?.inventory || null;
-        this.controller = options?.controller || null;
         this.hp = 100; //vida do personagem.
         this.facingDirection = { x: 0, y: 1 };
         this.gold = 0;
@@ -42,7 +41,9 @@ export class Player extends GameObject {
      * @param {Game} game
      * @param {{width: number, height: number}} worldTransform
      */
-    update(grid, game, worldTransform) {        
+    update(grid, game, worldTransform) {  
+        this.controller?.update(game.inputManager); // Atualiza o estado dos inputs a cada frame
+
         //se tiver um controller setado pega os valores dos inputs, se não retorna sempre o.
         const { inputX, inputY } = this.controller?.getMovement() || {x: 0, y: 0};
 

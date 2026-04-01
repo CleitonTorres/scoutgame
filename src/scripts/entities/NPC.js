@@ -8,12 +8,14 @@ import { FloatingLabel } from "../tools/DrawLabel.js";
 
 export class NPC extends GameObject {
     constructor(options= {}) {        
-        super({...options});
+        super({
+            ...options
+        });
         this.controller = new NPCController(
-            this, 
-            options?.patrolPoints || [],
-            this.speed
-        );
+                this,
+                options?.patrolPoints || [],
+                options.speed
+            )
         /**
          * @type {import("../engine/Quest/QuestData.js").QuestData}
          */
@@ -31,20 +33,22 @@ export class NPC extends GameObject {
      * - Inventário
      * - Ataque
      */
-    update(grid, _game, worldTransform) {        
+    update(grid, _game) {  
+        // 1. Busca os objetos próximos no grid
+        const collidables = grid.query(this.x, this.y);
+
+        // 3. O controlador decide o movimento baseado na colisão atualizada.
         this.controller.update();
         const { inputX, inputY } = this.controller.getMovement();
 
-        //atualiza o facingDirection para ser usado no disparo.
+        // 4. Atualiza o estado e a direção visual do NPC com base no input do controlador.
         setFacingDirection(this, inputX, inputY);
 
         const state = this.controller.getState();
         this.state = state;
-
-        const collidables = grid.query(this.x, this.y);
                 
-        // Chama o movimento base (que já atualiza todos os hitboxes internamente)
-        super.update(inputX, inputY, collidables, worldTransform);
+         // 5. Chama o movimento base (física, resolveAxis, etc.)
+        super.update(inputX, inputY, collidables);
 
         this.floatingLabel.update();
     }

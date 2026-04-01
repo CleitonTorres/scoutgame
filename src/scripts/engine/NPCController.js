@@ -9,8 +9,9 @@ export class NPCController {
      * @param {NPC} entity 
      * @param {{x: number, y: number}[]} points 
      * @param {number} speed 
+     * @param {boolean} autoPatrol - Se true, o NPC muda de direção aleatoriamente quando não tiver pontos fixos
      */
-    constructor(entity, points = [], speed = 1) {
+    constructor(entity, points = [], speed = 1, autoPatrol = false) {
         this.entity = entity;
 
         // lista de pontos de destino
@@ -29,38 +30,26 @@ export class NPCController {
         this.inputX = 0;
         this.inputY = 0;
 
+        this.autoPatrol = autoPatrol || false; // se true, o NPC muda de direção aleatoriamente quando não tiver pontos fixos
         this.changeDirTimer = 0;
+        this.isBlocked = false;
+        this.blockTimer = 0;
     }
 
     update() {
         if (!this.points.length) return;
 
-        //se colidir com o player muda para animação parado.
-        // if(this.entity.hitboxes.some(box=> box.hit.some(obj=> ["Player"].includes(obj?.tag)))){
-        //     this.inputX = 0;
-        //     this.inputY = 0;
-        //     return;
-        // }
-        const isColliding = this.entity.collides.some(box => box.hit?.length > 0);
-
-        if (isColliding) {
-            // 1. Para o movimento atual
-            this.inputX = 0;
-            this.inputY = 0;
-
-            // 2. Lógica de Patrulhamento: Mudar de direção após colidir
-            // Exemplo: Se bater, vira para o lado oposto ou sorteia uma nova direção
-            this.changeDirection(); 
+        // 2. Opcional: Mudar de direção aleatoriamente de tempos em tempos (apenas se não tiver pontos de patrulha fixos)
+        if (this.points.length === 0) {
+            this.changeDirTimer++;
+            if (this.changeDirTimer > 200) {
+                this.changeDirection();
+                this.changeDirTimer = 0;
+            }
             return;
         }
 
-        // 2. Opcional: Mudar de direção aleatoriamente de tempos em tempos
-        this.changeDirTimer++;
-        if (this.changeDirTimer > 200) { // A cada ~3 segundos
-            this.changeDirection();
-            this.changeDirTimer = 0;
-        }
-
+        // 3. Lógica de Patrulha por Pontos
         const target = this.points[this.currentPoint];
 
         const dx = target.x - this.entity.x;
@@ -68,24 +57,21 @@ export class NPCController {
 
         const distance = Math.hypot(dx, dy);
 
-        // chegou no ponto
+        // Chegou no ponto?
         if (distance < this.arrivalThreshold) {
             this.currentPoint++;
-
             if (this.currentPoint >= this.points.length) {
                 this.currentPoint = 0; // loop
             }
-
             return;
         }
 
-        // normaliza direção
+        // Normaliza direção para o alvo
         const length = distance || 1;
-
         this.inputX = dx / length;
         this.inputY = dy / length;
 
-        // atualiza direção do sprite
+        // Atualiza direção do sprite (facing)
         if (Math.abs(this.inputX) > 0.01) {
             this.entity.facing = this.inputX > 0 ? 1 : -1;
         }
@@ -113,25 +99,33 @@ export class NPCController {
     }
 
     /**
-     * Lógica de Patrulhamento: Escolhe uma nova direção aleatória
+     * Método chamado pelo NPC quando uma colisão real é detectada no motor de física.
      */
-    changeDirection() {
-        const directions = [
-            { x: 1, y: 0 },  // Direita
-            { x: -1, y: 0 }, // Esquerda
-            { x: 0, y: 1 },  // Baixo
-            { x: 0, y: -1 }  // Cima
-        ];
-
-        // Sorteia uma direção diferente da atual
-        const newDir = directions[Math.floor(Math.random() * directions.length)];
-        
-        this.inputX = newDir.x;
-        this.inputY = newDir.y;
-        
-        // Pequeno truque: afasta o NPC um pouquinho da colisão para não travar
-        this.x -= this.inputX * 0.1;
-        this.y -= this.inputY * 0.1;
+    onCollision() {
+        if (!this.isBlocked) {
+            console.log(`${this.name} bloqueado fisicamente!, mudando de direção.`);
+            this.isBlocked = true;
+            this.changeDirection();
+        }
     }
 
+    /**
+     * Lógica de Patrulhamento: Escolhe uma nova direção ou pula para o próximo ponto
+     */
+    changeDirection() {
+        if (this.points.length > 0) {
+            console.log(`${this.entity.name} colidiu! Indo para próximo ponto de patrulha.`);
+            // Se tem pontos de patrulha, pula para o próximo ponto ao colidir
+            this.currentPoint = (this.currentPoint + 1) % this.points.length;
+        } else {
+            // Se é movimento aleatório, escolhe uma nova direção
+            const directions = [
+                { x: 1, y: 0 }, { x: -1, y: 0 },
+                { x: 0, y: 1 }, { x: 0, y: -1 }
+            ];
+            const newDir = directions[Math.floor(Math.random() * directions.length)];
+            this.inputX = newDir.x;
+            this.inputY = newDir.y;
+        }
+    }    
 }

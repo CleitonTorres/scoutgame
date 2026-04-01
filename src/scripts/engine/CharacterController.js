@@ -10,11 +10,13 @@ export class CharacterController {
      *   dialog:  boolean,
      * }} input 
      */
-    constructor(input) {
-        this.input = input;
+    constructor() {
+        this.input = null;
     }
 
     getMovement() {
+        if(!this.input) return {inputX: 0, inputY: 0};
+        
         const inputX =
             (this.input.right ? 1 : 0) -
             (this.input.left ? 1 : 0);
@@ -65,5 +67,14 @@ export class CharacterController {
         }
 
         return inputX < 0 ? "walkLeft" : "walkRight";
+    }
+
+    /**
+     * 
+     * @param {import("../settings/InputManager.js").InputManager} inputs 
+     */
+    update(inputs){
+        this.input = inputs.state;
+        console.log(this.input);
     }
 }

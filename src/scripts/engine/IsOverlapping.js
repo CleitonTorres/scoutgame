@@ -5,34 +5,43 @@ import { HitBox } from "../entities/Hitbox.js";
  * Verifica colisão entre dois retângulos (AABB collision). Essa técnica é chamada de Axis-Aligned Bounding Box (AABB).
  * @param {HitBox | Collide} a - hitbox, circleBox ou boxCollide.
  * @param {HitBox | Collide} b - hitbox, circleBox ou boxCollide.
+ * @param {boolean} predictA - Se deve prever a posição de A.
+ * @param {boolean} predictB - Se deve prever a posição de B.
  * @returns 
  */
-export function isOverlapping(a, b) {
+export function isOverlapping(a, b, predictA = true, predictB = false) {
     if (!a || !b || !a.shape || !b.shape || a === b) return false;
        
     if (a.shape === "circle" && b.shape === "circle") {
-        return circleVsCircle(a, b);
+        return circleVsCircle(a, b, predictA, predictB);
     }
 
     if (a.shape === "circle" && b.shape === "box") {
-        return circleVsBox(a, b);
+        return circleVsBox(a, b, predictA, predictB);
     }
 
     if (a.shape === "box" && b.shape === "circle") {
-        return circleVsBox(b, a);
+        return circleVsBox(b, a, predictB, predictA);
     }
 
-    return boxVsBox(a, b);
+    return boxVsBox(a, b, predictA, predictB);
 }
 
-function circleVsBox(circle, box) {
-    const hitCircle = circle.getHit(); // Já traz o centro correto com offset
-    const hitBox = box.getHit();
+/**
+ * Verifica colisão entre dois retângulos (AABB collision). Essa técnica é chamada de Axis-Aligned Bounding Box (AABB).
+ * @param {HitBox | Collide} circle - hitbox, circleBox ou boxCollide.
+ * @param {HitBox | Collide} box - hitbox, circleBox ou boxCollide.
+ * @param {boolean} predictCircle - Se deve prever a posição de A.
+ * @param {boolean} predictBox - Se deve prever a posição de B.
+ * @returns {boolean}
+ */
+function circleVsBox(circle, box, predictCircle, predictBox) {
+    const hitCircle = circle.getHit(predictCircle);
+    const hitBox = box.getHit(predictBox);
 
     const centerX = hitCircle.x;
     const centerY = hitCircle.y;
 
-    // Encontra o ponto mais próximo na caixa
     const closestX = Math.max(hitBox.x, Math.min(centerX, hitBox.x + hitBox.width));
     const closestY = Math.max(hitBox.y, Math.min(centerY, hitBox.y + hitBox.height));
 
@@ -42,13 +51,11 @@ function circleVsBox(circle, box) {
     return (dx * dx + dy * dy) < (hitCircle.radius * hitCircle.radius);
 }
 
-function circleVsCircle(a, b){
-    if(!a.getHit || !b.getHit){
-        return false;
-    }
-    //pega valores atualizados de posição, largura e altura.
-    const transformCircleA = a.getHit();
-    const transformCircleB = b.getHit();
+function circleVsCircle(a, b, predictA, predictB){
+    if(!a.getHit || !b.getHit) return false;
+
+    const transformCircleA = a.getHit(predictA);
+    const transformCircleB = b.getHit(predictB);
 
     const dx = transformCircleA.x - transformCircleB.x;
     const dy = transformCircleA.y - transformCircleB.y;
@@ -59,14 +66,11 @@ function circleVsCircle(a, b){
     return distanceSquared < (radiusSum * radiusSum);
 }
 
-function boxVsBox(a, b) {
-    if(!a.getHit || !b.getHit){
-        return false;
-    }
+function boxVsBox(a, b, predictA, predictB) {
+    if(!a.getHit || !b.getHit) return false;
 
-    //pega valores atualizados de posição, largura e altura.
-    const transformA = a.getHit();
-    const transformB = b.getHit();
+    const transformA = a.getHit(predictA);
+    const transformB = b.getHit(predictB);
 
     return (
         transformA.x < transformB.x + transformB.width &&

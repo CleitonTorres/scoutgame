@@ -33,18 +33,18 @@ export class Collide{
     * retorna valores em tiles.
     * @returns 
     */
-    getHit(predict = true){
+    getHit(predict = true) {
         const scaledWidth = this.owner.width * this.owner.scale;
         const scaledHeight = this.owner.height * this.owner.scale;
 
-        //offSetHit e anchorHit vem em pixel e precisa ser convertido para tile.
+        // Converte pixels para tiles
         const anchorTileX = this.anchorBoxCollide.x / this.owner.gridSize;
         const anchorTileY = this.anchorBoxCollide.y / this.owner.gridSize;
         const offSetX = this.offSetBoxCollide.x / this.owner.gridSize;
         const offSetY = this.offSetBoxCollide.y / this.owner.gridSize;
         
-        // O SEGREDO: Se estivermos parados (input=0), usamos a posição atual (x, y)
-        // Se estivermos tentando mover, usamos a próxima posição (nextPos)
+        // Se predict for true, usamos nextPosX/Y (previsão de movimento).
+        // Se for false, usamos x/y (posição atual real).
         const posX = predict ? this.owner.nextPosX : this.owner.x;
         const posY = predict ? this.owner.nextPosY : this.owner.y;
 
