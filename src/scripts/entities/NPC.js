@@ -12,10 +12,11 @@ export class NPC extends GameObject {
             ...options
         });
         this.controller = new NPCController(
-                this,
-                options?.patrolPoints || [],
-                options.speed
-            )
+            this,
+            options.patrolPoints || [],
+            options.speed,
+            options.autoPatrol,
+        );
         /**
          * @type {import("../engine/Quest/QuestData.js").QuestData}
          */
@@ -33,12 +34,12 @@ export class NPC extends GameObject {
      * - Inventário
      * - Ataque
      */
-    update(grid, _game) {  
+    update(grid, game) {  
         // 1. Busca os objetos próximos no grid
         const collidables = grid.query(this.x, this.y);
 
         // 3. O controlador decide o movimento baseado na colisão atualizada.
-        this.controller.update();
+        this.controller.update(game);
         const { inputX, inputY } = this.controller.getMovement();
 
         // 4. Atualiza o estado e a direção visual do NPC com base no input do controlador.
