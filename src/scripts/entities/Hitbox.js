@@ -11,19 +11,20 @@ export class HitBox{
      * Classe para detectar colisões
      * @param {import("../types/types.js").HitBoxType} options 
      */
-    constructor({owner, showHitbox, offSetHitbox, anchorHitBox, shape}={}){
+    constructor({owner, showHitbox, offSetHitbox, anchorHitBox, shape, collision, color}={}){
         this.showHitbox = showHitbox || false;
         this.offSetHitbox = offSetHitbox || {x: 0, y: 0};
         this.anchorHitBox = anchorHitBox || {x: 0, y:0};
         this.owner = owner || null;
         this.sortLayer = this.owner?.sortLayer || 1;
         this.shape = shape || shapes.BOX;
+        this.collision = collision ?? false; // Indica se a colisão está ativa ou não, pode ser controlada externamente para ativar/desativar a detecção de colisão.
+        this.color = color || 'red'; // Cor para desenhar o hitbox, útil para depuração.
 
         /**
-         * @type {import("../types/types.js").GameObjectInstance[] | import("../types/types.js").PickupItemInstance[]}
+         * @type {import("../types/types.js").GameObjectInstance[] | import("../types/types.js").PickupItemInstance[] }
         */
         this.hit = [];//GameObjects Colididos
-        this.collision = this.owner?.collision || false;
     }
 
     /**
@@ -74,7 +75,7 @@ export class HitBox{
 
         if (this.showHitbox) {
             if(this.shape === "circle"){
-                Canvas.getContext().strokeStyle = 'red';
+                Canvas.getContext().strokeStyle = this.color ?? 'red';
                 Canvas.getContext().beginPath();
                 Canvas.getContext().arc(
                     hitbox.x * Canvas.getGridsize(), 
@@ -85,7 +86,7 @@ export class HitBox{
                 );
                 Canvas.getContext().stroke();
             }else{
-                Canvas.getContext().strokeStyle = 'red';
+                Canvas.getContext().strokeStyle = this.color ?? 'red';
                 Canvas.getContext().strokeRect(
                     (hitbox.x * Canvas.getGridsize()), 
                     (hitbox.y * Canvas.getGridsize()), 

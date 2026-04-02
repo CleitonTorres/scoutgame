@@ -18,11 +18,15 @@ export class Player extends GameObject {
     constructor(options= {}) {        
         super({...options});
         
-        this.inventory = options?.inventory ?? null;
-        this.hp = 100; //vida do personagem.
+        this.inventory = options?.inventory ?? null;        
         this.facingDirection = { x: 0, y: 1 };
         this.gold = 0;
         this.floatingLabel = new FloatingLabel({text: this.name});
+
+        this.hp = 100; //vida do personagem.
+        this.invulnerable = false;
+        this.invulnerableTimer = 0;
+        this.invulnerableDuration = 60; // 1 segundo de proteção
     }
 
     /**
@@ -39,6 +43,19 @@ export class Player extends GameObject {
     update(grid, game, worldTransform) {  
         this.controller?.update(game.inputManager); // Atualiza o estado dos inputs a cada frame
 
+        // ESTA É A LÓGICA QUE DECREMENTA O TIMER DE INVULNERABILIDADE E RESETA O ESTADO DE INVULNERÁVEL QUANDO O TIMER CHEGA A 0.:
+        if (this.invulnerable) {
+            this.invulnerableTimer--;
+            if (this.invulnerableTimer <= 0) {
+                this.invulnerable = false;
+            }
+        }
+
+        // Se o HP chegar a 0, o player "morre"
+        if (this.hp <= 0) {
+            this.state = "death";
+        }
+        
         //se tiver um controller setado pega os valores dos inputs, se não retorna sempre o.
         const { inputX, inputY } = this.controller?.getMovement() || {x: 0, y: 0};
 
@@ -68,7 +85,7 @@ export class Player extends GameObject {
 
     /**
      * 
-     * @param {Game} game 
+     * @param {import("../types/types.js").GameInstance} game 
      */
     getCollides(game){
         this.hitboxes.forEach(box => {
@@ -211,6 +228,14 @@ export class Player extends GameObject {
                     }
 
                 }
+
+                if (hit.tag === tags.ENEMY) {
+                    // Verifica se o inimigo que encostou no player tem um hitbox ativo (frames 8-9)
+                    const enemyHitbox = hit.hitboxes[0].collision && hit.hitboxes[0].hit.some(h => h === this);
+                    if (enemyHitbox) {
+                        this.takeDamage(10, game.uiManager); // Aplica o dano
+                    }
+                }
             })
         });
 
@@ -232,4 +257,23 @@ export class Player extends GameObject {
         }
         return null;
     }
+
+    /**
+     * Aplica dano ao player, considerando invulnerabilidade temporária após ser atingido.
+     * @param {number} amount 
+     * @param {import("../types/types.js").UIManagerInstance} uiManager 
+     * @returns 
+     */
+    takeDamage(amount, uiManager) {
+        if (this.hp <= 0 || this.invulnerable) return;
+        
+        this.hp -= amount;
+        this.invulnerable = true;
+        this.invulnerableTimer = this.invulnerableDuration;
+        
+        if (uiManager) {
+            uiManager.showWarning(`Dano recebido! HP: ${this.hp}`, 1000);
+        }
+    }
+
 }

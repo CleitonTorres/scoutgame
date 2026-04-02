@@ -23,7 +23,8 @@ export class NPC extends GameObject {
          * @type {import("../engine/Quest/QuestData.js").QuestData}
          */
         this.quest = options.quest || null;
-        this.hp = 100; //vida do personagem.
+        this.hp = 100; //vida do NPC.
+        this.isDead = false; //estado de vida do NPC.
         this.facingDirection = { x: 0, y: 1 };
         this.floatingLabel = new FloatingLabel({text: this.name});
     }
@@ -35,8 +36,19 @@ export class NPC extends GameObject {
      * - Energia
      * - Inventário
      * - Ataque
+     * @param {import("../types/types.js").SpatialHashGridInstance} grid
+     * @param {import("../types/types.js").GameInstance} game
      */
-    update(grid, game) {  
+    update(grid, game) { 
+        // Se o NPC estiver morto, ele não deve realizar nenhuma ação além de atualizar sua animação de morte. 
+        if (this.isDead) {
+            this.state = "dead";
+            this.animator.setState(this.state);
+            this.animator.update(1 / 60);
+            game.removeObject(this); // Remove o NPC do jogo após a animação de morte (opcional, dependendo do design do jogo)
+            return;
+        }
+        
         // 1. Busca os objetos próximos no grid
         const collidables = grid.query(this.x, this.y);
 
@@ -59,5 +71,20 @@ export class NPC extends GameObject {
     draw(){
         super.draw();
         this.floatingLabel.draw(Canvas.getContext(), this);
+    }
+
+    // Novo método para processar o dano
+    takeDamage(amount) {
+        if (this.isDead) return;
+        this.hp -= amount;
+        
+        if (this.hp <= 0) {
+            this.hp = 0;
+            this.isDead = true;
+            this.state = "dead";
+            // Desativa explicitamente todos os hitboxes e colliders
+            this.hitboxes.forEach(h => h.collision = false);
+            this.collides.forEach(c => c.collision = false);
+        }
     }
 }

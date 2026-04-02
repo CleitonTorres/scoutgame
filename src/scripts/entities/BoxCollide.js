@@ -7,19 +7,19 @@ export class Collide{
      * Classe para detectar obstaculos
      * @param {import("../types/types.js").BoxCollideType} options 
      */
-    constructor({owner, showBoxCollide, offSetBoxCollide, anchorBoxCollide, shape}={}){
+    constructor({owner, showBoxCollide, offSetBoxCollide, anchorBoxCollide, shape, collision}={}){
         this.showBoxCollide = showBoxCollide || false;
         this.offSetBoxCollide = offSetBoxCollide || {x: 0, y: 0};
         this.anchorBoxCollide = anchorBoxCollide || {x: 0, y:0};
         this.owner = owner || null;
         this.sortLayer = this.owner?.sortLayer || 1;
         this.shape = shape || shapes.BOX;
+        this.collision = collision ?? false; // Indica se a colisão está ativa ou não, pode ser controlada externamente para ativar/desativar a detecção de colisão.
 
         /**
          * @type {import("../types/types.js").GameObjectInstance[] | import("../engine/Item/PickupItem.js").PickupItem[]}
         */
         this.hit = [];
-        this.collision = this.owner?.collision || false;
     }
 
     /**

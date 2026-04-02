@@ -1,4 +1,5 @@
 import { GameObject } from "../engine/GameObject.js";
+import { tags } from "../settings/tags.js";
 
 export class Ballon extends GameObject {
     /**
@@ -161,9 +162,37 @@ export class Ballon extends GameObject {
         this.updateCollides(collidables); // Força atualização antes de checar
 
         const collided = this.hitboxes.find(box => box.hit.length > 0);
-        if (collided && collided.owner !== this.owner) {
-            this.startHit();
-            return;
+        if (collided) {
+            for (const hit of collided.hit) {
+                // Evita rebater contra o próprio projétil ou seu dono.
+                if (hit === this || hit.id === this.owner.id) continue;
+
+                if (hit.tag === tags.ENEMY) {
+                    // 1. Aplica Dano (25 por balão)
+                    if (typeof hit.takeDamage === "function") {
+                        hit.takeDamage(25);
+                    }
+
+                    // 2. Aplica Knockback (Empurrão baseado na massa)
+                    const massRatio = this.mass / (hit.mass ?? 1);
+                    const knockbackForce = 0.1 * massRatio; 
+                    
+                    const kx = this.direction.x * knockbackForce;
+                    const ky = this.direction.y * knockbackForce;
+
+                    // Aplica o impulso ao sistema de física do inimigo
+                    if (typeof hit.applyImpulse === "function") {
+                        hit.applyImpulse(kx, ky);
+                    }
+                }
+            
+                // Inicia a animação de hit usando a direção do objeto que colidiu como referência.
+                this.startHit({
+                    x: hit.direction?.x ?? 0,
+                    y: hit.direction?.y ?? 0,
+                });
+                return;
+            }            
         }
 
         // Move o objeto normalmente (sem bloqueio físico automático).
