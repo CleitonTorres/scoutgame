@@ -40,7 +40,10 @@ const game = new Game({
 });
 
 function gameLoop() {
-    updateWorld(worldObjects, spatialGrid);
+    // Pega apenas os objetos que ainda estão ativos no jogo
+    const activeObjects = game.getAllWorldObjects();
+    
+    updateWorld(activeObjects, spatialGrid);
 
     game.update();
     game.draw();

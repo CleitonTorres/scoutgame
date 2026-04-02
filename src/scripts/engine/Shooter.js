@@ -13,14 +13,13 @@ import { tags } from "../settings/tags.js";
  */
 export function shooter(player, ballonAnimation, canvas, gridSize){
     //pegar a posição para spawnar o balão pelo centro do player.
-    const {x, y} = getRadiusToSpaw(player, 10, gridSize);
+    const {x, y} = getRadiusToSpaw(player, -10, gridSize);
     const ballon = new Ballon({
         name: `Ballon-${Date.now()}`,
         tag: tags.BALLON,
         position: { x, y },
         direction: player.facingDirection,
         physical:{
-            collision: true,
             mass: 8,
             speed: 6 
         },
@@ -32,7 +31,8 @@ export function shooter(player, ballonAnimation, canvas, gridSize){
             {
                 offSetHitbox: {x:0, y:0},
                 anchorHitBox: {x:0, y:0},
-                showHitbox:false
+                showHitbox:false,
+                collision: true,
             }
         ],
         state: "move",

@@ -62,7 +62,6 @@ export class GameObject {
             behavior = behaviors.STATIC,
             speed = 2,
             mass = 0,
-            collision = false,
             smooth = 6
         } = physical;
         
@@ -95,7 +94,6 @@ export class GameObject {
         this.behavior = behavior === 'dynamic' ? 'dynamic' : 'static';
         this.speed = speed;
         this.mass = mass;
-        this.collision = collision;
         this.smooth = Math.max(1, smooth);
 
         this.controller = controller; // controlador externo (ex: NPCController, PlayerController);
@@ -136,10 +134,25 @@ export class GameObject {
         this.showShadow = showShadow;
         this.shadow = new Shadow();
 
+        this.impulseX = 0; // Impulso residual em X (ex: de um ataque ou colisão)
+        this.impulseY = 0; // Impulso residual em Y
+        this.impulseFriction = 0.05; // Fator de decaimento do impulso (quanto menor, mais rápido o impulso desaparece)
+        
         // ------------------------
         // HITBOX INICIAL
         // ------------------------
         // Representa a área real de colisão do objeto.
+        if(this.tag ===tags.ENEMY){ //se for um inimigo, adiciona um hitbox padrão para garantir que ele possa ser atingido mesmo sem configuração explícita.
+            hitboxes.unshift({ 
+                offSetHitbox: { x: 15, y: 18 }, 
+                anchorHitBox: { x: 0, y: 18 }, 
+                showHitbox: false,
+                shape: "box", 
+                collision: false,
+                color: "blue",
+            });
+        }
+
         this.hitboxes = (hitboxes || []).map(config =>
             new HitBox({
                 ...config,
@@ -398,6 +411,15 @@ export class GameObject {
         // Sincroniza as posições de previsão finais após as resoluções
         this.nextPosX = this.x;
         this.nextPosY = this.y;
+
+        // Aplica impulso residual (ex: de um ataque ou colisão) e depois decai suavemente.
+        if (Math.abs(this.impulseX) > 0.001 || Math.abs(this.impulseY) > 0.001) {
+            this.vx += this.impulseX;
+            this.vy += this.impulseY;
+            this.impulseX *= this.impulseFriction; // Decaimento suave
+            this.impulseY *= this.impulseFriction;
+        }
+
         this.updateCollides(collidables);
 
         // Por que tratar eixos separados? Imagine que seu personagem está se movendo na diagonal em direção a um
@@ -458,11 +480,28 @@ export class GameObject {
      */
     updateCollides(collidables){
         if(this.hitboxes){
-            this.hitboxes.forEach(h => h.update(collidables));
+            //this.hitboxes.forEach(h => h.update(collidables));
+            this.hitboxes.forEach((h, idx) => {
+                // Lógica para habilitar hitbox apenas nos frames 8-9 do ataque para inimigos
+                if (idx === 0 && this.tag === tags.ENEMY && ["attackRight", "attackLeft"].includes(this.currentAnimation)) {
+                    // Ativa colisão apenas nos frames 8 e 9 da animação de ataque
+                    h.collision = (this.animationFrame === 8 || this.animationFrame === 9);
+                } else if (this.tag === tags.ENEMY) {
+                    // Se não estiver atacando, o hitbox de ataque fica desativado
+                    h.collision = false;
+                }
+
+                h.update(collidables);
+            });
         }
 
         if(this.collides){
             this.collides.forEach(h => h.update(collidables));
         }
+    }
+
+    applyImpulse(x, y) {
+        this.impulseX += x;
+        this.impulseY += y;
     }
 }

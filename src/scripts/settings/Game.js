@@ -81,7 +81,9 @@ export class Game {
 
                 if(data.type === "hitbox"){
                     const objs = this.getAllWorldObjects()
-                    objs.forEach(o=> o.hitboxes.forEach(h=> h.showHitbox = data.value))
+                    objs.forEach(o=> o.hitboxes.forEach(h=> {
+                        h.showHitbox = data.value;
+                    }))
                 }
 
                 if(data.type === "collider"){
@@ -131,15 +133,13 @@ export class Game {
 
             // 2. Lógica de Atirar (Espaço ou Gatilho do Controle)
             if (this.inputManager.state.shootPressed) {
-                const isCollided = this.getActivePlayer()?.hitboxes?.find(hit => hit.hit.length > 0);
-                if (!isCollided) {
-                    this.addObject(
-                        shooter(this.getActivePlayer(), AssetManager.getAnimation("obj.bexiga"), 
-                        Canvas.getCanvas(), 
-                        Canvas.getGridsize(),
-                        Canvas.getWorldTransform()
-                    ));
-                }
+                // const isCollided = this.getActivePlayer()?.hitboxes?.find(hit => hit.hit.length > 0);
+                this.addObject(
+                    shooter(this.getActivePlayer(), AssetManager.getAnimation("obj.bexiga"), 
+                    Canvas.getCanvas(), 
+                    Canvas.getGridsize(),
+                    Canvas.getWorldTransform()
+                ));
             }
 
             // 3. Lógica de UI (Inventário, Quests, etc.)

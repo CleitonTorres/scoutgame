@@ -71,7 +71,6 @@ export class InitialScene {
             tag: tags.PLAYER,
             physical:{
                 behavior: behaviors.DYNAMIC,
-                collision: true,
                 mass: 10,
                 smooth: 6,
                 speed: 3
@@ -80,14 +79,16 @@ export class InitialScene {
                 {
                     offSetHitbox: {x:10, y:-5},
                     anchorHitBox: {x:0, y:0},
-                    showHitbox:false
+                    showHitbox:false,
+                    collision: true,
                 }
             ],
             collides:[
                 {
                     offSetBoxCollide: {x: 15, y: 20},
                     anchorBoxCollide: {x: 0, y: 20},
-                    showBoxCollide:false
+                    showBoxCollide:false,
+                    collision: true,
                 }
             ],
             showShadow: true,
@@ -116,10 +117,20 @@ export class InitialScene {
             new NPC({
                 name: "Baloo !",
                 tag: tags.NPC_quest,
-                physical: { behavior: "dynamic", collision: false, mass: 7, smooth: 6, speed: 3 },
+                physical: { behavior: "dynamic", mass: 7, smooth: 6, speed: 3 },
                 position: { x: 10, y: 1 },
-                hitboxes: [{ offSetHitbox: { x: 15, y: 10 }, anchorHitBox: { x: 0, y: 0 }, showHitbox: false }],
-                collides: [{ offSetBoxCollide: { x: 15, y: 20 }, anchorBoxCollide: { x: 0, y: 20 }, showBoxCollide: false }],
+                hitboxes: [{ 
+                    offSetHitbox: { x: 15, y: 10 }, 
+                    anchorHitBox: { x: 0, y: 0 }, 
+                    showHitbox: false,
+                    collision: false,
+                }],
+                collides: [{ 
+                    offSetBoxCollide: { x: 15, y: 20 }, 
+                    anchorBoxCollide: { x: 0, y: 20 }, 
+                    showBoxCollide: false,
+                    collision: true,
+                }],
                 showShadow: true,
                 quest: new QuestData({
                     id: "collect_apples",
@@ -147,14 +158,20 @@ export class InitialScene {
             new NPC({
                 name: "BP",
                 tag: "NPC",
-                physical: { behavior: "dynamic", collision: true, mass: 7, smooth: 6, speed: 0.5 },
+                physical: { behavior: "dynamic", mass: 7, smooth: 6, speed: 0.5 },
                 patrolPoints: this.patrolPoints,
                 position: { x: 2, y: 10 },
-                hitboxes: [{ offSetHitbox: { x: 10, y: 10 }, anchorHitBox: { x: 0, y: 0 }, showHitbox: false }],
+                hitboxes: [{ 
+                    offSetHitbox: { x: 10, y: 10 }, 
+                    anchorHitBox: { x: 0, y: 0 }, 
+                    showHitbox: false,
+                    collision: true,
+                }],
                 collides: [{ 
                     offSetBoxCollide: { x: 15, y: 20 }, 
                     anchorBoxCollide: { x: 0, y: 20 }, 
-                    showBoxCollide: false 
+                    showBoxCollide: false,
+                    collision: true,
                 }],
                 sortLayer: layers.underFloor,
                 state: "idle",
@@ -181,16 +198,18 @@ export class InitialScene {
             tag: tags.ENEMY,
             autoPatrol: true,
             transform: { width: 1, height: 1, scale: 1 },
-            physical: { behavior: "dynamic", collision: true, mass: 5, smooth: 6, speed: 2 },
+            physical: { behavior: "dynamic", mass: 5, smooth: 6, speed: 2 },
             hitboxes: [{ 
                 offSetHitbox: { x: 10, y: 20 }, 
                 anchorHitBox: { x: 0, y: 20 }, 
-                showHitbox: false 
+                showHitbox: false,
+                collision: true, 
             }],
             collides: [{ 
                 offSetBoxCollide: { x: 25, y: 25 }, 
                 anchorBoxCollide: { x: 0, y: 25 }, 
-                showBoxCollide: false 
+                showBoxCollide: false,
+                collision: true, 
             }],
             showShadow: true,
             sortLayer: layers.underFloor,
@@ -228,33 +247,37 @@ export class InitialScene {
         const wallConfig = { 
             tag: tags.WALL, 
             sortLayer: layers.underFloor, 
-            physical: { behavior: 'static', collision: true, mass: Infinity }, 
+            physical: { behavior: 'static', mass: Infinity }, 
             transform: { width: 2, height: 2, scale: 1 }, 
             hitboxes: [{ 
                 offSetHitbox: { x: 0, y: 0 }, 
                 anchorHitBox: { x: 0, y: 0 }, 
-                showHitbox: false 
+                showHitbox: false,
+                collision: false,
             }],
             collides: [{ 
                 offSetBoxCollide: { x: 8, y: 50 }, 
                 anchorBoxCollide: { x: 0, y: 30 }, 
-                showBoxCollide: false 
+                showBoxCollide: false,
+                collision: true,
             }],
         };
         const wallConfig2 =  { 
             tag: tags.WALL, 
             sortLayer: layers.underFloor, 
-            physical: { behavior: 'static', collision: true, mass: Infinity }, 
+            physical: { behavior: 'static', mass: Infinity }, 
             transform: { width: 1, height: 1, scale: 1 }, 
             hitboxes: [{ 
                 offSetHitbox: { x: 0, y: 0 }, 
                 anchorHitBox: { x: 0, y: 0 }, 
-                showHitbox: false 
+                showHitbox: false,
+                collision: false,
             }],
             collides: [{ 
                 offSetBoxCollide: { x: 4, y: 25 }, 
                 anchorBoxCollide: { x: 0, y: 15 }, 
-                showBoxCollide: false 
+                showBoxCollide: false,
+                collision: true,
             }],
         };     
 
@@ -309,19 +332,20 @@ export class InitialScene {
         const treeConfigs = { 
             tag: tags.TREE, 
             sortLayer: layers.underFloor, 
-            physical: { collision: true }, 
             transform: { width: 1, height: 1, scale: 1 },
             showShadow: true, 
             state: "move", 
             hitboxes: [{ 
                 offSetHitbox: { x: 20, y: 10 }, 
                 anchorHitBox: { x: 0, y: 0 }, 
-                showHitbox: false 
+                showHitbox: false,
+                collision: true,
             }], 
             collides: [{ 
                 offSetBoxCollide: { x: 25, y: 25 }, 
                 anchorBoxCollide: { x: 0, y: 25 }, 
-                showBoxCollide: false 
+                showBoxCollide: false, 
+                collision: true
             }],
         }
 
@@ -359,17 +383,18 @@ export class InitialScene {
                 tag: tags.TREE, 
                 sortLayer: layers.underFloor, 
                 position: { x: 9, y: 5 }, 
-                physical: { collision: true }, 
                 showShadow: true,
                 hitboxes: [{ 
                     offSetHitbox: { x: 20, y: 10 }, 
                     anchorHitBox: { x: 0, y: 0 }, 
-                    showHitbox: false 
+                    showHitbox: false,
+                    collision: true,
                 }], 
                 collides: [{ 
                     offSetBoxCollide: { x: 25, y: 25 }, 
                     anchorBoxCollide: { x: 0, y: 25 }, 
-                    showBoxCollide: false 
+                    showBoxCollide: false,
+                    collision: true,
                 }], 
                 state: "move", 
                 animation: AssetManager.getAnimation("obj.tree01"), 
@@ -379,26 +404,28 @@ export class InitialScene {
                 tag: tags.TREE, 
                 sortLayer: layers.underFloor, 
                 position: { x: 6, y: 7.5 },
-                physical: { collision: true }, 
                 transform: { width: 2, height: 2, scale: 1 }, 
                 showShadow: true,
                 hitboxes: [
                     { 
                         offSetHitbox: { x: 50, y: 25 }, 
                         anchorHitBox: { x: 8, y: 25 }, 
-                        showHitbox: false 
+                        showHitbox: false,
+                        collision: true,
                     }, 
                     { 
                         shape: shapes.CIRCLE, 
                         offSetHitbox: { x: 15, y: 15 }, 
                         anchorHitBox: { x: -15, y: -33 }, 
-                        showHitbox: false 
+                        showHitbox: false,
+                        collision: true,
                     }
                 ], 
                 collides: [{ 
                     offSetBoxCollide: { x: 50, y: 60 }, 
                     anchorBoxCollide: { x: 10, y: 60 }, 
-                    showBoxCollide: false 
+                    showBoxCollide: false,
+                    collision: true,
                 }], 
                 state: "move", 
                 animation: AssetManager.getAnimation("obj.tree07"), 
@@ -408,17 +435,18 @@ export class InitialScene {
                 tag: tags.TREE, 
                 sortLayer: layers.underFloor, 
                 position: { x: 16, y: 10 }, 
-                physical: { collision: true }, 
                 showShadow: true,
                 hitboxes: [{ 
                     offSetHitbox: { x: 20, y: 10 }, 
                     anchorHitBox: { x: 0, y: 0 }, 
-                    showHitbox: false 
+                    showHitbox: false,
+                    collision: true,
                 }], 
                 collides: [{ 
                     offSetBoxCollide: { x: 25, y: 25 }, 
                     anchorBoxCollide: { x: 0, y: 25 }, 
-                    showBoxCollide: false 
+                    showBoxCollide: false, 
+                    collision: true
                 }], 
                 state: "move", 
                 animation: {...AssetManager.getAnimation("obj.tree01"), move: {...AssetManager.getAnimation("obj.tree01").move, fps: 0.5}}, 
@@ -428,26 +456,28 @@ export class InitialScene {
                 tag: tags.TREE, 
                 sortLayer: layers.underFloor, 
                 position: { x: 14, y: 10 },
-                physical: { collision: true }, 
                 transform: { width: 2, height: 2, scale: 1 }, 
                 showShadow: true,
                 hitboxes: [
                     { 
                         offSetHitbox: { x: 50, y: 25 }, 
                         anchorHitBox: { x: 8, y: 25 }, 
-                        showHitbox: false 
+                        showHitbox: false,
+                        collision: true,
                     }, 
                     { 
                         shape: shapes.CIRCLE, 
                         offSetHitbox: { x: 15, y: 15 }, 
                         anchorHitBox: { x: -15, y: -33 }, 
-                        showHitbox: false 
+                        showHitbox: false,
+                        collision: true,
                     }
                 ], 
                 collides: [{ 
                     offSetBoxCollide: { x: 50, y: 60 }, 
                     anchorBoxCollide: { x: 10, y: 60 }, 
-                    showBoxCollide: false 
+                    showBoxCollide: false,
+                    collision: true,
                 }], 
                 state: "move", 
                 animation: AssetManager.getAnimation("obj.tree07"), 
@@ -493,25 +523,28 @@ export class InitialScene {
         const BuildConfig = { 
             tag: tags.BUILD, 
             sortLayer: layers.underFloor, 
-            physical: { behavior: 'static', collision: true, mass: Infinity }, 
+            physical: { behavior: 'static', mass: Infinity }, 
             transform: { height: 3, width: 3, scale: 1 }, 
             hitboxes: [
                 { 
                     offSetHitbox: { x: 10, y: 15 }, 
                     anchorHitBox: { x: 0, y: 15 }, 
-                    showHitbox: false 
+                    showHitbox: false,
+                    collision: true,
                 },
                 {
                     shape: shapes.CIRCLE,
                     offSetHitbox: { x: 20, y: 30 }, 
                     anchorHitBox: { x: -20, y: -60 }, 
-                    showHitbox: false 
+                    showHitbox: false,
+                    collision: true,
                 }
             ],
             collides: [{ 
                 offSetBoxCollide: { x: 10, y: 35 }, 
                 anchorBoxCollide: { x: 0, y: 30 }, 
-                showBoxCollide: false 
+                showBoxCollide: false,
+                collision: true,
             }],
         };
 
@@ -536,7 +569,7 @@ export class InitialScene {
             tag: tags.NATURE, 
             sortLayer: layers.ground, 
             transform: { width: 0.5, height: 0.5 },
-            physical: { behavior: 'static', collision: false, mass: Infinity }, 
+            physical: { behavior: 'static', mass: Infinity }, 
         };
 
         const objs = [];

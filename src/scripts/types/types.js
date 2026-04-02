@@ -39,8 +39,8 @@
 *        fps: number;
 *        loop: boolean;
 *  }},
-*  hitboxes: HitBox[],
-*  collides: Collide[],
+*  hitboxes: HitBoxType[],
+*  collides: BoxCollideType[],
 * }} GameObjectType
 * @global
 */
@@ -78,7 +78,8 @@
 * showBoxCollide: boolean, 
 * offSetBoxCollide: {x: number, y: number}, 
 * anchorBoxCollide: {x: number, y: number}, 
-* shape: import("../settings/shapes.js")
+* shape: import("../settings/shapes.js"),
+* collision: boolean,
 * }} BoxCollideType
 * @global
 */
@@ -89,7 +90,9 @@
 * showHitbox: boolean, 
 * offSetHitbox: {x: number, y: number}, 
 * anchorHitBox: {x: number, y: number}, 
-* shape: import("../settings/shapes.js")
+* shape: import("../settings/shapes.js"),
+* collision: boolean,
+* color?: string,
 * }} HitBoxType
 * @global
 */

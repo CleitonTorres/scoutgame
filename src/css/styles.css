@@ -211,6 +211,8 @@ canvas {
 }
 #debug-panel{
     pointer-events: auto;
+    position: absolute;
+    top: 200px;
 }
 #ui-hud {
     width: fit-content;
