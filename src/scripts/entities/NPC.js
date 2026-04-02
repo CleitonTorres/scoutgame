@@ -1,12 +1,14 @@
 import { setFacingDirection } from "../engine/FacingDirectio.js";
 import { GameObject } from "../engine/GameObject.js";
 import { NPCController } from "../engine/NPCController.js";
-import { sortLayer } from "../engine/SortLayer.js";
 import Canvas from "../settings/Canvas.js";
-import { layers } from "../settings/layers.js";
 import { FloatingLabel } from "../tools/DrawLabel.js";
 
 export class NPC extends GameObject {
+    /**
+     * 
+     * @param {import("../types/types.js").NPCType} options 
+     */
     constructor(options= {}) {        
         super({
             ...options
@@ -14,7 +16,7 @@ export class NPC extends GameObject {
         this.controller = new NPCController(
             this,
             options.patrolPoints || [],
-            options.speed,
+            options.physical.speed,
             options.autoPatrol,
         );
         /**

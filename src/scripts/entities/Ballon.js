@@ -2,13 +2,7 @@ import { GameObject } from "../engine/GameObject.js";
 
 export class Ballon extends GameObject {
     /**
-    * 
-    * @typedef {{
-    *   import("../engine/GameObject.js").GameObjectType & {
-    *   owner: GameObject,
-    *   maxLifetime: number
-    * }} BallonType
-    * @param {BallonType} options
+    * @param {import("../types/types.js").BallonType} options
     */
     constructor(options = {}) {
         const direction = options.direction ?? { x: 0, y: 1 };

@@ -1,5 +1,6 @@
 import { getCollider } from "../engine/GetColliders.js";
 import { getAnchor } from "../mathh/GetAnchor.js";
+import Canvas from "../settings/Canvas.js";
 import { shapes } from "../settings/shapes.js";
 
 /**
@@ -8,30 +9,18 @@ import { shapes } from "../settings/shapes.js";
 export class HitBox{
     /**
      * Classe para detectar colisões
-     * @param {{
-     * owner: GameObject
-     * showHitbox: boolean, 
-     * offSetHitbox: {x: number, y: number}, 
-     * anchorHitBox: {x: number, y: number}, 
-     * shape: shapes
-     * }} options 
+     * @param {import("../types/types.js").HitBoxType} options 
      */
     constructor({owner, showHitbox, offSetHitbox, anchorHitBox, shape}={}){
         this.showHitbox = showHitbox || false;
         this.offSetHitbox = offSetHitbox || {x: 0, y: 0};
         this.anchorHitBox = anchorHitBox || {x: 0, y:0};
         this.owner = owner || null;
-        this.ctx = this.owner?.canvas.getContext("2d") || null;
         this.sortLayer = this.owner?.sortLayer || 1;
         this.shape = shape || shapes.BOX;
-        /**
-         * Importação feita nesse modelo para evitar erro de referencia circular.
-         * @typedef {import("../engine/GameObject.js").GameObject} GameObject
-         * @typedef {import("../engine/Item/PickupItem.js").PickupItem} PickupItem
-        */
 
         /**
-         * @type {GameObject[] | PickupItem[]}
+         * @type {import("../types/types.js").GameObjectInstance[] | import("../types/types.js").PickupItemInstance[]}
         */
         this.hit = [];//GameObjects Colididos
         this.collision = this.owner?.collision || false;
@@ -52,10 +41,10 @@ export class HitBox{
         const scaledHeight = this.owner.height * this.owner.scale;
 
         //offSetHit e anchorHit vem em pixel e precisa ser convertido para tile.
-        const anchorTileX = this.anchorHitBox.x / this.owner.gridSize;
-        const anchorTileY = this.anchorHitBox.y / this.owner.gridSize;
-        const offSetX = this.offSetHitbox.x / this.owner.gridSize;
-        const offSetY = this.offSetHitbox.y / this.owner.gridSize;
+        const anchorTileX = this.anchorHitBox.x / Canvas.getGridsize();
+        const anchorTileY = this.anchorHitBox.y / Canvas.getGridsize();
+        const offSetX = this.offSetHitbox.x / Canvas.getGridsize();
+        const offSetY = this.offSetHitbox.y / Canvas.getGridsize();
 
         if(this.shape === "circle"){
             return {
@@ -83,25 +72,25 @@ export class HitBox{
     draw() {
         const hitbox = this.getHit();
 
-        if (this.showHitbox && this.ctx) {
+        if (this.showHitbox) {
             if(this.shape === "circle"){
-                this.ctx.strokeStyle = 'red';
-                this.ctx.beginPath();
-                this.ctx.arc(
-                    hitbox.x * this.owner.gridSize, 
-                    hitbox.y * this.owner.gridSize, 
-                    hitbox.radius * this.owner.gridSize, 
+                Canvas.getContext().strokeStyle = 'red';
+                Canvas.getContext().beginPath();
+                Canvas.getContext().arc(
+                    hitbox.x * Canvas.getGridsize(), 
+                    hitbox.y * Canvas.getGridsize(), 
+                    hitbox.radius * Canvas.getGridsize(), 
                     0, 
                     2 * Math.PI,
                 );
-                this.ctx.stroke();
+                Canvas.getContext().stroke();
             }else{
-                this.ctx.strokeStyle = 'red';
-                this.ctx.strokeRect(
-                    (hitbox.x * this.owner.gridSize), 
-                    (hitbox.y * this.owner.gridSize), 
-                    (hitbox.width * this.owner.gridSize), 
-                    (hitbox.height * this.owner.gridSize)
+                Canvas.getContext().strokeStyle = 'red';
+                Canvas.getContext().strokeRect(
+                    (hitbox.x * Canvas.getGridsize()), 
+                    (hitbox.y * Canvas.getGridsize()), 
+                    (hitbox.width * Canvas.getGridsize()), 
+                    (hitbox.height * Canvas.getGridsize())
                 );
             }
         }

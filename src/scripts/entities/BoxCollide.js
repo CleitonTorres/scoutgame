@@ -1,29 +1,22 @@
-import { GameObject } from "../engine/GameObject.js";
 import { getCollider } from "../engine/GetColliders.js";
+import Canvas from "../settings/Canvas.js";
 import { shapes } from "../settings/shapes.js";
 
 export class Collide{
     /**
      * Classe para detectar obstaculos
-     * @param {{
-     * owner: GameObject
-     * showBoxCollide: boolean, 
-     * offSetBoxCollide: {x: number, y: number}, 
-     * anchorBoxCollide: {x: number, y: number}, 
-     * shape: shapes
-     * }} options 
+     * @param {import("../types/types.js").BoxCollideType} options 
      */
     constructor({owner, showBoxCollide, offSetBoxCollide, anchorBoxCollide, shape}={}){
         this.showBoxCollide = showBoxCollide || false;
         this.offSetBoxCollide = offSetBoxCollide || {x: 0, y: 0};
         this.anchorBoxCollide = anchorBoxCollide || {x: 0, y:0};
         this.owner = owner || null;
-        this.ctx = this.owner?.canvas.getContext("2d") || null;
         this.sortLayer = this.owner?.sortLayer || 1;
         this.shape = shape || shapes.BOX;
 
         /**
-         * @type {GameObject[] | import("../engine/Item/PickupItem.js").PickupItem[]}
+         * @type {import("../types/types.js").GameObjectInstance[] | import("../engine/Item/PickupItem.js").PickupItem[]}
         */
         this.hit = [];
         this.collision = this.owner?.collision || false;
@@ -64,13 +57,13 @@ export class Collide{
     draw() {
         const boxCollide = this.getHit(true);
 
-        if (this.showBoxCollide && this.ctx) {
-            this.ctx.strokeStyle = 'blue';
-            this.ctx.strokeRect(
-                (boxCollide.x * this.owner.gridSize), 
-                (boxCollide.y * this.owner.gridSize), 
-                (boxCollide.width * this.owner.gridSize), 
-                (boxCollide.height * this.owner.gridSize)
+        if (this.showBoxCollide) {
+            Canvas.getContext().strokeStyle = 'blue';
+            Canvas.getContext().strokeRect(
+                (boxCollide.x * Canvas.getGridsize()), 
+                (boxCollide.y * Canvas.getGridsize()), 
+                (boxCollide.width * Canvas.getGridsize()), 
+                (boxCollide.height * Canvas.getGridsize())
             );
         }
     }

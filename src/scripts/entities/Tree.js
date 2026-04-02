@@ -6,6 +6,10 @@ import { FloatingLabel } from "../tools/DrawLabel.js";
  * Classe de objetos staticos especialmente árvores e plantas.
 */
 export class Tree extends GameObject {
+    /**
+     * 
+     * @param {import("../types/types.js").GameObjectType} options 
+     */
     constructor(options = {}) {        
         super({...options});
          this.floatingLabel = new FloatingLabel({text: `${this.x}-${this.y}`});
@@ -13,8 +17,8 @@ export class Tree extends GameObject {
 
     /**
      * 
-     * @param {import("../engine/SpatialHashGrid.js").SpatialHashGrid} _grid 
-     * @param {import("../settings/Game.js").Game} _game
+     * @param {import("../types/types.js").SpatialHashGridInstance} _grid 
+     * @param {import("../types/types.js").GameInstance} _game
      * @param {{width: number, height: number}} worldTransform 
      * @returns 
      */
@@ -36,8 +40,8 @@ export class Tree extends GameObject {
             super.draw();
             //this.floatingLabel.draw(Canvas.getContext(), this);
         }else{
-            const ctx = this.canvas.getContext('2d');
-            const size = this.gridSize;
+            const ctx = Canvas.getContext();
+            const size = Canvas.getGridsize();
 
             const pixelX = this.x * size;
             const pixelY = this.y * size;

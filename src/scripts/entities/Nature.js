@@ -4,14 +4,18 @@ import { GameObject } from "../engine/GameObject.js";
  * Classe de objetos staticos especialmente árvores e plantas.
 */
 export class Nature extends GameObject {
+    /**
+     * 
+     * @param {import("../types/types.js").GameObjectType} options 
+     */
     constructor(options = {}) {        
         super({...options});
     }    
 
     /**
      * 
-     * @param {import("../engine/SpatialHashGrid.js").SpatialHashGrid} _grid 
-     * @param {import("../settings/Game.js").Game} _game
+     * @param {import("../types/types.js").SpatialHashGridInstance} _grid 
+     * @param {import("../types/types.js").GameInstance} _game
      * @param {{width: number, height: number}} worldTransform 
      * @returns 
      */

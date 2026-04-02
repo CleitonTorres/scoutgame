@@ -1,29 +1,24 @@
-import { CharacterController } from "../engine/CharacterController.js";
 import { setFacingDirection } from "../engine/FacingDirectio.js";
 import { GameObject } from "../engine/GameObject.js";
 import { SpatialHashGrid } from "../engine/SpatialHashGrid.js";
 import { tags } from "../settings/tags.js";
 import { typesProgQuest } from "../settings/typesProgressQuest.js";
-import { UIManager } from "../settings/UIManager.js";
 import { FloatingLabel } from "../tools/DrawLabel.js";
 import Canvas from "../settings/Canvas.js";
 
 /**
- * @typedef {import("../settings/Game.js").Game} Game
- * @typedef {import("../engine/Inventory.js").Inventory} Inventory
- * @typedef {import("../engine/Item/PickupItem.js").PickupItem} PickupItem 
- */
+* Classe que representa o jogador controlado pelo usuário.
+* Ela herda de GameObject, então tem todas as propriedades e métodos básicos de um objeto do jogo.
+* O Player tem um inventário, pontos de vida (hp), direção que está enfrentando, quantidade de ouro e um rótulo flutuante com seu nome.
+*/
 export class Player extends GameObject {
     /**
-    * @param {{
-    *   hud?: UIManager,
-    *   inventory?: Inventory,
-    *   controller?: CharacterController
-    * }} options
+    * @param {import("../types/types.js").PlayerType} options
     */
     constructor(options= {}) {        
         super({...options});
-        this.inventory = options?.inventory || null;
+        
+        this.inventory = options?.inventory ?? null;
         this.hp = 100; //vida do personagem.
         this.facingDirection = { x: 0, y: 1 };
         this.gold = 0;
