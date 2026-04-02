@@ -8,5 +8,6 @@ export const tags = Object.freeze({
     TREE: "Tree",
     BALLON: "Ballon",
     BUILD: "build",
-    NATURE: "nature"
+    NATURE: "nature",
+    ENEMY: "enemy",
 })

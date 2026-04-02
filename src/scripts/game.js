@@ -25,7 +25,7 @@ const spatialGrid = new SpatialHashGrid(2);
 
 //objetos em cena.
 const initialScene = new InitialScene();
-const objects = initialScene.getObjects();
+const objects = await initialScene.getObjects();
 const worldObjects = objects;
 
 //esconde a mensagem de "carregando ..."

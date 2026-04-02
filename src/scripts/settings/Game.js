@@ -3,8 +3,6 @@ import { QuestSystem } from "../engine/Quest/QuestSystem.js";
 import { shooter } from "../engine/Shooter.js";
 import AssetManager from "./AssetsManager.js";
 import Canvas from "./Canvas.js";
-import { EventBus } from "./EventBus.js";
-import { InputManager } from "./InputManager.js";
 import { tags } from "./tags.js";
 
 /**
@@ -18,14 +16,7 @@ import { tags } from "./tags.js";
 export class Game {
     /**
      * Objeto Game
-     * @param {{
-        * grid: SpatialHashGrid,
-        * uiManager: UIManager,
-        * inputManager: InputManager,
-        * eventBus: EventBus,
-        * worldObjects: GameObject[],
-        * worldTransform: {width: number, height: number} - largura e altura do mundo.
-     * }} option 
+     * @param {import("../types/types.js").GameType} option 
      */
     constructor({
         spatialGrid,

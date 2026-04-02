@@ -75,6 +75,5 @@ export class CharacterController {
      */
     update(inputs){
         this.input = inputs.state;
-        console.log(this.input);
     }
 }

@@ -15,12 +15,16 @@ import { Player } from "../entities/Player.js";
 import { behaviors } from "../settings/behaviors.js";
 import { CharacterController } from "../engine/CharacterController.js";
 import { Inventory } from "../engine/Inventory.js";
+import { boxVsBox, isSimpleOverlapping } from "../engine/IsSimpleOverlapping.js";
 
 /**
  * Classe InitialScene
  * Responsável por criar e retornar os objetos da cena inicial.
  */
 export class InitialScene {
+    /**
+     * Construtor da classe InitialScene. Aqui podemos definir configurações iniciais, como os pontos de patrulha para NPCs, o tamanho do mundo, etc.
+     */
     constructor() {        
         // Pontos para simulação de caminhada de NPC.
         this.patrolPoints = [
@@ -31,6 +35,9 @@ export class InitialScene {
             { x: 5, y: 8 },
         ];
 
+        /**
+         * @type {import("../engine/GameObject.js").GameObject[]}
+         */
         this.objects = [];
 
         // Pegamos o tamanho total do mundo (ex: 5000x5000)
@@ -43,22 +50,23 @@ export class InitialScene {
      * Cria e retorna a lista de objetos da cena.
      * Este método deve ser chamado APÓS o AssetManager.loadAll().
      */
-    getObjects() {        
+    async getObjects() {        
         this.objects = [
-            ...this._createWalls(),
-            ...this._createTrees(),
-            ...this._createItems(),
-            ...this._creatBuilds(),
-            ...this._createNature(),
-            ...this._createPlayer(),
-            ...this._createNPCs(),
+            ...await this._createWalls(),
+            ...await this._createTrees(),
+            ...await this._createItems(),
+            ...await this._creatBuilds(),
+            ...await this._createNature(),
+            ...await this._createPlayer(),
+            ...await this._createNPCs(),
+            ...await this._createEnemies(),
         ];
 
         return this.objects;
     }
 
-    _createPlayer() {
-        const player = {
+    async _createPlayer() {
+        const player = new Player({
             name: "Cleitinho",
             tag: tags.PLAYER,
             physical:{
@@ -89,18 +97,22 @@ export class InitialScene {
             sortLayer: layers.underFloor,
             state: "idle",
             animation: AssetManager.getAnimation("player.lipe"),
-        };
-        if(this.objects.some(o=> o.position.x === player.position.x && o.position.y === player.position.y )){
-            console.warn("Player spawn colliding with another object! Adjusting position...");
-            player.position.x += 1; // Move o player 1 tile para a direita
-        };
+        });
+
+        this.objects.forEach(o=> {            
+            if(isSimpleOverlapping(player, o)){
+                console.warn("Player spawn colliding with another object! Adjusting position...");
+                player.x = o.x + o.width + 1; // Move o player 1 tile para a direita
+            };
+        });
 
         return [
-            new Player(player)
+            player
         ];
     }
-    _createNPCs() {
-        return [
+
+    async _createNPCs() {
+        const npcs = [
             new NPC({
                 name: "Baloo !",
                 tag: tags.NPC_quest,
@@ -150,9 +162,69 @@ export class InitialScene {
                 animation: AssetManager.getAnimation("npc.bp"),
             })
         ];
+
+        return npcs.map(npc => {
+            for(let o of this.objects){
+                if(isSimpleOverlapping(npc, o)){
+                    console.warn("NPC spawn colliding with another object! Adjusting position...");
+                    npc.x = o.x + o.width + 1; // Move o NPC 1 tile para a direita
+                };
+            }
+
+            return npc
+        });
     }
 
-    _createWalls() {
+    async _createEnemies() {
+        const configs = {
+            name: "Slime Red",
+            tag: tags.ENEMY,
+            autoPatrol: true,
+            transform: { width: 1, height: 1, scale: 1 },
+            physical: { behavior: "dynamic", collision: true, mass: 5, smooth: 6, speed: 2 },
+            hitboxes: [{ 
+                offSetHitbox: { x: 10, y: 20 }, 
+                anchorHitBox: { x: 0, y: 20 }, 
+                showHitbox: false 
+            }],
+            collides: [{ 
+                offSetBoxCollide: { x: 25, y: 25 }, 
+                anchorBoxCollide: { x: 0, y: 25 }, 
+                showBoxCollide: false 
+            }],
+            showShadow: true,
+            sortLayer: layers.underFloor,
+            state: "idle",
+            sprite: AssetManager.getImage(`img.slime_red`),
+            animation: AssetManager.getAnimation("enemy.red"),
+        };
+
+        const objs = [];
+        const spawnChance = 0.01; // 1% de chance de nascer algo em cada tile
+
+        for (let y = 0; y < this.rows; y++) {
+            for (let x = 0; x < this.cols; x++) {
+                // Sorteio: se o número for menor que a chance, criamos o objeto
+                if (Math.random() < spawnChance) {                    
+                    // Adicionamos um pequeno "jitter" (deslocamento aleatório) 
+                    // para não ficar tudo perfeitamente alinhado no grid
+                    const offsetX = (Math.random() - 0.5) * 0.8;
+                    const offsetY = (Math.random() - 0.5) * 0.8;
+
+                    if(this.objects.some(o=> boxVsBox({ x, y, width: configs.transform.width, height: configs.transform.height }, o) )) continue;
+
+                    objs.push(new NPC({ 
+                        ...configs, 
+                        position: { x: x + offsetX, y: y + offsetY },
+                    }));
+                }
+            }
+        }
+
+        return objs;
+    }
+
+    async _createWalls() {
         const wallConfig = { 
             tag: tags.WALL, 
             sortLayer: layers.underFloor, 
@@ -198,7 +270,7 @@ export class InitialScene {
                     const offsetX = (Math.random() - 0.5) * 0.8;
                     const offsetY = (Math.random() - 0.5) * 0.8;
 
-                    if(this.objects.some(o=> o.position.x === x && o.position.y === y )) continue;
+                    if(this.objects.some(o=> boxVsBox({ x, y, width: wallConfig2.transform.width, height: wallConfig2.transform.height }, o) )) continue;
 
                     objs.push(new Wall({ 
                         ...wallConfig2, 
@@ -233,11 +305,12 @@ export class InitialScene {
         ];
     }
 
-    _createTrees() {
+    async _createTrees() {
         const treeConfigs = { 
             tag: tags.TREE, 
             sortLayer: layers.underFloor, 
             physical: { collision: true }, 
+            transform: { width: 1, height: 1, scale: 1 },
             showShadow: true, 
             state: "move", 
             hitboxes: [{ 
@@ -267,7 +340,7 @@ export class InitialScene {
                     const offsetX = (Math.random() - 0.5) * 0.8;
                     const offsetY = (Math.random() - 0.5) * 0.8;
 
-                    if(this.objects.some(o=> o.position.x === x && o.position.y === y )) continue;
+                    if(this.objects.some(o=> boxVsBox({ x, y, width: treeConfigs.transform.width, height: treeConfigs.transform.height }, o) )) continue;
 
                     objs.push(new Tree({ 
                         ...treeConfigs, 
@@ -383,7 +456,7 @@ export class InitialScene {
         ];
     }
 
-    _createItems() {
+    async _createItems() {
         const appleConfig = { 
             visible: false, 
             sortLayer: layers.underFloor,
@@ -416,7 +489,7 @@ export class InitialScene {
         ];
     }
 
-    _creatBuilds(){
+    async _creatBuilds(){
         const BuildConfig = { 
             tag: tags.BUILD, 
             sortLayer: layers.underFloor, 
@@ -458,7 +531,7 @@ export class InitialScene {
         ];
     }
 
-    _createNature() {
+    async _createNature() {
         const natureConfig = { 
             tag: tags.NATURE, 
             sortLayer: layers.ground, 
@@ -481,7 +554,7 @@ export class InitialScene {
                     const offsetX = (Math.random() - 0.5) * 0.8;
                     const offsetY = (Math.random() - 0.5) * 0.8;
 
-                    if(this.objects.some(o=> o.position.x === x && o.position.y === y )) continue;
+                    if(this.objects.some(o=> boxVsBox({ x, y, width: natureConfig.transform.width, height: natureConfig.transform.height }, o) )) continue;
 
                     objs.push(new Nature({ 
                         ...natureConfig, 

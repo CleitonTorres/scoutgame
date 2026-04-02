@@ -3,6 +3,8 @@
  * @typedef {import("../entities/NPC.js").NPC} NPC
 */
 
+import { getAnchor } from "../mathh/GetAnchor.js";
+
 export class NPCController {
     /**
      * Controlador de movimento e estado do NPC.
@@ -34,17 +36,45 @@ export class NPCController {
         this.changeDirTimer = 0;
         this.isBlocked = false;
         this.blockTimer = 0;
+
+        // --- IA de Inimigo ---
+        this.detectionRange = 4; // Distância em tiles para detectar o player
+        this.attackRange = 0.4;    // Distância em tiles para atacar
+        this.isChasing = false;
+        this.isAttacking = false;
+        this.target = null;      // Referência ao player
     }
 
-    update() {
-        if (!this.points.length) return;
+    /**
+     * 
+     * @param {import("../settings/Game.js").Game} game 
+     * @returns 
+     */
+    update(game) {
+        // 1. Se for um inimigo, tenta detectar o player
+        if (this.entity.tag === "enemy" && game?.getActivePlayer()) {
+            this._updateEnemyAI(game.getActivePlayer());
+            
+            // Se estiver atacando, não se move
+            if (this.isAttacking) {
+                this.inputX = 0;
+                this.inputY = 0;
+                return;
+            }
+
+            // Se estiver perseguindo, a lógica de patrulha é ignorada
+            if (this.isChasing) return;
+        }
+
+        // 2. Se não for inimigo ou não detectou o player, segue a lógica normal de patrulha
+        if (!this.points.length && !this.autoPatrol) return;
 
         // 2. Opcional: Mudar de direção aleatoriamente de tempos em tempos (apenas se não tiver pontos de patrulha fixos)
-        if (this.points.length === 0) {
+        if (this.autoPatrol && !this.points.length) {
             this.changeDirTimer++;
             if (this.changeDirTimer > 200) {
                 this.changeDirection();
-                this.changeDirTimer = 0;
+                this.changeDirTimer = 0;                
             }
             return;
         }
@@ -77,6 +107,53 @@ export class NPCController {
         }
     }
 
+    /**
+     * Lógica interna para comportamento de inimigo
+     * @param {import("../types/types.js").PlayerInstance} player
+     */
+    _updateEnemyAI(player) {
+        const hitboxEntity = this.entity.collides[0]?.getHit(true);
+        const hitboxPlayer = player.collides[0]?.getHit(true);
+        if (!hitboxEntity || !hitboxPlayer) return; // Se não tiver hitbox, não faz nada
+
+        // Calcula o centro de ambos os hitboxes para uma detecção mais precisa
+        const centerEntity = getAnchor(hitboxEntity, "center");        
+        const centerPlayer = getAnchor(hitboxPlayer, "center");
+        
+        // Calcula a distância entre o NPC e o player
+        const dx = centerPlayer.x - centerEntity.x;
+        const dy = centerPlayer.y - centerEntity.y;
+        const distance = Math.hypot(dx, dy); // distância em tiles (assumindo que 1 tile = 1 unidade de distância)
+
+        // Reset de estados
+        this.isAttacking = false;
+
+        // 1. Checa se deve atacar (muito perto)
+        if (distance <= this.attackRange) {
+            this.isAttacking = player.x >= this.entity.x ? 'attackRight' : 'attackLeft'; // Ataca para a direção do player
+            this.isChasing = false;
+            return;
+        }
+
+        // 2. Checa se deve perseguir (dentro do campo de visão)
+        if (distance <= this.detectionRange) {
+            this.isChasing = true;
+            
+            // Move em direção ao player
+            const length = distance || 1;
+            this.inputX = dx / length;
+            this.inputY = dy / length;
+
+            // Olha para o player
+            if (Math.abs(this.inputX) > 0.01) {
+                this.entity.facing = this.inputX > 0 ? 1 : -1;
+            }
+        } else {
+            // Perdeu o player de vista
+            this.isChasing = false;
+        }
+    }
+
     getMovement() {
         return {
             inputX: this.inputX,
@@ -85,6 +162,10 @@ export class NPCController {
     }
 
     getState() {
+        if (this.isAttacking) {
+            if(this.inputX >= 0) return this.isAttacking;
+        };
+
         const moving =
             Math.abs(this.inputX) > 0.01 ||
             Math.abs(this.inputY) > 0.01;
@@ -103,7 +184,7 @@ export class NPCController {
      */
     onCollision() {
         if (!this.isBlocked) {
-            console.log(`${this.name} bloqueado fisicamente!, mudando de direção.`);
+            console.log(`${this.entity.name} bloqueado fisicamente!, mudando de direção.`);
             this.isBlocked = true;
             this.changeDirection();
         }
@@ -114,7 +195,6 @@ export class NPCController {
      */
     changeDirection() {
         if (this.points.length > 0) {
-            console.log(`${this.entity.name} colidiu! Indo para próximo ponto de patrulha.`);
             // Se tem pontos de patrulha, pula para o próximo ponto ao colidir
             this.currentPoint = (this.currentPoint + 1) % this.points.length;
         } else {
@@ -126,6 +206,11 @@ export class NPCController {
             const newDir = directions[Math.floor(Math.random() * directions.length)];
             this.inputX = newDir.x;
             this.inputY = newDir.y;
+
+            // Atualiza direção do sprite (facing)
+            if (Math.abs(this.inputX) > 0.01) {
+                this.entity.facing = this.inputX > 0 ? 1 : -1;
+            }
         }
     }    
 }

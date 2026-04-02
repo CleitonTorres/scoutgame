@@ -3,44 +3,10 @@ import { AnimationController } from "./AnimatorController.js";
 import { HitBox } from "../entities/Hitbox.js";
 import { Collide } from "../entities/BoxCollide.js";
 import { tags } from "../settings/tags.js";
-import { layers } from "../settings/layers.js";
 import { behaviors } from "../settings/behaviors.js";
 import { Shadow } from "./Shadow.js";
 import Canvas from "../settings/Canvas.js";
 
-/**
- * @typedef {{
-    *  name: string,
-    *  tag: tags,
-    *  sortLayer: layers,
-    *  visible: boolean,
-    *  transform: {
-    *    width: number,
-    *    height: number,
-    *    scale: number
-    *  },
-    *  position: {x: number, y: number},
-    *  physical: {
-    *    behavior: behaviors,
-    *    speed: number,
-    *    mass: number,
-    *    collision: boolean,
-    *    smooth: number
-    *  },
-    *  state: string,
-    *  controller: import("./NPCController.js").NPCController | import("./CharacterController.js").CharacterController,
-    *  animator?: AnimationController,
-    *  sprite?: HTMLImageElement,
-    *  animation?: {
-    *   [anim: string]: {
-    *        frames: [];
-    *        fps: number;
-    *        loop: boolean;
-    *  }},
-    *  hitboxes: HitBox[],
-    *  collides: Collide[],
-    * }} GameObjectType
- */
 /**
  * GameObject
  * ----------
@@ -57,7 +23,7 @@ import Canvas from "../settings/Canvas.js";
 export class GameObject {
     /**
     * 
-    * @param {GameObjectType} options 
+    * @param {import("../types/types.js").GameObjectType} options 
     */
     constructor(options = {}) {
         const {
@@ -325,7 +291,7 @@ export class GameObject {
             })
         }
 
-        if(this.tag === tags.NPC && this.controller.points?.length){
+        if([tags.NPC, tags.ENEMY].includes(this.tag)  && this.controller.points?.length){
             this.controller.onCollision();            
         }
 

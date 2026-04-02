@@ -19,6 +19,10 @@ class AssetManager {
     static async loadAnimation(key, paths, fps = 6, loop = true) {
         // Assume que loadAnimations é uma função global ou importada
         const animation = await loadAnimations(paths, fps, loop);
+        if(animation["attackRight"]){
+            animation["attackRight"].fps = 10;
+            animation["attackLeft"].fps = 10;
+        }
         if(animation) {
             AssetManager.#animations.set(key, animation);
             return true;
@@ -100,6 +104,13 @@ class AssetManager {
             isLoaded = await AssetManager.loadAnimation(`obj.${tree}`, paths, randomFps, true);
         }
 
+        // ENEMIES
+        const enemies = ['green', 'red', 'blue'];
+        for (const enemy of enemies) {
+            const paths = createEnemiesManifest("./src/assets/characters/slime/", enemy);
+            isLoaded = await AssetManager.loadAnimation(`enemy.${enemy}`, paths, 4, true);
+        }
+
         // SPRITES (IMAGENS ESTÁTICAS)
         const spritesUrl = [
             {key: "apple_01", path: "./src/assets/objects/forest-pack-sprites/apple_01.png"},
@@ -111,6 +122,7 @@ class AssetManager {
             {key: "nature4", path: "./src/assets/objects/overworld/nature4.png"},
             {key: "home0", path: "./src/assets/objects/overworld/home0.png"},
             {key: "home1", path: "./src/assets/objects/overworld/home1.png"},
+            {key: "slime_red", path: "./src/assets/characters/slime/red/idle/right/0.png"},
         ]
         for (const sprite of spritesUrl){
             isLoaded = await AssetManager.loadImage(`img.${sprite.key}`, sprite.path)
@@ -259,4 +271,103 @@ export function creatObjectManifest(path, name){
     }
 
     return pathMonted;
+}
+
+export function createEnemiesManifest(path, npc){
+    const paths = {
+        idle: [
+            `${path}${npc}/idle/right/0.png`,
+            `${path}${npc}/idle/right/1.png`,
+            `${path}${npc}/idle/right/2.png`,
+            `${path}${npc}/idle/right/3.png`,
+            `${path}${npc}/idle/right/4.png`,
+            `${path}${npc}/idle/right/5.png`,
+            `${path}${npc}/idle/right/6.png`,
+            `${path}${npc}/idle/right/7.png`,
+        ],
+        idleLeft: [
+            `${path}${npc}/idle/left/0.png`,
+            `${path}${npc}/idle/left/1.png`,
+            `${path}${npc}/idle/left/2.png`,
+            `${path}${npc}/idle/left/3.png`,
+            `${path}${npc}/idle/left/4.png`,
+            `${path}${npc}/idle/left/5.png`,
+            `${path}${npc}/idle/left/6.png`,
+            `${path}${npc}/idle/left/7.png`,
+        ],
+        walkUp: [
+            `${path}${npc}/walk/up/0.png`,
+            `${path}${npc}/walk/up/1.png`,
+            `${path}${npc}/walk/up/2.png`,
+            `${path}${npc}/walk/up/3.png`,
+            `${path}${npc}/walk/up/4.png`,
+            `${path}${npc}/walk/up/5.png`,
+            `${path}${npc}/walk/up/6.png`,
+            `${path}${npc}/walk/up/7.png`,
+        ],
+        walkDown: [
+            `${path}${npc}/walk/down/0.png`,
+            `${path}${npc}/walk/down/1.png`,
+            `${path}${npc}/walk/down/2.png`,
+            `${path}${npc}/walk/down/3.png`,
+            `${path}${npc}/walk/down/4.png`,
+            `${path}${npc}/walk/down/5.png`,
+            `${path}${npc}/walk/down/6.png`,
+            `${path}${npc}/walk/down/7.png`,
+        ],
+        walkLeft: [
+            `${path}${npc}/walk/left/0.png`,
+            `${path}${npc}/walk/left/1.png`,
+            `${path}${npc}/walk/left/2.png`,
+            `${path}${npc}/walk/left/3.png`,
+            `${path}${npc}/walk/left/4.png`,
+            `${path}${npc}/walk/left/5.png`,
+            `${path}${npc}/walk/left/6.png`,
+            `${path}${npc}/walk/left/7.png`,
+        ],
+        walkRight: [
+            `${path}${npc}/walk/right/0.png`,
+            `${path}${npc}/walk/right/1.png`,
+            `${path}${npc}/walk/right/2.png`,
+            `${path}${npc}/walk/right/3.png`,
+            `${path}${npc}/walk/right/4.png`,
+            `${path}${npc}/walk/right/5.png`,
+            `${path}${npc}/walk/right/6.png`,
+            `${path}${npc}/walk/right/7.png`,
+        ],
+        attackRight:[
+            `${path}${npc}/attack/right/0.png`,
+            `${path}${npc}/attack/right/1.png`,  
+            `${path}${npc}/attack/right/2.png`,
+            `${path}${npc}/attack/right/3.png`,
+            `${path}${npc}/attack/right/4.png`,
+            `${path}${npc}/attack/right/5.png`,
+            `${path}${npc}/attack/right/6.png`,
+            `${path}${npc}/attack/right/7.png`,
+            `${path}${npc}/attack/right/8.png`,
+            `${path}${npc}/attack/right/9.png`,
+            `${path}${npc}/attack/right/10.png`,
+            `${path}${npc}/attack/right/11.png`,
+            `${path}${npc}/attack/right/12.png`,
+            `${path}${npc}/attack/right/13.png`,
+        ],
+        attackLeft:[
+            `${path}${npc}/attack/left/0.png`,
+            `${path}${npc}/attack/left/1.png`,  
+            `${path}${npc}/attack/left/2.png`,
+            `${path}${npc}/attack/left/3.png`,
+            `${path}${npc}/attack/left/4.png`,
+            `${path}${npc}/attack/left/5.png`,
+            `${path}${npc}/attack/left/6.png`,
+            `${path}${npc}/attack/left/7.png`,
+            `${path}${npc}/attack/left/8.png`,
+            `${path}${npc}/attack/left/9.png`,
+            `${path}${npc}/attack/left/10.png`,
+            `${path}${npc}/attack/left/11.png`,
+            `${path}${npc}/attack/left/12.png`,
+            `${path}${npc}/attack/left/13.png`,
+        ],
+    };
+      
+    return paths;
 }

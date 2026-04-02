@@ -1,9 +1,8 @@
-import { GameObject } from "../engine/GameObject.js";
 import { anchorsPoints } from "../settings/anchorsPoints.js";
 
 /**
  * Pega um ponto de ancoragem de um gameObjeto.
- * @param {GameObject} entity - objeto o qual quer-se pegar o centro.
+ * @param {import("../types/types.js").GameObjectInstance} entity - objeto o qual quer-se pegar o centro.
  * @param {number} gridSize - medida do tile.
  * @param {anchorsPoints} anchor - âncora desejada:
  * topLeft, topCenter, topRight,

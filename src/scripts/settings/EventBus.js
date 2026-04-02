@@ -1,15 +1,7 @@
 /**
-* @typedef {{ 
-*   type: "fog" | "hitbox" | "camera" | "collider",
-*   value: boolean, 
-*   playerID: number,
-*   itemId: string,
-*   qtdItem?: number,  
-*   quests?: import("../engine/Quest/QuestInstance").QuestInstance[], 
-*   inventory?: import("../engine/Inventory").Inventory,
-* }} Payload 
-* @typedef {"itemCollected" | "defeatEnemy" | "questAccept" | "updateQuest" | "toggleDebug"} EventType
-* @typedef {(payload: Payload)=>void} Callback
+* @typedef {import("../types/types").PayloadEventBus} Payload 
+* @typedef {import("../types/types").EventTypeEventBus} EventType
+* @typedef {import("../types/types").CallbackEventBus} Callback
 */
 export class EventBus {
     /**
@@ -47,7 +39,7 @@ export class EventBus {
     /**
     *  
     * @param {{
-    *   event: EventType,
+    *   event:  EventType,
     *   payload: Payload
     * }} options 
     */
